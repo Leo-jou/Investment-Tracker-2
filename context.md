@@ -35,9 +35,13 @@ CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive
 
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from a live quote fetched on explicit asset selection. Quote lookup is transient and does not create assets until the transaction is saved; selected provider metadata and the submitted quote are then persisted with the transaction.
 
+Holdings sub-tabs now switch between position, price, financials, performance, risk, and technical table views. Portfolio distribution supports assets, asset types, and currency modes without donut labels, avoiding the previous 100x percentage display issue.
+
+Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
+
 Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup.
 
-Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Data, paired transfer support, dividend support, import/export, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Still missing or likely incomplete: DB-backed settings persistence, provider coverage beyond CoinGecko/Twelve Data, paired transfer support, dividend support, import/export, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
@@ -67,6 +71,7 @@ Recent commits:
 - Existing chart warning about Recharts initial `-1` dimensions was addressed by giving `ResponsiveContainer` numeric heights.
 - ESLint must ignore generated build/deployment folders such as `.next` and `.vercel`; this is configured in `eslint.config.mjs`.
 - Production provider probe on 2026-04-27 returned live Twelve Data quotes for SPY, VOO, XAU/USD, EUR/USD, NVDA, and MSFT, but AAPL returned unavailable. Treat provider quote coverage as best-effort and surface unavailable states clearly.
+- The local `.env.local` Neon URL currently fails authentication; production env values are sensitive in Vercel and cannot be pulled back locally. Avoid schema migrations until migration credentials or an approved migration path are available.
 
 <!-- context:auto:start:known-issues -->
 Generated TODO/FIXME scan:
@@ -89,8 +94,9 @@ Generated TODO/FIXME scan:
 1. Run `npm run context:update` after meaningful Codex work sessions.
 2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
 3. Run a manual browser Google login smoke test with an allowlisted Google account.
-4. Add paired transfer support once multiple portfolios are available.
-5. Continue UI iteration against the deployed app, keeping components modular and compact.
+4. Move settings preferences from browser storage into Neon once migration access is resolved.
+5. Add paired transfer support once multiple portfolios are available.
+6. Continue UI iteration against the deployed app, keeping components modular and compact.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:

@@ -25,7 +25,10 @@ export function PriceRefreshButton() {
 
     try {
       const response = await fetch("/api/prices/refresh", {
-        method: "POST"
+        method: "POST",
+        headers: {
+          "x-daily-snapshots-enabled": String(readDailySnapshotsEnabled())
+        }
       });
       const payload = (await response.json()) as Partial<RefreshResponse>;
 
@@ -68,4 +71,15 @@ export function PriceRefreshButton() {
       )}
     </div>
   );
+}
+
+function readDailySnapshotsEnabled() {
+  try {
+    const raw = window.localStorage.getItem("foliocore.preferences");
+    if (!raw) return true;
+    const parsed = JSON.parse(raw) as { dailySnapshotsEnabled?: boolean };
+    return parsed.dailySnapshotsEnabled !== false;
+  } catch {
+    return true;
+  }
 }

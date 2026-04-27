@@ -26,6 +26,14 @@ export type User = {
   email: string;
 };
 
+export type UserPreferences = {
+  defaultCurrency: Currency;
+  dailySnapshotsEnabled: boolean;
+  backupEmailEnabled: boolean;
+  backupEmail?: string;
+  dailyExportEnabled: boolean;
+};
+
 export type Portfolio = {
   id: string;
   name: string;

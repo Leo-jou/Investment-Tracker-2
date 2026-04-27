@@ -1,5 +1,6 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 
+import { normalizeEmail } from "@/lib/auth/email";
 import { convertCurrency, fallbackFxRates, toDisplayPair, type FxRateMap } from "@/lib/data/conversions";
 import { demoAssets, demoTransactions } from "@/lib/data/demo-seed";
 import { getDb } from "@/lib/db/client";
@@ -78,7 +79,7 @@ const bootstrapTimestamp = new Date("2026-04-27T00:00:00.000Z");
 
 export async function ensureUserWorkspace(email: string) {
   const db = getDb();
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
 
   const [user] = await db
     .insert(users)

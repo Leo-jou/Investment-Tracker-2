@@ -1,35 +1,15 @@
 import { CheckCircle2, CircleAlert } from "lucide-react";
 
 import { PageBackLink } from "@/components/layout/page-back-link";
+import { SettingsPreferences } from "@/components/settings/settings-preferences";
 import { Badge } from "@/components/ui/badge";
-import type { ApiStatus } from "@/lib/types";
+import { requireSessionEmail } from "@/lib/auth/session";
+import type { ApiStatus, UserPreferences } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const preferenceCards = [
-  {
-    title: "Default currency",
-    value: "USD",
-    detail: "Portfolio screens can still be toggled to EUR."
-  },
-  {
-    title: "Daily snapshots",
-    value: "On",
-    detail: "One portfolio snapshot per day after refresh."
-  },
-  {
-    title: "Backup email",
-    value: "Not set",
-    detail: "Placeholder for account recovery and exports."
-  },
-  {
-    title: "Daily export",
-    value: "Off",
-    detail: "Placeholder for email reports once notifications exist."
-  }
-];
-
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const email = await requireSessionEmail();
   const apiStatuses = buildApiStatuses();
 
   return (
@@ -42,21 +22,16 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {preferenceCards.map((item) => (
-          <div key={item.title} className="rounded-[8px] border border-[#2b2b2f] bg-black p-4">
-            <p className="text-sm text-zinc-500">{item.title}</p>
-            <p className="mt-3 text-2xl font-bold text-zinc-100">{item.value}</p>
-            <p className="mt-2 text-sm text-zinc-500">{item.detail}</p>
-          </div>
-        ))}
-      </section>
+      <SettingsPreferences accountEmail={email} initialPreferences={defaultPreferences} />
 
       <section className="rounded-[8px] border border-[#2b2b2f] bg-black p-4">
         <h2 className="text-2xl font-bold">Operational status</h2>
         <div className="mt-6 divide-y divide-[#202024]">
           {apiStatuses.map((status) => (
-            <div key={status.provider} className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
+            <div
+              key={status.provider}
+              className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between"
+            >
               <div className="flex items-center gap-3">
                 {status.configured ? (
                   <CheckCircle2 className="h-5 w-5 text-[#00c2a8]" />
@@ -79,11 +54,19 @@ export default function SettingsPage() {
   );
 }
 
+const defaultPreferences: UserPreferences = {
+  defaultCurrency: "USD",
+  dailySnapshotsEnabled: true,
+  backupEmailEnabled: false,
+  dailyExportEnabled: false
+};
+
 function buildApiStatuses(): ApiStatus[] {
   return [
     {
       provider: "Market prices",
-      configured: Boolean(process.env.COINGECKO_DEMO_API_KEY) && Boolean(process.env.TWELVE_DATA_API_KEY),
+      configured:
+        Boolean(process.env.COINGECKO_DEMO_API_KEY) && Boolean(process.env.TWELVE_DATA_API_KEY),
       purpose: "CoinGecko and Twelve Data provider access"
     },
     {

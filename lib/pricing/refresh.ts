@@ -29,6 +29,10 @@ type RefreshResult = {
   message: string;
 };
 
+type RefreshOptions = {
+  updatePortfolioSnapshots?: boolean;
+};
+
 type CoinGeckoSimplePrice = Record<
   string,
   {
@@ -50,7 +54,10 @@ type TwelveDataExchangeRate = {
   message?: string;
 };
 
-export async function refreshPortfolioData(email: string): Promise<RefreshResult> {
+export async function refreshPortfolioData(
+  email: string,
+  options: RefreshOptions = {}
+): Promise<RefreshResult> {
   const capturedAt = new Date();
   const refreshedAt = capturedAt.toISOString();
 
@@ -74,7 +81,10 @@ export async function refreshPortfolioData(email: string): Promise<RefreshResult
 
   const pricesUpdated = await insertPriceSnapshotsForRefresh(priceResults);
   const fxPairsUpdated = await insertFxSnapshotsForRefresh(fxResults);
-  const portfolioSnapshotsUpdated = await refreshCurrentPortfolioSnapshotsForEmail(email);
+  const portfolioSnapshotsUpdated =
+    options.updatePortfolioSnapshots === false
+      ? 0
+      : await refreshCurrentPortfolioSnapshotsForEmail(email);
 
   const providerKeysConfigured =
     Boolean(process.env.COINGECKO_DEMO_API_KEY) || Boolean(process.env.TWELVE_DATA_API_KEY);

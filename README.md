@@ -27,7 +27,10 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - BUY/SELL can auto-calculate total from quantity or quantity from total using a live quote fetched on explicit asset selection.
 - Search ranking prefers tradable Twelve Data stock/ETF results over tokenized CoinGecko securities for equity tickers, and curated aliases cover common searches like `S&P 500`, `XAU`, `gold`, `EURUSD`, and `Nasdaq 100`.
 - Transactions and manual positions can be edited inline and deleted from the UI with browser confirmation.
-- Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then persist snapshots and recalculate the current portfolio snapshot.
+- Holdings sub-tabs switch between position, price, financials, performance, risk, and technical column sets.
+- Portfolio distribution supports assets, asset types, and currency modes; chart labels are kept off the donut to avoid cramped or misleading percentages.
+- Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then optionally persist snapshots and recalculate the current portfolio snapshot.
+- Settings preferences are currently browser-persisted: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. DB-backed user preferences are deferred until migration access is clean.
 - Google OAuth is wired through Auth.js and configured in production; the existing email allowlist login remains as fallback.
 - Transfers are intentionally disabled in quick add until paired multi-portfolio transfer support exists.
 - Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, and oversell-safe position state.

@@ -306,7 +306,7 @@ export function QuickAddTransactionForm({
       <div className="mt-4 flex flex-wrap gap-2 text-xs text-zinc-500">
         <span className="flex items-center gap-1">
           <ArrowUpRight className="h-3 w-3 text-[#00c2a8]" />
-          Buy/Sell can derive total or quantity from the latest saved price.
+          Buy/Sell derives total or quantity from the selected live quote when available.
         </span>
         <span className="flex items-center gap-1">
           <ArrowDownLeft className="h-3 w-3 text-[#ff4d64]" />

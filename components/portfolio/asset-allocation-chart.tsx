@@ -34,6 +34,8 @@ export function AssetAllocationChart({
     positions,
     manualPositions
   );
+  const tableLabel =
+    mode === "Currency" ? "Currency" : mode === "Asset types" ? "Asset type" : "Asset";
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setIsMounted(true));
@@ -76,11 +78,6 @@ export function AssetAllocationChart({
                   innerRadius="43%"
                   outerRadius="74%"
                   paddingAngle={0}
-                  label={({ name, percent }) => {
-                    const percentage = (percent ?? 0) * 100;
-                    return percentage >= 3 ? `${name} ${percentage.toFixed(1)}%` : "";
-                  }}
-                  labelLine={false}
                 >
                   {visibleAllocations.map((slice) => (
                     <Cell key={slice.label} fill={slice.color} />
@@ -113,7 +110,7 @@ export function AssetAllocationChart({
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-[#2b2b2f] text-left text-zinc-500">
-                <th className="py-3 font-medium">Asset</th>
+                <th className="py-3 font-medium">{tableLabel}</th>
                 <th className="py-3 text-right font-medium">Holding value</th>
                 <th className="py-3 text-right font-medium">Allocation</th>
                 <th className="py-3 text-right font-medium">Unrealized gain</th>
@@ -185,10 +182,12 @@ function getAllocationsForMode(
   }));
   const total = slices.reduce((sum, slice) => sum + slice.value, 0);
 
-  return slices.map((slice) => ({
-    ...slice,
-    percent: total === 0 ? 0 : (slice.value / total) * 100
-  }));
+  return slices
+    .map((slice) => ({
+      ...slice,
+      percent: total === 0 ? 0 : (slice.value / total) * 100
+    }))
+    .sort((left, right) => right.value - left.value);
 }
 
 function addGroupedValue(

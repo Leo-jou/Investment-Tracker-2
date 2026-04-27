@@ -18,7 +18,7 @@ import type { DashboardData } from "@/lib/db/portfolio-repository";
 import type { Currency } from "@/lib/types";
 
 export function PortfolioWorkspace({ data }: { data: DashboardData }) {
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>(() => readStoredDefaultCurrency() ?? "USD");
   const [activeTab, setActiveTab] = useState<PortfolioTab>("Overview");
 
   return (
@@ -76,4 +76,16 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
       {activeTab === "Analysis" && <AnalysisPanels currency={currency} />}
     </div>
   );
+}
+
+function readStoredDefaultCurrency(): Currency | null {
+  try {
+    if (typeof window === "undefined") return null;
+    const raw = window.localStorage.getItem("foliocore.preferences");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { defaultCurrency?: string };
+    return parsed.defaultCurrency === "EUR" ? "EUR" : "USD";
+  } catch {
+    return null;
+  }
 }

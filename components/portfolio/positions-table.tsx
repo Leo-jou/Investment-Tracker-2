@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState, type ReactNode } from "react";
 import { MoreHorizontal, Search } from "lucide-react";
 
 import { AssetPill } from "@/components/portfolio/asset-pill";
@@ -12,9 +15,59 @@ type PositionsTableProps = {
   currency: Currency;
 };
 
+type HoldingView = "Position" | "Price" | "Financials" | "Performance" | "Risk" | "Technicals";
+
+type PositionRow = {
+  position: Position;
+  asset: Asset;
+  investedEur: number;
+  dailyGainEur: number;
+  volatilityEstimate: number;
+  betaEstimate: number;
+};
+
+type Column = {
+  key: string;
+  label: string;
+  align?: "left" | "right";
+  render: (row: PositionRow) => ReactNode;
+};
+
+const holdingViews: HoldingView[] = [
+  "Position",
+  "Price",
+  "Financials",
+  "Performance",
+  "Risk",
+  "Technicals"
+];
+
 export function PositionsTable({ positions, assets, currency }: PositionsTableProps) {
+  const [activeView, setActiveView] = useState<HoldingView>("Position");
+  const [displaySold, setDisplaySold] = useState(false);
   const fx = currency === "EUR" ? 1 : 1.077;
-  const assetById = new Map(assets.map((asset) => [asset.id, asset]));
+  const assetById = useMemo(() => new Map(assets.map((asset) => [asset.id, asset])), [assets]);
+  const rows = useMemo(
+    () =>
+      positions.flatMap((position) => {
+        const asset = assetById.get(position.assetId);
+        if (!asset) return [];
+        if (!displaySold && position.quantity <= 0) return [];
+
+        return [
+          {
+            position,
+            asset,
+            investedEur: position.marketValueEur - position.pnlEur,
+            dailyGainEur: position.marketValueEur * asset.change24hPercent * 0.01,
+            volatilityEstimate: Math.abs(asset.change24hPercent) * (asset.type === "CRYPTO" ? 6 : 3),
+            betaEstimate: estimateBeta(asset)
+          }
+        ];
+      }),
+    [assetById, displaySold, positions]
+  );
+  const columns = getColumns(activeView, currency, fx);
 
   return (
     <section>
@@ -22,28 +75,42 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
         <div>
           <h2 className="text-3xl font-bold">Total holdings</h2>
           <div className="mt-8 flex flex-wrap gap-3 text-lg">
-            {["Position", "Price", "Financials", "Performance", "Risk", "Technicals"].map(
-              (tab, index) => (
-                <button
-                  key={tab}
-                  type="button"
-                  className={cn(
-                    "rounded-[6px] px-4 py-2 text-zinc-300",
-                    index === 0 && "bg-[#2c2c2f] font-semibold text-white"
-                  )}
-                >
-                  {tab}
-                </button>
-              )
-            )}
+            {holdingViews.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveView(tab)}
+                className={cn(
+                  "rounded-[6px] px-4 py-2 text-zinc-300",
+                  activeView === tab && "bg-[#2c2c2f] font-semibold text-white"
+                )}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
         </div>
-        <label className="flex items-center gap-3 text-sm text-zinc-400">
+        <button
+          type="button"
+          aria-pressed={displaySold}
+          onClick={() => setDisplaySold((enabled) => !enabled)}
+          className="flex items-center gap-3 text-sm text-zinc-400"
+        >
           Display sold
-          <span className="flex h-6 w-11 items-center rounded-full bg-[#4a4a4d] p-1">
-            <span className="h-4 w-4 rounded-full bg-[#161616]" />
+          <span
+            className={cn(
+              "flex h-6 w-11 items-center rounded-full p-1",
+              displaySold ? "bg-[#00c2a8]" : "bg-[#4a4a4d]"
+            )}
+          >
+            <span
+              className={cn(
+                "h-4 w-4 rounded-full bg-[#161616] transition-transform",
+                displaySold && "translate-x-5"
+              )}
+            />
           </span>
-        </label>
+        </button>
       </div>
 
       <div className="overflow-x-auto tv-scrollbar">
@@ -55,62 +122,48 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
                   <Search className="h-6 w-6 text-zinc-200" strokeWidth={1.5} />
                   <span>
                     Symbol
-                    <span className="block text-xs text-zinc-400">{positions.length} holdings</span>
+                    <span className="block text-xs text-zinc-400">{rows.length} holdings</span>
                   </span>
                 </div>
               </th>
-              <th className="py-3 text-right font-medium">Allocation</th>
-              <th className="py-3 text-right font-medium">Qty</th>
-              <th className="py-3 text-right font-medium">Avg price</th>
-              <th className="py-3 text-right font-medium">Invested</th>
-              <th className="py-3 text-right font-medium">Unrealized gain</th>
-              <th className="py-3 text-right font-medium">Daily gain</th>
-              <th className="py-3 text-right font-medium">Total gain</th>
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  className={cn(
+                    "py-3 font-medium",
+                    column.align === "right" ? "text-right" : "text-left"
+                  )}
+                >
+                  {column.label}
+                </th>
+              ))}
               <th className="py-3 text-right font-medium" />
             </tr>
           </thead>
           <tbody>
-            {positions.map((position) => {
-              const asset = assetById.get(position.assetId);
-              if (!asset) return null;
-              const invested = position.marketValueEur - position.pnlEur;
-              const dailyGain = position.marketValueEur * asset.change24hPercent * 0.01;
-
-              return (
-                <tr key={position.id} className="border-b border-[#202024] hover:bg-[#121214]">
-                  <td className="py-3 pr-4">
-                    <AssetPill asset={asset} />
+            {rows.map((row) => (
+              <tr key={row.position.id} className="border-b border-[#202024] hover:bg-[#121214]">
+                <td className="py-3 pr-4">
+                  <AssetPill asset={row.asset} />
+                </td>
+                {columns.map((column) => (
+                  <td
+                    key={column.key}
+                    className={cn(
+                      "py-3 text-zinc-300",
+                      column.align === "right" ? "text-right" : "text-left"
+                    )}
+                  >
+                    {column.render(row)}
                   </td>
-                  <td className="py-3 text-right text-zinc-200">
-                    {position.allocationPercent.toFixed(2)}%
-                  </td>
-                  <td className="py-3 text-right text-zinc-300">
-                    {formatQuantity(position.quantity)}
-                  </td>
-                  <td className="py-3 text-right text-zinc-300">
-                    {formatMoney(position.averageCostEur * fx, currency)}
-                  </td>
-                  <td className="py-3 text-right text-zinc-300">
-                    {formatMoney(invested * fx, currency)}
-                  </td>
-                  <td className={cn("py-3 text-right", trendClass(position.pnlEur))}>
-                    {formatMoney(position.pnlEur * fx, currency)}
-                  </td>
-                  <td className={cn("py-3 text-right", trendClass(dailyGain))}>
-                    {formatMoney(dailyGain * fx, currency)}
-                  </td>
-                  <td className={cn("py-3 text-right", trendClass(position.pnlEur))}>
-                    <span>{formatMoney(position.pnlEur * fx, currency)}</span>
-                    <span className="ml-2 text-xs">{formatPercent(position.pnlPercent)}</span>
-                  </td>
-                  <td className="py-3 text-right">
-                    <button type="button" className="text-zinc-400 hover:text-white">
-                      <MoreHorizontal className="h-5 w-5" />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                ))}
+                <td className="py-3 text-right">
+                  <button type="button" className="text-zinc-400 hover:text-white">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -123,4 +176,255 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
       </div>
     </section>
   );
+}
+
+function getColumns(activeView: HoldingView, currency: Currency, fx: number): Column[] {
+  if (activeView === "Price") {
+    return [
+      {
+        key: "last-price",
+        label: "Last price",
+        align: "right",
+        render: ({ asset }) => formatMoney(asset.priceEur * fx, currency)
+      },
+      {
+        key: "avg-price",
+        label: "Avg price",
+        align: "right",
+        render: ({ position }) => formatMoney(position.averageCostEur * fx, currency)
+      },
+      {
+        key: "quantity",
+        label: "Qty",
+        align: "right",
+        render: ({ position }) => formatQuantity(position.quantity)
+      },
+      {
+        key: "market-value",
+        label: "Market value",
+        align: "right",
+        render: ({ position }) => formatMoney(position.marketValueEur * fx, currency)
+      },
+      {
+        key: "day-change",
+        label: "24h",
+        align: "right",
+        render: ({ asset }) => (
+          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
+        )
+      }
+    ];
+  }
+
+  if (activeView === "Financials") {
+    return [
+      {
+        key: "market-value",
+        label: "Market value",
+        align: "right",
+        render: ({ position }) => formatMoney(position.marketValueEur * fx, currency)
+      },
+      {
+        key: "invested",
+        label: "Invested",
+        align: "right",
+        render: ({ investedEur }) => formatMoney(investedEur * fx, currency)
+      },
+      {
+        key: "cost-basis",
+        label: "Cost basis",
+        align: "right",
+        render: ({ position }) => formatMoney(position.averageCostEur * position.quantity * fx, currency)
+      },
+      {
+        key: "currency",
+        label: "Currency",
+        align: "right",
+        render: ({ asset }) => asset.currency
+      },
+      {
+        key: "provider",
+        label: "Provider",
+        align: "right",
+        render: ({ asset }) => asset.provider
+      }
+    ];
+  }
+
+  if (activeView === "Performance") {
+    return [
+      {
+        key: "unrealized",
+        label: "Unrealized gain",
+        align: "right",
+        render: ({ position }) => (
+          <span className={trendClass(position.pnlEur)}>
+            {formatMoney(position.pnlEur * fx, currency)}
+          </span>
+        )
+      },
+      {
+        key: "return",
+        label: "Return",
+        align: "right",
+        render: ({ position }) => (
+          <span className={trendClass(position.pnlPercent)}>{formatPercent(position.pnlPercent)}</span>
+        )
+      },
+      {
+        key: "daily-gain",
+        label: "Daily gain",
+        align: "right",
+        render: ({ dailyGainEur }) => (
+          <span className={trendClass(dailyGainEur)}>{formatMoney(dailyGainEur * fx, currency)}</span>
+        )
+      },
+      {
+        key: "daily-return",
+        label: "Daily return",
+        align: "right",
+        render: ({ asset }) => (
+          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
+        )
+      },
+      {
+        key: "allocation",
+        label: "Allocation",
+        align: "right",
+        render: ({ position }) => `${position.allocationPercent.toFixed(2)}%`
+      }
+    ];
+  }
+
+  if (activeView === "Risk") {
+    return [
+      {
+        key: "asset-type",
+        label: "Type",
+        render: ({ asset }) => asset.type
+      },
+      {
+        key: "beta",
+        label: "Beta est.",
+        align: "right",
+        render: ({ betaEstimate }) => betaEstimate.toFixed(2)
+      },
+      {
+        key: "volatility",
+        label: "Volatility est.",
+        align: "right",
+        render: ({ volatilityEstimate }) => `${volatilityEstimate.toFixed(2)}%`
+      },
+      {
+        key: "allocation",
+        label: "Concentration",
+        align: "right",
+        render: ({ position }) => `${position.allocationPercent.toFixed(2)}%`
+      },
+      {
+        key: "risk",
+        label: "Risk",
+        align: "right",
+        render: ({ betaEstimate, volatilityEstimate }) =>
+          betaEstimate > 1.4 || volatilityEstimate > 10 ? "High" : "Normal"
+      }
+    ];
+  }
+
+  if (activeView === "Technicals") {
+    return [
+      {
+        key: "trend",
+        label: "Trend",
+        render: ({ asset }) => (asset.change24hPercent > 0 ? "Up" : asset.change24hPercent < 0 ? "Down" : "Flat")
+      },
+      {
+        key: "change",
+        label: "24h",
+        align: "right",
+        render: ({ asset }) => (
+          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
+        )
+      },
+      {
+        key: "last-price",
+        label: "Last price",
+        align: "right",
+        render: ({ asset }) => formatMoney(asset.priceEur * fx, currency)
+      },
+      {
+        key: "exchange",
+        label: "Exchange",
+        align: "right",
+        render: ({ asset }) => asset.exchange ?? "-"
+      },
+      {
+        key: "external-id",
+        label: "Provider ID",
+        align: "right",
+        render: ({ asset }) => asset.externalId
+      }
+    ];
+  }
+
+  return [
+    {
+      key: "allocation",
+      label: "Allocation",
+      align: "right",
+      render: ({ position }) => `${position.allocationPercent.toFixed(2)}%`
+    },
+    {
+      key: "quantity",
+      label: "Qty",
+      align: "right",
+      render: ({ position }) => formatQuantity(position.quantity)
+    },
+    {
+      key: "avg-price",
+      label: "Avg price",
+      align: "right",
+      render: ({ position }) => formatMoney(position.averageCostEur * fx, currency)
+    },
+    {
+      key: "invested",
+      label: "Invested",
+      align: "right",
+      render: ({ investedEur }) => formatMoney(investedEur * fx, currency)
+    },
+    {
+      key: "unrealized",
+      label: "Unrealized gain",
+      align: "right",
+      render: ({ position }) => (
+        <span className={trendClass(position.pnlEur)}>{formatMoney(position.pnlEur * fx, currency)}</span>
+      )
+    },
+    {
+      key: "daily-gain",
+      label: "Daily gain",
+      align: "right",
+      render: ({ dailyGainEur }) => (
+        <span className={trendClass(dailyGainEur)}>{formatMoney(dailyGainEur * fx, currency)}</span>
+      )
+    },
+    {
+      key: "total-gain",
+      label: "Total gain",
+      align: "right",
+      render: ({ position }) => (
+        <span className={trendClass(position.pnlEur)}>
+          {formatMoney(position.pnlEur * fx, currency)}
+          <span className="ml-2 text-xs">{formatPercent(position.pnlPercent)}</span>
+        </span>
+      )
+    }
+  ];
+}
+
+function estimateBeta(asset: Asset) {
+  if (asset.type === "CRYPTO") return 1.85;
+  if (asset.type === "ETF") return 1;
+  if (asset.type === "COMMODITY") return 0.65;
+  return 1.15;
 }
