@@ -10,6 +10,12 @@ const isCheck = process.argv.includes("--check");
 const maxCommits = 8;
 const maxTodoItems = 20;
 
+type CommitSummary = {
+  hash: string;
+  summary: string;
+  files: string[];
+};
+
 function run(command: string, args: string[]): string | null {
   try {
     return execFileSync(command, args, {
@@ -26,15 +32,42 @@ function isGitRepo(): boolean {
   return run("git", ["rev-parse", "--is-inside-work-tree"]) === "true";
 }
 
-function recentCommits(): string[] {
-  const output = run("git", ["log", `-${maxCommits}`, "--pretty=format:%h %ad %s", "--date=short"]);
-  return output ? output.split("\n").filter(Boolean) : [];
+function recentCommitSummaries(): CommitSummary[] {
+  const output = run("git", [
+    "log",
+    `-${maxCommits * 2}`,
+    "--pretty=format:%H%x09%h %ad %s",
+    "--date=short",
+  ]);
+  if (!output) return [];
+
+  return output
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [hash, summary] = line.split("\t");
+      return {
+        hash,
+        summary,
+        files: changedFilesForCommit(hash),
+      };
+    })
+    .filter((commit) => !isContextOnlyCommit(commit.files))
+    .slice(0, maxCommits);
 }
 
-function changedFiles(): string[] {
-  const output = run("git", ["log", `-${maxCommits}`, "--name-only", "--pretty=format:"]);
+function changedFilesForCommit(hash: string): string[] {
+  const output = run("git", ["diff-tree", "--no-commit-id", "--name-only", "-r", hash]);
   if (!output) return [];
-  return Array.from(new Set(output.split("\n").map((line) => line.trim()).filter(Boolean))).sort();
+  return output.split("\n").map((line) => line.trim()).filter(Boolean);
+}
+
+function changedFiles(commits: CommitSummary[]): string[] {
+  return Array.from(new Set(commits.flatMap((commit) => commit.files))).sort();
+}
+
+function isContextOnlyCommit(files: string[]): boolean {
+  return files.length > 0 && files.every((file) => file === "context.md");
 }
 
 function areaForFile(file: string): string {
@@ -61,7 +94,7 @@ function summarizeAreas(files: string[]): string[] {
 }
 
 function walkFiles(dir: string, output: string[] = []): string[] {
-  const ignored = new Set([".git", ".next", "node_modules", "dist", "build", "coverage"]);
+  const ignored = new Set([".git", ".next", ".vercel", "node_modules", "dist", "build", "coverage"]);
   const ignoredFiles = new Set(["AGENTS.md", "README.md", "context.md", "package-lock.json"]);
   for (const entry of readdirSync(dir)) {
     if (ignored.has(entry)) continue;
@@ -119,8 +152,9 @@ if (!existsSync(contextPath)) {
 }
 
 const gitAvailable = isGitRepo();
-const commits = gitAvailable ? recentCommits() : [];
-const files = gitAvailable ? changedFiles() : [];
+const commitSummaries = gitAvailable ? recentCommitSummaries() : [];
+const commits = commitSummaries.map((commit) => commit.summary);
+const files = gitAvailable ? changedFiles(commitSummaries) : [];
 const areas = summarizeAreas(files);
 const todos = todoItems();
 let nextContent = readFileSync(contextPath, "utf8");
