@@ -48,16 +48,17 @@ Still missing or likely incomplete: DB-backed settings persistence, scheduled di
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 12 files
-- UI components: 12 files
+- Other: 19 files
+- UI components: 15 files
+- API routes: 9 files
 - App pages: 7 files
-- API routes: 6 files
-- Pricing providers: 5 files
+- Pricing providers: 4 files
 - Documentation: 2 files
 - Database: 1 file
 - Tooling: 1 file
 
 Recent commits:
+- c23ce80 2026-04-27 Add portfolio exports and digest news
 - 7592e04 2026-04-27 Refine portfolio UI controls and settings
 - 0262bd2 2026-04-27 Make quote matrix smoke provider-aware
 - 7d1785d 2026-04-27 Wire portfolio controls and improve live quote search
@@ -65,7 +66,6 @@ Recent commits:
 - 037d026 2026-04-27 Make settings status runtime-aware
 - d0a4c74 2026-04-27 Add live transaction quotes and Google auth scaffold
 - b28ea68 2026-04-27 Add Twelve Data symbol fallback
-- 7d7dc40 2026-04-27 Add provider-backed price refresh
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -112,4 +112,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T15:22:39.390Z - Refreshed generated context from 8 recent commits, 46 changed files, and 0 TODO/FIXME items.
+2026-04-27T15:24:28.551Z - Refreshed generated context from 8 recent commits, 58 changed files, and 0 TODO/FIXME items.
