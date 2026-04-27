@@ -241,44 +241,76 @@ export async function listAssetsForEmail(email: string) {
 
 export async function createTransactionForEmail(email: string, input: FormData | Record<string, unknown>) {
   const user = await ensureUserWorkspace(email);
-  const values = readInput(input);
-  const type = String(values.type ?? "BUY") as TransactionType;
-  const currency = normalizeCurrency(String(values.currency ?? "USD"));
-  const assetSymbol = String(values.assetSymbol ?? "").trim().toUpperCase();
-  const quantity = parseOptionalNumber(values.quantity);
-  const grossAmount = parseRequiredNumber(values.grossAmount, "Total amount");
-  const fees = parseOptionalNumber(values.fees) ?? 0;
-  const occurredOn = String(values.occurredOn ?? new Date().toISOString().slice(0, 10));
-
-  validateTransactionInput(type, assetSymbol, quantity, grossAmount, fees);
-
+  const parsed = parseTransactionInput(input);
   const db = getDb();
   const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const asset = await resolveTransactionAsset(parsed.type, parsed.assetSymbol);
 
-  const asset =
-    assetSymbol && type === "BUY"
-      ? await findOrCreateAssetBySymbol(assetSymbol)
-      : assetSymbol && type === "SELL"
-        ? await findAssetBySymbol(assetSymbol)
-        : undefined;
-
-  if (type === "SELL") {
+  if (parsed.type === "SELL") {
     if (!asset) throw new Error("Cannot sell an asset that is not in the local asset list.");
-    await assertSellQuantityAvailable(portfolio.id, asset.id, quantity ?? 0);
+    await assertSellQuantityAvailable(portfolio.id, asset.id, parsed.quantity ?? 0);
   }
 
   await db.insert(transactions).values({
     portfolioId: portfolio.id,
     assetId: asset?.id,
-    type,
-    occurredOn,
-    quantity,
-    grossAmount,
-    currency,
-    fees,
-    platform: emptyToNull(String(values.platform ?? "")),
-    note: emptyToNull(String(values.note ?? ""))
+    type: parsed.type,
+    occurredOn: parsed.occurredOn,
+    quantity: parsed.quantity,
+    grossAmount: parsed.grossAmount,
+    currency: parsed.currency,
+    fees: parsed.fees,
+    platform: parsed.platform,
+    note: parsed.note
   });
+
+  await upsertCurrentPortfolioSnapshot(portfolio.id);
+}
+
+export async function updateTransactionForEmail(
+  email: string,
+  transactionId: string,
+  input: FormData | Record<string, unknown>
+) {
+  const user = await ensureUserWorkspace(email);
+  const parsed = parseTransactionInput(input);
+  const db = getDb();
+  const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const [existing] = await db
+    .select()
+    .from(transactions)
+    .where(and(eq(transactions.id, transactionId), eq(transactions.portfolioId, portfolio.id)))
+    .limit(1);
+
+  if (!existing) throw new Error("Transaction not found.");
+
+  const asset = await resolveTransactionAsset(parsed.type, parsed.assetSymbol);
+
+  if (parsed.type === "SELL") {
+    if (!asset) throw new Error("Cannot sell an asset that is not in the local asset list.");
+    await assertSellQuantityAvailable(
+      portfolio.id,
+      asset.id,
+      parsed.quantity ?? 0,
+      transactionId
+    );
+  }
+
+  await db
+    .update(transactions)
+    .set({
+      assetId: asset?.id ?? null,
+      type: parsed.type,
+      occurredOn: parsed.occurredOn,
+      quantity: parsed.quantity,
+      grossAmount: parsed.grossAmount,
+      currency: parsed.currency,
+      fees: parsed.fees,
+      platform: parsed.platform,
+      note: parsed.note,
+      updatedAt: new Date()
+    })
+    .where(and(eq(transactions.id, transactionId), eq(transactions.portfolioId, portfolio.id)));
 
   await upsertCurrentPortfolioSnapshot(portfolio.id);
 }
@@ -322,6 +354,45 @@ export async function createManualPositionForEmail(
   await upsertCurrentPortfolioSnapshot(portfolio.id);
 }
 
+export async function updateManualPositionForEmail(
+  email: string,
+  positionId: string,
+  input: FormData | Record<string, unknown>
+) {
+  const user = await ensureUserWorkspace(email);
+  const values = readInput(input);
+  const label = String(values.label ?? "").trim();
+  const value = parseRequiredNumber(values.value, "Value");
+  const currency = normalizeCurrency(String(values.currency ?? "USD"));
+  const valuedOn = String(values.valuedOn ?? new Date().toISOString().slice(0, 10));
+
+  if (!label) throw new Error("Manual position label is required.");
+  if (value < 0) throw new Error("Manual position value cannot be negative.");
+
+  const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const [existing] = await getDb()
+    .select()
+    .from(manualPositions)
+    .where(and(eq(manualPositions.id, positionId), eq(manualPositions.portfolioId, portfolio.id)))
+    .limit(1);
+
+  if (!existing) throw new Error("Manual position not found.");
+
+  await getDb()
+    .update(manualPositions)
+    .set({
+      label,
+      value,
+      currency,
+      valuedOn,
+      note: emptyToNull(String(values.note ?? "")),
+      updatedAt: new Date()
+    })
+    .where(and(eq(manualPositions.id, positionId), eq(manualPositions.portfolioId, portfolio.id)));
+
+  await upsertCurrentPortfolioSnapshot(portfolio.id);
+}
+
 export async function deleteManualPositionForEmail(email: string, positionId: string) {
   const user = await ensureUserWorkspace(email);
   const portfolio = await getPrimaryPortfolioForUser(user.id);
@@ -348,14 +419,18 @@ async function getPrimaryPortfolioForUser(userId: string) {
 async function assertSellQuantityAvailable(
   portfolioId: string,
   assetId: string,
-  requestedQuantity: number
+  requestedQuantity: number,
+  excludeTransactionId?: string
 ) {
   const rows = await getDb()
     .select()
     .from(transactions)
     .where(and(eq(transactions.portfolioId, portfolioId), eq(transactions.assetId, assetId)));
   const rates = await getLatestFxRates();
-  const availableQuantity = calculateAssetQuantity(rows, assetId, rates);
+  const relevantRows = excludeTransactionId
+    ? rows.filter((row) => row.id !== excludeTransactionId)
+    : rows;
+  const availableQuantity = calculateAssetQuantity(relevantRows, assetId, rates);
 
   if (requestedQuantity > availableQuantity) {
     throw new Error(
@@ -367,6 +442,11 @@ async function assertSellQuantityAvailable(
 async function findAssetBySymbol(symbol: string) {
   const [existing] = await getDb().select().from(assets).where(eq(assets.symbol, symbol)).limit(1);
   return existing;
+}
+
+async function resolveTransactionAsset(type: TransactionType, assetSymbol: string) {
+  if (!assetSymbol || !["BUY", "SELL"].includes(type)) return undefined;
+  return type === "BUY" ? findOrCreateAssetBySymbol(assetSymbol) : findAssetBySymbol(assetSymbol);
 }
 
 async function upsertCurrentPortfolioSnapshot(portfolioId: string) {
@@ -565,7 +645,8 @@ function buildManualPositionViews(rows: DbManualPosition[], rates: FxRateMap): M
     label: row.label,
     ...toDisplayPair(row.value, row.currency, rates),
     currency: row.currency,
-    updatedAt: row.valuedOn
+    updatedAt: row.valuedOn,
+    note: row.note ?? undefined
   }));
 }
 
@@ -789,6 +870,31 @@ function readInput(input: FormData | Record<string, unknown>) {
     return Object.fromEntries(input.entries());
   }
   return input;
+}
+
+function parseTransactionInput(input: FormData | Record<string, unknown>) {
+  const values = readInput(input);
+  const type = String(values.type ?? "BUY") as TransactionType;
+  const currency = normalizeCurrency(String(values.currency ?? "USD"));
+  const assetSymbol = String(values.assetSymbol ?? "").trim().toUpperCase();
+  const quantity = parseOptionalNumber(values.quantity);
+  const grossAmount = parseRequiredNumber(values.grossAmount, "Total amount");
+  const fees = parseOptionalNumber(values.fees) ?? 0;
+  const occurredOn = String(values.occurredOn ?? new Date().toISOString().slice(0, 10));
+
+  validateTransactionInput(type, assetSymbol, quantity, grossAmount, fees);
+
+  return {
+    type,
+    currency,
+    assetSymbol,
+    quantity: ["BUY", "SELL"].includes(type) ? quantity : undefined,
+    grossAmount,
+    fees,
+    occurredOn,
+    platform: emptyToNull(String(values.platform ?? "")),
+    note: emptyToNull(String(values.note ?? ""))
+  };
 }
 
 function parseOptionalNumber(value: unknown) {

@@ -91,6 +91,7 @@ export type ManualPosition = {
   valueUsd: number;
   currency: Currency;
   updatedAt: string;
+  note?: string;
 };
 
 export type PortfolioSnapshot = {

@@ -24,20 +24,28 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 
 ## Current Implementation Status
 
-The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio components, API routes for assets, transactions, manual positions, item deletion, price refresh, auth login, Drizzle schema/migration files, mock/demo data, metrics utilities, and provider-ready pricing seams.
+The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio components, API routes for assets, transactions, manual positions, item editing/deletion, price refresh, auth login, Drizzle schema/migration files, mock/demo data, metrics utilities, and provider-ready pricing seams.
 
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from the selected asset's latest saved price.
 
-Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, oversell-safe position state, and external cash-flow scoping.
+Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, oversell-safe position state, and external cash-flow scoping.
 
-Still missing or likely incomplete: full real-provider integration, production auth hardening beyond email allowlist, edit flows for existing rows, paired transfer support, complete DB-backed CRUD coverage, and end-to-end test coverage.
+Still missing or likely incomplete: full real-provider integration, production auth hardening beyond email allowlist, paired transfer support, complete DB-backed CRUD coverage, and end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Git history unavailable in this workspace; initialize or connect `.git` for changed-area summaries.
+- UI components: 26 files
+- Other: 24 files
+- App pages: 11 files
+- API routes: 7 files
+- Database: 6 files
+- Documentation: 4 files
+- Metrics: 2 files
+- Pricing providers: 2 files
+- Tooling: 2 files
 
 Recent commits:
-- Git history unavailable in this workspace.
+- 190c8fe 2026-04-27 Initial FolioCore MVP
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -68,17 +76,17 @@ Generated TODO/FIXME scan:
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
 2. Initialize or connect a Git repository so the context refresh script can inspect recent history.
-3. Add edit flows for transactions/manual positions.
-4. Add paired transfer support once multiple portfolios are available.
-5. Wire real provider price refresh and FX updates after the tested manual workflows remain stable.
+3. Add paired transfer support once multiple portfolios are available.
+4. Wire real provider price refresh and FX updates after the tested manual workflows remain stable.
+5. Add end-to-end smoke tests for login, create/edit/delete transaction, and create/edit/delete manual position.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
-- Initialize or connect the Git repository so this script can summarize recent commits and changed files.
+- Review recent changed areas above and manually fold durable decisions into the appropriate sections.
 - Keep updating context after meaningful implementation work; no TODO/FIXME-driven action is currently visible.
 - Keep product and technical decisions manually curated; this script only updates bounded generated blocks.
 <!-- context:auto:end:next-steps -->
 
 ## Last Updated
 
-2026-04-27T10:41:42.674Z - Refreshed generated context without git history; scanned 0 TODO/FIXME items.
+2026-04-27T10:58:15.554Z - Refreshed generated context from 1 recent commits, 84 changed files, and 0 TODO/FIXME items.

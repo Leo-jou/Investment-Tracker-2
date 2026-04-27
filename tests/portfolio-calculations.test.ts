@@ -4,6 +4,7 @@ import test from "node:test";
 import { fallbackFxRates } from "../lib/data/conversions.ts";
 import {
   buildPositionStates,
+  calculateAssetQuantity,
   calculateCashUsd,
   calculateExternalCashFlowEur,
   calculateNetContributionsUsd,
@@ -78,6 +79,20 @@ test("same-day buy before sell uses created-at ordering for positions", () => {
 
   assert.equal(states.get("asset_btc")?.quantity, 6);
   assert.equal(states.get("asset_btc")?.costBasisUsd, 600);
+});
+
+test("asset quantity can be recalculated without the edited transaction", () => {
+  const rows = [
+    tx({ id: "buy", type: "BUY", assetId: "asset_btc", quantity: 10, grossAmount: 1000 }),
+    tx({ id: "sell-old", type: "SELL", assetId: "asset_btc", quantity: 4, grossAmount: 500 })
+  ];
+  const quantityBeforeEditedSell = calculateAssetQuantity(
+    rows.filter((row) => row.id !== "sell-old"),
+    "asset_btc",
+    rates
+  );
+
+  assert.equal(quantityBeforeEditedSell, 10);
 });
 
 test("oversold position state never goes negative", () => {

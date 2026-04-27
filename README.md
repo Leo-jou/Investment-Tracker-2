@@ -25,9 +25,9 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - Neon-backed first-run workspace bootstrap creates a Personal portfolio, demo assets, demo transactions, price/FX snapshots, and a manual SpaceX-style position.
 - Quick add supports BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries with type-specific fields.
 - BUY/SELL can auto-calculate total from quantity or quantity from total using the selected asset's latest saved USD price.
-- Transactions and manual positions can be deleted from the UI with browser confirmation.
+- Transactions and manual positions can be edited inline and deleted from the UI with browser confirmation.
 - Transfers are intentionally disabled in quick add until paired multi-portfolio transfer support exists.
-- Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, and oversell-safe position state.
+- Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, and oversell-safe position state.
 
 ## Getting Started
 
