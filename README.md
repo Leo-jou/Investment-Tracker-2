@@ -27,7 +27,7 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - BUY/SELL can auto-calculate total from quantity or quantity from total using a live quote fetched on explicit asset selection.
 - Transactions and manual positions can be edited inline and deleted from the UI with browser confirmation.
 - Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then persist snapshots and recalculate the current portfolio snapshot.
-- Google OAuth is wired through Auth.js and remains disabled until Google OAuth env vars are configured; the existing email allowlist login remains as fallback.
+- Google OAuth is wired through Auth.js and configured in production; the existing email allowlist login remains as fallback.
 - Transfers are intentionally disabled in quick add until paired multi-portfolio transfer support exists.
 - Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, and oversell-safe position state.
 
@@ -95,7 +95,7 @@ Optional provider variables:
 - `TWELVE_DATA_API_KEY`
 - `FMP_API_KEY`
 
-Do not commit local secret files. `.env*`, `.vercel`, and `env.txt` are ignored.
+Do not commit local secret files. `.env*`, `.vercel`, `env.txt`, and local Google auth scratch files are ignored.
 
 ## Project Memory
 

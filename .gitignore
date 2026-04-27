@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 env.txt
+Google Auth*
 
 .next/
 out/

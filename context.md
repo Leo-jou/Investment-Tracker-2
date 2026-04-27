@@ -30,13 +30,13 @@ The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio 
 
 Production is deployed on Vercel at `https://foliocore.vercel.app`. The current production deployment includes inline edit/delete flows for transactions and manual positions.
 
-CoinGecko and Twelve Data provider keys are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
+CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
 
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from a live quote fetched on explicit asset selection. Selected provider metadata is submitted with the transaction so new assets keep their CoinGecko/Twelve Data identity instead of becoming mock symbol-only assets.
 
 Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup.
 
-Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Data, Google OAuth credentials in Vercel, paired transfer support, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Data, paired transfer support, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
@@ -80,14 +80,13 @@ Generated TODO/FIXME scan:
 
 ## Open Questions
 
-- Which Google Cloud OAuth client ID and secret should be used for production login?
 - Which portfolio workflows need persistence before visual polish continues?
 
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
 2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
-3. Add Google OAuth credentials to Vercel and run a browser login smoke test.
+3. Run a manual browser Google login smoke test with an allowlisted Google account.
 4. Add paired transfer support once multiple portfolios are available.
 5. Continue UI iteration against the deployed app, keeping components modular and compact.
 
@@ -100,4 +99,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T12:21:09.077Z - Refreshed generated context from 8 recent commits, 34 changed files, and 0 TODO/FIXME items.
+2026-04-27T12:56:36.746Z - Refreshed generated context from 8 recent commits, 34 changed files, and 0 TODO/FIXME items.
