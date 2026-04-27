@@ -1,0 +1,91 @@
+# FolioCore Investment Tracker
+
+A self-hostable personal portfolio tracker MVP focused on fast manual input, correct performance metrics, modular UI, and low-cost deployment on Vercel + Neon.
+
+## Architecture
+
+- **Next.js App Router + TypeScript** for the web app and API routes.
+- **Tailwind CSS + shadcn-style components** for a compact, TradingView-inspired UI surface.
+- **Recharts** for portfolio value, TWR, and allocation charts.
+- **Drizzle ORM + Neon Postgres** schema ready for users, portfolios, assets, transactions, manual positions, price snapshots, FX snapshots, and portfolio snapshots.
+- **DB-backed MVP flows** for login bootstrap, dashboard data, transactions, manual positions, asset search enrichment, deletion, and portfolio snapshot refresh.
+- **Mock-first provider seams** for asset search, prices, FX, snapshots, and portfolio metrics. API keys can be added without changing the UI surface.
+
+## Assumptions
+
+- MVP starts with email login and an allowlist, with schema prepared for multiple users later.
+- Manual transaction entry is the primary workflow. Broker/wallet sync is intentionally out of scope.
+- USD is the default display currency, with an EUR toggle backed by FX snapshots.
+- Time-weighted return is the primary performance metric; deposits and withdrawals are capital flows, not gains or losses.
+- External asset search is dynamic and provider-backed when API keys exist, otherwise mock-backed.
+
+## Current MVP Status
+
+- Production is deployed on Vercel at `https://foliocore.vercel.app`.
+- Neon-backed first-run workspace bootstrap creates a Personal portfolio, demo assets, demo transactions, price/FX snapshots, and a manual SpaceX-style position.
+- Quick add supports BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries with type-specific fields.
+- BUY/SELL can auto-calculate total from quantity or quantity from total using the selected asset's latest saved USD price.
+- Transactions and manual positions can be deleted from the UI with browser confirmation.
+- Transfers are intentionally disabled in quick add until paired multi-portfolio transfer support exists.
+- Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, and oversell-safe position state.
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+Run verification before deployment:
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+## Environment
+
+Copy `.env.example` to `.env.local` when connecting real services. Without API keys or a database URL, the app uses mock data.
+
+Required production variables:
+
+- `DATABASE_URL`
+- `AUTH_SECRET`
+- `APP_ALLOWED_EMAILS`
+
+Optional provider variables:
+
+- `COINGECKO_DEMO_API_KEY`
+- `TWELVE_DATA_API_KEY`
+- `FMP_API_KEY`
+
+Do not commit local secret files. `.env*`, `.vercel`, and `env.txt` are ignored.
+
+## Project Memory
+
+This repo uses `context.md` as a lightweight project-memory file for future Codex sessions. It keeps the latest useful product context, technical decisions, implementation status, known issues, UX notes, open questions, and next recommended steps in one concise place.
+
+Codex should read `context.md` before implementation work and update it after meaningful changes. Keep it curated: summarize decisions, bugs, and next steps instead of pasting raw logs, diffs, or every commit. If `context.md` conflicts with the actual code, trust the code and update `context.md`.
+
+`AGENTS.md` is the durable instruction file for engineering rules and Codex behavior. Keep long-lived instructions there, not in `context.md`.
+
+Refresh generated context sections with:
+
+```bash
+npm run context:update
+```
+
+Check whether generated sections are current with:
+
+```bash
+npm run context:check
+```
+
+The update script is deterministic and low-maintenance. It inspects recent git history when a Git repository is available, scans TODO/FIXME comments, updates bounded generated blocks, and preserves manually curated product and technical decisions.
+
+Recommended workflow: update `context.md` before ending each meaningful work session, and also after important Codex tasks that change project direction or implementation status. This rule is recorded in `AGENTS.md` so future Codex sessions should follow it automatically after reading the repo instructions.
+
+Avoid hourly scheduled updates because they are likely to create noise without adding durable context. Use the manual GitHub Action only when you want an explicit repository-side refresh outside a local Codex session.
