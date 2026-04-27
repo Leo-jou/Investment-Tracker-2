@@ -50,6 +50,7 @@ Generated refresh summary:
 - Database: 1 file
 
 Recent commits:
+- 037d026 2026-04-27 Make settings status runtime-aware
 - d0a4c74 2026-04-27 Add live transaction quotes and Google auth scaffold
 - b28ea68 2026-04-27 Add Twelve Data symbol fallback
 - 7d7dc40 2026-04-27 Add provider-backed price refresh
@@ -57,7 +58,6 @@ Recent commits:
 - 476830b 2026-04-27 Add production smoke test
 - fd79923 2026-04-27 Document deployment and lint ignores
 - a4f0813 2026-04-27 Add inline edit flows
-- 190c8fe 2026-04-27 Initial FolioCore MVP
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -100,4 +100,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T12:20:31.465Z - Refreshed generated context from 8 recent commits, 34 changed files, and 0 TODO/FIXME items.
+2026-04-27T12:21:09.077Z - Refreshed generated context from 8 recent commits, 34 changed files, and 0 TODO/FIXME items.
