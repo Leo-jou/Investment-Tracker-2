@@ -30,7 +30,7 @@ Production is deployed on Vercel at `https://foliocore.vercel.app`. The current 
 
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from the selected asset's latest saved price.
 
-Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, oversell-safe position state, and external cash-flow scoping.
+Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering.
 
 Still missing or likely incomplete: full real-provider integration, production auth hardening beyond email allowlist, paired transfer support, complete DB-backed CRUD coverage, and end-to-end test coverage.
 
@@ -47,6 +47,7 @@ Generated refresh summary:
 - Tooling: 2 files
 
 Recent commits:
+- fd79923 2026-04-27 Document deployment and lint ignores
 - a4f0813 2026-04-27 Add inline edit flows
 - 190c8fe 2026-04-27 Initial FolioCore MVP
 <!-- context:auto:end:implementation-status -->
@@ -78,7 +79,7 @@ Generated TODO/FIXME scan:
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
-2. Add end-to-end smoke tests for login, create/edit/delete transaction, and create/edit/delete manual position.
+2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
 3. Wire real provider price refresh and FX updates after the tested manual workflows remain stable.
 4. Add paired transfer support once multiple portfolios are available.
 5. Continue UI iteration against the deployed app, keeping components modular and compact.
@@ -92,4 +93,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T11:16:47.008Z - Refreshed generated context from 2 recent commits, 84 changed files, and 0 TODO/FIXME items.
+2026-04-27T11:21:58.840Z - Refreshed generated context from 3 recent commits, 84 changed files, and 0 TODO/FIXME items.

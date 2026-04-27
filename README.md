@@ -46,6 +46,14 @@ npm test
 npm run build
 ```
 
+Run the read-only production smoke test after deployment:
+
+```bash
+npm run smoke:prod
+```
+
+It checks `/login`, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. It uses `SMOKE_BASE_URL` when set, otherwise `https://foliocore.vercel.app`, and uses `SMOKE_EMAIL` or the first email in `APP_ALLOWED_EMAILS`.
+
 ## Environment
 
 Copy `.env.example` to `.env.local` when connecting real services. Without API keys or a database URL, the app uses mock data.

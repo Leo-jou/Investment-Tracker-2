@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --no-warnings --test --experimental-strip-types tests/*.test.ts",
+    "smoke:prod": "node --no-warnings --experimental-strip-types scripts/smoke-production.ts",
     "context:update": "node --no-warnings --experimental-strip-types scripts/update-context.ts",
     "context:check": "node --no-warnings --experimental-strip-types scripts/update-context.ts --check",
     "db:generate": "drizzle-kit generate",
