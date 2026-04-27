@@ -72,6 +72,9 @@ export function NewsFeed({ portfolioId }: NewsFeedProps) {
                     <ExternalLink className="h-4 w-4 text-zinc-500" />
                   </a>
                   <p className="mt-1 text-xs text-zinc-500">{item.summary}</p>
+                  <p className="mt-1 text-xs text-zinc-600">
+                    {item.sourceType.replaceAll("-", " ")} · confidence {Math.round(item.confidence)}%
+                  </p>
                 </td>
                 <td className="py-4 text-right text-zinc-500">{item.source}</td>
               </tr>

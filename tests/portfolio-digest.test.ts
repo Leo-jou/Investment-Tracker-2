@@ -25,7 +25,10 @@ const mockNews: PortfolioNewsItem[] = [
     source: "Example",
     publishedAt: "2026-04-27T10:00:00.000Z",
     summary: "BTC appeared in recent coverage.",
-    provider: "local"
+    provider: "rss",
+    sourceType: "crypto-rss",
+    confidence: 90,
+    reason: "Matched BTC."
   }
 ];
 

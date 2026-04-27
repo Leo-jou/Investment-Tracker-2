@@ -77,7 +77,16 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
         </div>
       )}
 
-      {activeTab === "Analysis" && <AnalysisPanels currency={currency} />}
+      {activeTab === "Analysis" && (
+        <AnalysisPanels
+          currency={currency}
+          snapshots={data.snapshots}
+          allocations={data.allocations}
+          assets={data.assets}
+          positions={data.positions}
+          manualPositions={data.manualPositions}
+        />
+      )}
     </div>
   );
 }

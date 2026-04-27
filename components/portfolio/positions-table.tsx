@@ -22,8 +22,6 @@ type PositionRow = {
   asset: Asset;
   investedEur: number;
   dailyGainEur: number;
-  volatilityEstimate: number;
-  betaEstimate: number;
 };
 
 type Column = {
@@ -59,9 +57,7 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
             position,
             asset,
             investedEur: position.marketValueEur - position.pnlEur,
-            dailyGainEur: position.marketValueEur * asset.change24hPercent * 0.01,
-            volatilityEstimate: Math.abs(asset.change24hPercent) * (asset.type === "CRYPTO" ? 6 : 3),
-            betaEstimate: estimateBeta(asset)
+            dailyGainEur: position.marketValueEur * asset.change24hPercent * 0.01
           }
         ];
       }),
@@ -304,16 +300,18 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
         render: ({ asset }) => asset.type
       },
       {
-        key: "beta",
-        label: "Beta est.",
+        key: "current-move",
+        label: "Current move",
         align: "right",
-        render: ({ betaEstimate }) => betaEstimate.toFixed(2)
+        render: ({ asset }) => (
+          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
+        )
       },
       {
-        key: "volatility",
-        label: "Volatility est.",
+        key: "market-value",
+        label: "Exposure",
         align: "right",
-        render: ({ volatilityEstimate }) => `${volatilityEstimate.toFixed(2)}%`
+        render: ({ position }) => formatMoney(position.marketValueEur * fx, currency)
       },
       {
         key: "allocation",
@@ -323,10 +321,9 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
       },
       {
         key: "risk",
-        label: "Risk",
+        label: "Risk note",
         align: "right",
-        render: ({ betaEstimate, volatilityEstimate }) =>
-          betaEstimate > 1.4 || volatilityEstimate > 10 ? "High" : "Normal"
+        render: ({ asset, position }) => getRiskNote(asset, position)
       }
     ];
   }
@@ -422,9 +419,10 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
   ];
 }
 
-function estimateBeta(asset: Asset) {
-  if (asset.type === "CRYPTO") return 1.85;
-  if (asset.type === "ETF") return 1;
-  if (asset.type === "COMMODITY") return 0.65;
-  return 1.15;
+function getRiskNote(asset: Asset, position: Position) {
+  if (position.quantity <= 0 || position.allocationPercent <= 0) return "No current exposure";
+  if (asset.type === "MANUAL" || asset.type === "CASH") return "Manual/stale value";
+  if (position.allocationPercent >= 25) return "High concentration";
+  if (position.allocationPercent >= 10) return "Meaningful concentration";
+  return "Included in portfolio risk";
 }

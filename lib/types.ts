@@ -114,6 +114,7 @@ export type PortfolioSnapshot = {
   valueUsd: number;
   investedCapitalEur: number;
   cashFlowEur: number;
+  cashFlowUsd?: number;
   twr: number;
 };
 
@@ -146,12 +147,16 @@ export type ApiStatus = {
 export type PortfolioNewsItem = {
   id: string;
   symbol?: string;
+  matchedSymbols?: string[];
   title: string;
   url: string;
   source: string;
   publishedAt: string;
   summary: string;
-  provider: "gdelt" | "local";
+  provider: "rss" | "sec" | "gdelt";
+  sourceType: "market-rss" | "crypto-rss" | "filing" | "broad-news";
+  confidence: number;
+  reason: string;
 };
 
 export type PortfolioDigest = {

@@ -14,7 +14,9 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Transfers should stay disabled in quick-add until paired multi-portfolio transfer support exists.
 - Quick-add should fetch a single live quote only after explicit asset selection, not while the user is typing search queries.
 - Every selectable provider-backed quick-add result should attempt a fresh quote, but coverage is limited to CoinGecko and Twelve Data. FMP/manual/mock/unsupported or plan-gated instruments must show an unavailable/saved-price fallback instead of silently pretending to be live.
-- Exports and digest emails should be authenticated and generated on demand first. Scheduled daily/weekly/monthly delivery should wait for DB-backed notification preferences and a clear cron policy.
+- Exports and digest emails should be authenticated. On-demand digest is live; weekly cron digest is wired behind fail-closed env vars and allowlisted recipients.
+- Portfolio news must use trusted source feeds first. Google/search fallbacks are removed. Broad GDELT search is opt-in only because it sends holding terms to a third party.
+- Risk analytics should prefer withholding a metric over showing a mathematically weak number. Sharpe/Sortino require regular snapshot cadence; beta requires aligned benchmark history.
 
 ## Technical Decisions
 
@@ -38,13 +40,17 @@ Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, W
 
 Holdings sub-tabs now switch between position, price, financials, performance, risk, and technical table views. Portfolio distribution supports assets, asset types, and currency modes without donut labels, avoiding the previous 100x percentage display issue.
 
-The dashboard now exposes authenticated CSV/JSON portfolio exports through `/api/export`. `/api/news` builds portfolio-aware headlines from current holdings through a free GDELT query, with local portfolio-monitor fallback rows when live headlines are unavailable. `/api/digest` returns a portfolio digest preview in JSON/text/html and can send it to the signed-in email when `RESEND_API_KEY` and `EMAIL_FROM` are configured; otherwise it returns a clear not-configured result without failing the page. Arbitrary digest recipients are intentionally not supported until backup-email preferences are DB-backed.
+The dashboard now exposes authenticated CSV/JSON portfolio exports through `/api/export`. `/api/news` builds portfolio-aware headlines from trusted RSS sources, limited symbol/tag feeds, and optional SEC EDGAR filing enrichment. GDELT broad-news search is disabled unless `NEWS_GDELT_ENABLED=true`, HTTPS-only, and restricted to trusted domains. Local Google/search fallback rows have been removed.
+
+`/api/digest` returns a portfolio digest preview in JSON/text/html and can send it to the signed-in email when `RESEND_API_KEY` and `EMAIL_FROM` are configured. `/api/cron/digest` is configured through Vercel Cron for weekly delivery on Monday at 08:00 UTC, but fails closed unless `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, and email delivery variables are configured. Cron recipients are masked in responses and must also be in `APP_ALLOWED_EMAILS`.
+
+The Analysis tab now calculates risk diagnostics from selected-currency TWR returns. Sharpe and Sortino are withheld for irregular snapshot cadence; beta is withheld until aligned benchmark history exists and low-confidence until at least thirty aligned periods. Holdings Risk no longer shows fake beta or volatility estimates.
 
 Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
 
 Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints.
 
-Still missing or likely incomplete: DB-backed settings persistence, scheduled digest/export delivery, provider coverage beyond CoinGecko/Twelve Data/GDELT, stronger earnings/SEC/IR-news enrichment, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Still missing or likely incomplete: DB-backed settings persistence, production email variables for scheduled digest delivery, broader SEC CIK coverage, official company IR feed registry, benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
@@ -75,7 +81,8 @@ Recent commits:
 - ESLint must ignore generated build/deployment folders such as `.next` and `.vercel`; this is configured in `eslint.config.mjs`.
 - Production provider probe on 2026-04-27 returned live Twelve Data quotes for SPY, VOO, XAU/USD, EUR/USD, NVDA, and MSFT, but AAPL returned unavailable. Treat provider quote coverage as best-effort and surface unavailable states clearly.
 - The local `.env.local` Neon URL currently fails authentication; production env values are sensitive in Vercel and cannot be pulled back locally. Avoid schema migrations until migration credentials or an approved migration path are available.
-- GDELT-backed news is best-effort and may return broad market headlines or no live rows for niche/private holdings. Keep the local fallback visible and avoid representing it as investment advice.
+- GDELT is disabled by default for privacy and source-quality reasons. If enabled, it is still best-effort and restricted to trusted HTTPS domains.
+- Current risk diagnostics depend on snapshot cadence. Irregular historical snapshots will intentionally show unavailable metrics until enough regular daily/weekly/monthly history exists.
 
 <!-- context:auto:start:known-issues -->
 Generated TODO/FIXME scan:
@@ -99,9 +106,10 @@ Generated TODO/FIXME scan:
 2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
 3. Run a manual browser Google login smoke test with an allowlisted Google account.
 4. Move settings preferences from browser storage into Neon once migration access is resolved.
-5. Add DB-backed digest/export preferences, then wire scheduled delivery through Vercel Cron.
+5. Configure `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled digest email should actually send.
 6. Add paired transfer support once multiple portfolios are available.
-7. Continue UI iteration against the deployed app, keeping components modular and compact.
+7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from documented methodology to real calculated output.
+8. Continue UI iteration against the deployed app, keeping components modular and compact.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -112,4 +120,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T15:24:28.551Z - Refreshed generated context from 8 recent commits, 58 changed files, and 0 TODO/FIXME items.
+2026-04-27T16:50:16.069Z - Refreshed generated context from 8 recent commits, 58 changed files, and 0 TODO/FIXME items.

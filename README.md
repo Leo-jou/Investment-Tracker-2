@@ -30,9 +30,11 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - Holdings sub-tabs switch between position, price, financials, performance, risk, and technical column sets.
 - Portfolio distribution supports assets, asset types, and currency modes; chart labels are kept off the donut to avoid cramped or misleading percentages.
 - Portfolio exports are available as authenticated CSV and JSON downloads from the dashboard and via `/api/export`.
-- Portfolio news is now generated from current holdings through `/api/news`, using a free GDELT-based provider with a local portfolio-monitor fallback when live headlines are unavailable.
+- Portfolio news is generated from current holdings through `/api/news`, using trusted RSS sources, limited symbol/tag feeds, and optional SEC EDGAR filing enrichment. Google/search fallbacks are removed.
 - Portfolio digest preview is available through `/api/digest`, combining metrics, top positions, recent transactions, and portfolio headlines.
 - On-demand digest email is wired behind optional `RESEND_API_KEY` and `EMAIL_FROM` variables; without them the UI degrades to a clear "email provider not configured" state.
+- A guarded weekly digest cron endpoint exists at `/api/cron/digest`; it only sends when `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` are configured, and recipients must also be in `APP_ALLOWED_EMAILS`.
+- Risk analytics now show TWR-based Sharpe, Sortino, and beta methodology instead of placeholder values. Ratios are withheld for irregular snapshot cadence or missing benchmark history, rather than normalized into misleading numbers.
 - Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then optionally persist snapshots and recalculate the current portfolio snapshot.
 - Settings preferences are currently browser-persisted: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. DB-backed user preferences are deferred until migration access is clean.
 - Google OAuth is wired through Auth.js and configured in production; the existing email allowlist login remains as fallback.
@@ -90,6 +92,12 @@ To include export, news, and digest preview endpoints:
 SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod
 ```
 
+Cron digest can be checked manually with a bearer token once production env is configured:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://foliocore.vercel.app/api/cron/digest
+```
+
 ## Environment
 
 Copy `.env.example` to `.env.local` when connecting real services. Without API keys or a database URL, the app uses mock data.
@@ -121,8 +129,15 @@ Optional email variables:
 
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
+- `CRON_SECRET`
+- `DIGEST_EMAIL_RECIPIENTS`
 
-Scheduled daily/weekly/monthly digest delivery is not enabled yet. It should be added after DB-backed notification preferences are migrated, then triggered through Vercel Cron or a similar low-cost scheduler.
+Optional filings/news variables:
+
+- `SEC_USER_AGENT`
+- `NEWS_GDELT_ENABLED`
+
+Vercel Cron is configured for a weekly digest on Monday at 08:00 UTC. It is safe to deploy before email variables are configured because the endpoint fails closed without `CRON_SECRET` and only emails allowlisted recipients.
 
 Do not commit local secret files. `.env*`, `.vercel`, `env.txt`, and local Google auth scratch files are ignored.
 
