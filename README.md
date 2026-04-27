@@ -29,6 +29,10 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - Transactions and manual positions can be edited inline and deleted from the UI with browser confirmation.
 - Holdings sub-tabs switch between position, price, financials, performance, risk, and technical column sets.
 - Portfolio distribution supports assets, asset types, and currency modes; chart labels are kept off the donut to avoid cramped or misleading percentages.
+- Portfolio exports are available as authenticated CSV and JSON downloads from the dashboard and via `/api/export`.
+- Portfolio news is now generated from current holdings through `/api/news`, using a free GDELT-based provider with a local portfolio-monitor fallback when live headlines are unavailable.
+- Portfolio digest preview is available through `/api/digest`, combining metrics, top positions, recent transactions, and portfolio headlines.
+- On-demand digest email is wired behind optional `RESEND_API_KEY` and `EMAIL_FROM` variables; without them the UI degrades to a clear "email provider not configured" state.
 - Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then optionally persist snapshots and recalculate the current portfolio snapshot.
 - Settings preferences are currently browser-persisted: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. DB-backed user preferences are deferred until migration access is clean.
 - Google OAuth is wired through Auth.js and configured in production; the existing email allowlist login remains as fallback.
@@ -80,6 +84,12 @@ SMOKE_QUOTE_MATRIX=1 npm run smoke:prod
 
 The matrix requires CoinGecko BTC/ETH live quotes and reports Twelve Data stock/ETF/commodity availability diagnostically. Quote coverage is provider-limited: CoinGecko-backed crypto and Twelve Data-backed stocks, ETFs, commodities, and FX pairs attempt live quotes. FMP, manual, mock, unsupported symbols, indexes, rate-limited calls, and plan-gated Twelve Data instruments require saved/manual values until additional provider support is added.
 
+To include export, news, and digest preview endpoints:
+
+```bash
+SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod
+```
+
 ## Environment
 
 Copy `.env.example` to `.env.local` when connecting real services. Without API keys or a database URL, the app uses mock data.
@@ -106,6 +116,13 @@ Optional provider variables:
 - `COINGECKO_DEMO_API_KEY`
 - `TWELVE_DATA_API_KEY`
 - `FMP_API_KEY`
+
+Optional email variables:
+
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
+
+Scheduled daily/weekly/monthly digest delivery is not enabled yet. It should be added after DB-backed notification preferences are migrated, then triggered through Vercel Cron or a similar low-cost scheduler.
 
 Do not commit local secret files. `.env*`, `.vercel`, `env.txt`, and local Google auth scratch files are ignored.
 

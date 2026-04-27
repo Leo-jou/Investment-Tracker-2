@@ -35,6 +35,15 @@ async function main() {
   if (process.env.SMOKE_QUOTE_MATRIX === "1") {
     await expectLiveQuoteMatrix(cookie);
   }
+  if (process.env.SMOKE_EXPORT === "1") {
+    await expectExport(cookie);
+  }
+  if (process.env.SMOKE_NEWS === "1") {
+    await expectNews(cookie);
+  }
+  if (process.env.SMOKE_DIGEST === "1") {
+    await expectDigest(cookie);
+  }
   await expectStatus("/dashboard", 200, cookie);
 
   console.log(`Production smoke passed for ${baseUrl}`);
@@ -221,6 +230,79 @@ async function expectLiveQuoteMatrix(cookie: string) {
   checks.push(`/api/assets/quote matrix live quotes: ${results.join(", ")}${unavailableSummary}`);
 }
 
+async function expectExport(cookie: string) {
+  const response = await fetch(`${baseUrl}/api/export?format=json`, {
+    headers: { cookie },
+    redirect: "manual"
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`/api/export returned ${response.status}; expected 200.`);
+  }
+
+  const payload = (await response.json()) as {
+    portfolio?: unknown;
+    positions?: unknown;
+    transactions?: unknown;
+  };
+
+  if (
+    !payload.portfolio ||
+    !Array.isArray(payload.positions) ||
+    !Array.isArray(payload.transactions)
+  ) {
+    throw new Error("/api/export did not return a structured portfolio export.");
+  }
+
+  checks.push("/api/export returned a structured portfolio JSON export");
+}
+
+async function expectNews(cookie: string) {
+  const response = await fetch(`${baseUrl}/api/news`, {
+    headers: { cookie },
+    redirect: "manual"
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`/api/news returned ${response.status}; expected 200.`);
+  }
+
+  const payload = (await response.json()) as { news?: unknown };
+
+  if (!Array.isArray(payload.news)) {
+    throw new Error("/api/news did not return a news array.");
+  }
+
+  checks.push(`/api/news returned ${payload.news.length} portfolio headlines`);
+}
+
+async function expectDigest(cookie: string) {
+  const response = await fetch(`${baseUrl}/api/digest`, {
+    headers: { cookie },
+    redirect: "manual"
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`/api/digest returned ${response.status}; expected 200.`);
+  }
+
+  const payload = (await response.json()) as {
+    digest?: {
+      subject?: unknown;
+      text?: unknown;
+    };
+  };
+
+  if (
+    typeof payload.digest?.subject !== "string" ||
+    typeof payload.digest?.text !== "string"
+  ) {
+    throw new Error("/api/digest did not return a structured digest preview.");
+  }
+
+  checks.push("/api/digest returned a structured portfolio digest preview");
+}
+
 async function tryExpectQuote(
   cookie: string,
   input: Parameters<typeof expectQuote>[1]
@@ -259,7 +341,7 @@ async function expectQuote(
   }
 
   const payload = (await response.json()) as {
-      quote?: {
+    quote?: {
       symbol?: unknown;
       priceUsd?: unknown;
       quoteSource?: unknown;

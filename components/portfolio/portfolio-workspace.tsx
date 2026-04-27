@@ -6,6 +6,8 @@ import { AnalysisPanels } from "@/components/portfolio/analysis-panels";
 import { AssetAllocationChart } from "@/components/portfolio/asset-allocation-chart";
 import { CurrencyToggle } from "@/components/portfolio/currency-toggle";
 import { DailyMovers } from "@/components/portfolio/daily-movers";
+import { DigestPanel } from "@/components/portfolio/digest-panel";
+import { ExportActions } from "@/components/portfolio/export-actions";
 import { ManualPositionsCard } from "@/components/portfolio/manual-positions-card";
 import { NewsFeed } from "@/components/portfolio/news-feed";
 import { PortfolioHeader } from "@/components/portfolio/portfolio-header";
@@ -23,7 +25,8 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
 
   return (
     <div className="space-y-10">
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <ExportActions portfolioId={data.portfolio.id} />
         <CurrencyToggle currency={currency} onCurrencyChange={setCurrency} />
       </div>
 
@@ -47,7 +50,8 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
             positions={data.positions}
             manualPositions={data.manualPositions}
           />
-          <NewsFeed />
+          <NewsFeed portfolioId={data.portfolio.id} />
+          <DigestPanel portfolioId={data.portfolio.id} />
         </div>
       )}
 

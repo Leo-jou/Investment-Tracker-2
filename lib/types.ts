@@ -140,4 +140,25 @@ export type ApiStatus = {
   provider: string;
   configured: boolean;
   purpose: string;
+  unconfiguredLabel?: string;
+};
+
+export type PortfolioNewsItem = {
+  id: string;
+  symbol?: string;
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  summary: string;
+  provider: "gdelt" | "local";
+};
+
+export type PortfolioDigest = {
+  generatedAt: string;
+  subject: string;
+  text: string;
+  html: string;
+  highlights: string[];
+  news: PortfolioNewsItem[];
 };

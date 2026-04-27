@@ -44,7 +44,7 @@ export default async function SettingsPage() {
                 </div>
               </div>
               <Badge className={status.configured ? "bg-[#063b33] text-[#00c2a8]" : ""}>
-                {status.configured ? "Configured" : "Mock fallback"}
+                {status.configured ? "Configured" : (status.unconfiguredLabel ?? "Mock fallback")}
               </Badge>
             </div>
           ))}
@@ -83,6 +83,12 @@ function buildApiStatuses(): ApiStatus[] {
       provider: "Google login",
       configured: Boolean(process.env.AUTH_GOOGLE_ID) && Boolean(process.env.AUTH_GOOGLE_SECRET),
       purpose: "OAuth sign-in for allowlisted Google accounts"
+    },
+    {
+      provider: "Email delivery",
+      configured: Boolean(process.env.RESEND_API_KEY) && Boolean(process.env.EMAIL_FROM),
+      purpose: "On-demand portfolio digest email",
+      unconfiguredLabel: "Not configured"
     }
   ];
 }

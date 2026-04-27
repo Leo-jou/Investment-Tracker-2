@@ -14,6 +14,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Transfers should stay disabled in quick-add until paired multi-portfolio transfer support exists.
 - Quick-add should fetch a single live quote only after explicit asset selection, not while the user is typing search queries.
 - Every selectable provider-backed quick-add result should attempt a fresh quote, but coverage is limited to CoinGecko and Twelve Data. FMP/manual/mock/unsupported or plan-gated instruments must show an unavailable/saved-price fallback instead of silently pretending to be live.
+- Exports and digest emails should be authenticated and generated on demand first. Scheduled daily/weekly/monthly delivery should wait for DB-backed notification preferences and a clear cron policy.
 
 ## Technical Decisions
 
@@ -37,11 +38,13 @@ Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, W
 
 Holdings sub-tabs now switch between position, price, financials, performance, risk, and technical table views. Portfolio distribution supports assets, asset types, and currency modes without donut labels, avoiding the previous 100x percentage display issue.
 
+The dashboard now exposes authenticated CSV/JSON portfolio exports through `/api/export`. `/api/news` builds portfolio-aware headlines from current holdings through a free GDELT query, with local portfolio-monitor fallback rows when live headlines are unavailable. `/api/digest` returns a portfolio digest preview in JSON/text/html and can send it to the signed-in email when `RESEND_API_KEY` and `EMAIL_FROM` are configured; otherwise it returns a clear not-configured result without failing the page. Arbitrary digest recipients are intentionally not supported until backup-email preferences are DB-backed.
+
 Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
 
-Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup.
+Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints.
 
-Still missing or likely incomplete: DB-backed settings persistence, provider coverage beyond CoinGecko/Twelve Data, paired transfer support, dividend support, import/export, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Still missing or likely incomplete: DB-backed settings persistence, scheduled digest/export delivery, provider coverage beyond CoinGecko/Twelve Data/GDELT, stronger earnings/SEC/IR-news enrichment, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
@@ -72,6 +75,7 @@ Recent commits:
 - ESLint must ignore generated build/deployment folders such as `.next` and `.vercel`; this is configured in `eslint.config.mjs`.
 - Production provider probe on 2026-04-27 returned live Twelve Data quotes for SPY, VOO, XAU/USD, EUR/USD, NVDA, and MSFT, but AAPL returned unavailable. Treat provider quote coverage as best-effort and surface unavailable states clearly.
 - The local `.env.local` Neon URL currently fails authentication; production env values are sensitive in Vercel and cannot be pulled back locally. Avoid schema migrations until migration credentials or an approved migration path are available.
+- GDELT-backed news is best-effort and may return broad market headlines or no live rows for niche/private holdings. Keep the local fallback visible and avoid representing it as investment advice.
 
 <!-- context:auto:start:known-issues -->
 Generated TODO/FIXME scan:
@@ -95,8 +99,9 @@ Generated TODO/FIXME scan:
 2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
 3. Run a manual browser Google login smoke test with an allowlisted Google account.
 4. Move settings preferences from browser storage into Neon once migration access is resolved.
-5. Add paired transfer support once multiple portfolios are available.
-6. Continue UI iteration against the deployed app, keeping components modular and compact.
+5. Add DB-backed digest/export preferences, then wire scheduled delivery through Vercel Cron.
+6. Add paired transfer support once multiple portfolios are available.
+7. Continue UI iteration against the deployed app, keeping components modular and compact.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -107,4 +112,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T14:50:43.454Z - Refreshed generated context from 8 recent commits, 46 changed files, and 0 TODO/FIXME items.
+2026-04-27T15:22:39.390Z - Refreshed generated context from 8 recent commits, 46 changed files, and 0 TODO/FIXME items.
