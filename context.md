@@ -36,17 +36,16 @@ Still missing or likely incomplete: full real-provider integration, production a
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- UI components: 26 files
-- Other: 24 files
-- App pages: 11 files
-- API routes: 7 files
-- Database: 6 files
-- Documentation: 4 files
-- Metrics: 2 files
-- Pricing providers: 2 files
+- Other: 4 files
+- API routes: 2 files
+- Documentation: 2 files
 - Tooling: 2 files
+- UI components: 2 files
+- Database: 1 file
 
 Recent commits:
+- 7c247e8 2026-04-27 Stabilize context updater
+- 476830b 2026-04-27 Add production smoke test
 - fd79923 2026-04-27 Document deployment and lint ignores
 - a4f0813 2026-04-27 Add inline edit flows
 - 190c8fe 2026-04-27 Initial FolioCore MVP
@@ -93,4 +92,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T11:21:58.840Z - Refreshed generated context from 3 recent commits, 84 changed files, and 0 TODO/FIXME items.
+2026-04-27T11:25:03.308Z - Refreshed generated context from 5 recent commits, 13 changed files, and 0 TODO/FIXME items.
