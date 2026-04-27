@@ -206,6 +206,31 @@ async function fetchTwelveDataPrice(
   capturedAt: Date
 ): Promise<PriceSnapshotInput | null> {
   const { symbol, exchange } = splitTwelveDataExternalId(asset);
+
+  if (!exchange) {
+    const quote = await fetchTwelveDataQuote(symbol, apiKey);
+    return normalizeTwelveDataQuote(asset, quote, capturedAt);
+  }
+
+  let primaryError: unknown;
+
+  try {
+    const primaryQuote = await fetchTwelveDataQuote(symbol, apiKey, exchange);
+    const normalizedPrimaryQuote = normalizeTwelveDataQuote(asset, primaryQuote, capturedAt);
+    if (normalizedPrimaryQuote) return normalizedPrimaryQuote;
+  } catch (error) {
+    primaryError = error;
+  }
+
+  const fallbackQuote = await fetchTwelveDataQuote(symbol, apiKey);
+  const normalizedFallbackQuote = normalizeTwelveDataQuote(asset, fallbackQuote, capturedAt);
+
+  if (normalizedFallbackQuote) return normalizedFallbackQuote;
+  if (primaryError) throw primaryError;
+  return null;
+}
+
+async function fetchTwelveDataQuote(symbol: string, apiKey: string, exchange?: string) {
   const params = new URLSearchParams({
     symbol,
     apikey: apiKey
@@ -225,7 +250,7 @@ async function fetchTwelveDataPrice(
     throw new Error(quote.message ?? `Provider returned code ${quote.code}.`);
   }
 
-  return normalizeTwelveDataQuote(asset, quote, capturedAt);
+  return quote;
 }
 
 async function fetchFxRates(capturedAt: Date, errors: RefreshError[]): Promise<FxSnapshotInput[]> {

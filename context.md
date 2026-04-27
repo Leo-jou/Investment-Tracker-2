@@ -38,14 +38,17 @@ Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Da
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 4 files
-- API routes: 2 files
+- Other: 5 files
+- UI components: 4 files
+- API routes: 3 files
 - Documentation: 2 files
+- Pricing providers: 2 files
 - Tooling: 2 files
-- UI components: 2 files
+- App pages: 1 file
 - Database: 1 file
 
 Recent commits:
+- 7d7dc40 2026-04-27 Add provider-backed price refresh
 - 7c247e8 2026-04-27 Stabilize context updater
 - 476830b 2026-04-27 Add production smoke test
 - fd79923 2026-04-27 Document deployment and lint ignores
@@ -94,4 +97,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T11:46:41.153Z - Refreshed generated context from 5 recent commits, 13 changed files, and 0 TODO/FIXME items.
+2026-04-27T11:50:54.342Z - Refreshed generated context from 6 recent commits, 20 changed files, and 0 TODO/FIXME items.
