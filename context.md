@@ -46,15 +46,16 @@ Still missing or likely incomplete: DB-backed settings persistence, provider cov
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - Other: 12 files
-- UI components: 10 files
+- UI components: 12 files
 - App pages: 7 files
 - API routes: 6 files
 - Pricing providers: 5 files
 - Documentation: 2 files
-- Tooling: 2 files
 - Database: 1 file
+- Tooling: 1 file
 
 Recent commits:
+- 7592e04 2026-04-27 Refine portfolio UI controls and settings
 - 0262bd2 2026-04-27 Make quote matrix smoke provider-aware
 - 7d1785d 2026-04-27 Wire portfolio controls and improve live quote search
 - 603d04e 2026-04-27 Document Google OAuth production setup
@@ -62,7 +63,6 @@ Recent commits:
 - d0a4c74 2026-04-27 Add live transaction quotes and Google auth scaffold
 - b28ea68 2026-04-27 Add Twelve Data symbol fallback
 - 7d7dc40 2026-04-27 Add provider-backed price refresh
-- 7c247e8 2026-04-27 Stabilize context updater
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -107,4 +107,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T13:58:16.088Z - Refreshed generated context from 8 recent commits, 45 changed files, and 0 TODO/FIXME items.
+2026-04-27T14:50:43.454Z - Refreshed generated context from 8 recent commits, 46 changed files, and 0 TODO/FIXME items.
