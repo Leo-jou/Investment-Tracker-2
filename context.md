@@ -26,6 +26,8 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 
 The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio components, API routes for assets, transactions, manual positions, item editing/deletion, price refresh, auth login, Drizzle schema/migration files, mock/demo data, metrics utilities, and provider-ready pricing seams.
 
+Production is deployed on Vercel at `https://foliocore.vercel.app`. The current production deployment includes inline edit/delete flows for transactions and manual positions.
+
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from the selected asset's latest saved price.
 
 Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, oversell-safe position state, and external cash-flow scoping.
@@ -45,6 +47,7 @@ Generated refresh summary:
 - Tooling: 2 files
 
 Recent commits:
+- a4f0813 2026-04-27 Add inline edit flows
 - 190c8fe 2026-04-27 Initial FolioCore MVP
 <!-- context:auto:end:implementation-status -->
 
@@ -52,7 +55,7 @@ Recent commits:
 
 - Transfers are intentionally disabled in quick-add until paired portfolio semantics exist.
 - Existing chart warning about Recharts initial `-1` dimensions was addressed by giving `ResponsiveContainer` numeric heights.
-- The workspace currently has no initialized Git repository, so git-history-based context refreshes will be limited until `.git` exists.
+- ESLint must ignore generated build/deployment folders such as `.next` and `.vercel`; this is configured in `eslint.config.mjs`.
 
 <!-- context:auto:start:known-issues -->
 Generated TODO/FIXME scan:
@@ -69,16 +72,16 @@ Generated TODO/FIXME scan:
 ## Open Questions
 
 - Which real market data/search/FX providers should be used first?
-- What authentication path should ship for the first private deployment?
+- Should email allowlist auth remain the private MVP path, or should Google OAuth be added next?
 - Which portfolio workflows need persistence before visual polish continues?
 
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
-2. Initialize or connect a Git repository so the context refresh script can inspect recent history.
-3. Add paired transfer support once multiple portfolios are available.
-4. Wire real provider price refresh and FX updates after the tested manual workflows remain stable.
-5. Add end-to-end smoke tests for login, create/edit/delete transaction, and create/edit/delete manual position.
+2. Add end-to-end smoke tests for login, create/edit/delete transaction, and create/edit/delete manual position.
+3. Wire real provider price refresh and FX updates after the tested manual workflows remain stable.
+4. Add paired transfer support once multiple portfolios are available.
+5. Continue UI iteration against the deployed app, keeping components modular and compact.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -89,4 +92,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T10:58:15.554Z - Refreshed generated context from 1 recent commits, 84 changed files, and 0 TODO/FIXME items.
+2026-04-27T11:16:47.008Z - Refreshed generated context from 2 recent commits, 84 changed files, and 0 TODO/FIXME items.
