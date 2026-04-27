@@ -40,16 +40,17 @@ Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Da
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 5 files
-- UI components: 4 files
-- API routes: 3 files
+- Other: 12 files
+- API routes: 5 files
+- UI components: 5 files
+- Pricing providers: 4 files
+- App pages: 3 files
 - Documentation: 2 files
-- Pricing providers: 2 files
 - Tooling: 2 files
-- App pages: 1 file
 - Database: 1 file
 
 Recent commits:
+- d0a4c74 2026-04-27 Add live transaction quotes and Google auth scaffold
 - b28ea68 2026-04-27 Add Twelve Data symbol fallback
 - 7d7dc40 2026-04-27 Add provider-backed price refresh
 - 7c247e8 2026-04-27 Stabilize context updater
@@ -99,4 +100,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T12:16:29.689Z - Refreshed generated context from 7 recent commits, 20 changed files, and 0 TODO/FIXME items.
+2026-04-27T12:18:01.619Z - Refreshed generated context from 8 recent commits, 34 changed files, and 0 TODO/FIXME items.
