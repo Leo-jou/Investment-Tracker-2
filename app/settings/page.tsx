@@ -3,6 +3,8 @@ import { CheckCircle2, CircleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { ApiStatus } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 const preferenceCards = [
   {
     title: "Default currency",
