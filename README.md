@@ -75,7 +75,7 @@ To run a broader provider quote matrix:
 SMOKE_QUOTE_MATRIX=1 npm run smoke:prod
 ```
 
-Quote coverage is provider-limited: CoinGecko-backed crypto and Twelve Data-backed stocks, ETFs, commodities, and FX pairs attempt live quotes. FMP, manual, mock, unsupported symbols, indexes, and plan-gated Twelve Data instruments require saved/manual values until additional provider support is added.
+The matrix requires CoinGecko BTC/ETH live quotes and reports Twelve Data stock/ETF/commodity availability diagnostically. Quote coverage is provider-limited: CoinGecko-backed crypto and Twelve Data-backed stocks, ETFs, commodities, and FX pairs attempt live quotes. FMP, manual, mock, unsupported symbols, indexes, rate-limited calls, and plan-gated Twelve Data instruments require saved/manual values until additional provider support is added.
 
 ## Environment
 

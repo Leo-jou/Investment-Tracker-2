@@ -154,7 +154,7 @@ async function expectLiveQuote(cookie: string) {
 }
 
 async function expectLiveQuoteMatrix(cookie: string) {
-  const cases = [
+  const requiredCases = [
     {
       symbol: "BTC",
       name: "Bitcoin",
@@ -170,7 +170,9 @@ async function expectLiveQuoteMatrix(cookie: string) {
       currency: "USD",
       provider: "coingecko",
       externalId: "ethereum"
-    },
+    }
+  ];
+  const diagnosticCases = [
     {
       symbol: "NVDA",
       name: "NVIDIA Corporation",
@@ -199,12 +201,35 @@ async function expectLiveQuoteMatrix(cookie: string) {
   ];
 
   const results = [];
-  for (const quoteCase of cases) {
+  for (const quoteCase of requiredCases) {
     const quote = await expectQuote(cookie, quoteCase);
     results.push(quote.symbol);
   }
 
-  checks.push(`/api/assets/quote returned live quotes for ${results.join(", ")}`);
+  const unavailable = [];
+  for (const quoteCase of diagnosticCases) {
+    const quote = await tryExpectQuote(cookie, quoteCase);
+    if (quote) {
+      results.push(quote.symbol);
+    } else {
+      unavailable.push(quoteCase.symbol);
+    }
+  }
+
+  const unavailableSummary =
+    unavailable.length > 0 ? `; provider-limited/unavailable: ${unavailable.join(", ")}` : "";
+  checks.push(`/api/assets/quote matrix live quotes: ${results.join(", ")}${unavailableSummary}`);
+}
+
+async function tryExpectQuote(
+  cookie: string,
+  input: Parameters<typeof expectQuote>[1]
+) {
+  try {
+    return await expectQuote(cookie, input);
+  } catch {
+    return null;
+  }
 }
 
 async function expectQuote(
