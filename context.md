@@ -51,6 +51,7 @@ Generated refresh summary:
 - Database: 1 file
 
 Recent commits:
+- 0262bd2 2026-04-27 Make quote matrix smoke provider-aware
 - 7d1785d 2026-04-27 Wire portfolio controls and improve live quote search
 - 603d04e 2026-04-27 Document Google OAuth production setup
 - 037d026 2026-04-27 Make settings status runtime-aware
@@ -58,7 +59,6 @@ Recent commits:
 - b28ea68 2026-04-27 Add Twelve Data symbol fallback
 - 7d7dc40 2026-04-27 Add provider-backed price refresh
 - 7c247e8 2026-04-27 Stabilize context updater
-- 476830b 2026-04-27 Add production smoke test
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -101,4 +101,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T13:56:30.495Z - Refreshed generated context from 8 recent commits, 45 changed files, and 0 TODO/FIXME items.
+2026-04-27T13:58:16.088Z - Refreshed generated context from 8 recent commits, 45 changed files, and 0 TODO/FIXME items.
