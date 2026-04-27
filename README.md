@@ -24,9 +24,10 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - Production is deployed on Vercel at `https://foliocore.vercel.app`.
 - Neon-backed first-run workspace bootstrap creates a Personal portfolio, demo assets, demo transactions, price/FX snapshots, and a manual SpaceX-style position.
 - Quick add supports BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries with type-specific fields.
-- BUY/SELL can auto-calculate total from quantity or quantity from total using the selected asset's latest saved USD price.
+- BUY/SELL can auto-calculate total from quantity or quantity from total using a live quote fetched on explicit asset selection.
 - Transactions and manual positions can be edited inline and deleted from the UI with browser confirmation.
 - Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then persist snapshots and recalculate the current portfolio snapshot.
+- Google OAuth is wired through Auth.js and remains disabled until Google OAuth env vars are configured; the existing email allowlist login remains as fallback.
 - Transfers are intentionally disabled in quick add until paired multi-portfolio transfer support exists.
 - Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, and oversell-safe position state.
 
@@ -61,6 +62,12 @@ To include the snapshot-writing price refresh endpoint in the smoke test:
 SMOKE_REFRESH=1 npm run smoke:prod
 ```
 
+To also verify live quote lookup:
+
+```bash
+SMOKE_QUOTE=1 npm run smoke:prod
+```
+
 ## Environment
 
 Copy `.env.example` to `.env.local` when connecting real services. Without API keys or a database URL, the app uses mock data.
@@ -70,6 +77,17 @@ Required production variables:
 - `DATABASE_URL`
 - `AUTH_SECRET`
 - `APP_ALLOWED_EMAILS`
+
+Google OAuth variables:
+
+- `AUTH_GOOGLE_ID`
+- `AUTH_GOOGLE_SECRET`
+- `AUTH_URL`
+
+Register these redirect URIs in Google Cloud OAuth:
+
+- `https://foliocore.vercel.app/api/auth/callback/google`
+- `http://localhost:3000/api/auth/callback/google`
 
 Optional provider variables:
 

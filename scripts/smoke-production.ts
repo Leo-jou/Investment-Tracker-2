@@ -29,6 +29,9 @@ async function main() {
   if (process.env.SMOKE_REFRESH === "1") {
     await expectPriceRefresh(cookie);
   }
+  if (process.env.SMOKE_QUOTE === "1") {
+    await expectLiveQuote(cookie);
+  }
   await expectStatus("/dashboard", 200, cookie);
 
   console.log(`Production smoke passed for ${baseUrl}`);
@@ -132,6 +135,46 @@ async function expectPriceRefresh(cookie: string) {
   checks.push(
     `/api/prices/refresh updated ${payload.pricesUpdated} prices, ${payload.fxPairsUpdated} FX pairs, and ${payload.portfolioSnapshotsUpdated} portfolio snapshots`
   );
+}
+
+async function expectLiveQuote(cookie: string) {
+  const response = await fetch(`${baseUrl}/api/assets/quote`, {
+    method: "POST",
+    headers: {
+      cookie,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      symbol: "BTC",
+      name: "Bitcoin",
+      type: "CRYPTO",
+      currency: "USD",
+      provider: "coingecko",
+      externalId: "bitcoin"
+    }),
+    redirect: "manual"
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`/api/assets/quote returned ${response.status}; expected 200.`);
+  }
+
+  const payload = (await response.json()) as {
+    quote?: {
+      priceUsd?: unknown;
+      quoteSource?: unknown;
+    };
+  };
+
+  if (
+    typeof payload.quote?.priceUsd !== "number" ||
+    payload.quote.priceUsd <= 0 ||
+    payload.quote.quoteSource !== "live"
+  ) {
+    throw new Error("/api/assets/quote did not return a live positive USD quote.");
+  }
+
+  checks.push("/api/assets/quote returned a live BTC quote");
 }
 
 function getSetCookies(headers: Headers) {

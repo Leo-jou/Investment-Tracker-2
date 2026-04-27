@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { ArrowDownLeft, ArrowUpRight, Save } from "lucide-react";
 
@@ -30,6 +30,9 @@ export function QuickAddTransactionForm() {
   const [quantity, setQuantity] = useState("");
   const [grossAmount, setGrossAmount] = useState("");
   const [lastEdited, setLastEdited] = useState<LastEditedTradeField | null>(null);
+  const [isQuoting, setIsQuoting] = useState(false);
+  const [quoteMessage, setQuoteMessage] = useState<string | null>(null);
+  const quoteRequestIdRef = useRef(0);
 
   const isPricedTrade = type === "BUY" || type === "SELL";
   const isCashFlow = type === "DEPOSIT" || type === "WITHDRAW";
@@ -76,20 +79,51 @@ export function QuickAddTransactionForm() {
 
   function handleAssetSelect(asset: AssetSearchResult) {
     setSelectedAsset(asset);
-    const priceUsd = getAssetPriceUsd(asset);
-    if (!isPricedTrade || !priceUsd || !lastEdited) return;
+    setQuoteMessage(null);
+    recalculateFromPrice(getAssetPriceUsd(asset));
+    void refreshSelectedAssetQuote(asset);
+  }
 
-    if (lastEdited === "quantity") {
-      const parsedQuantity = parseDecimalInput(quantity);
-      if (parsedQuantity !== null) {
-        setGrossAmount(formatMoneyInput(parsedQuantity * priceUsd));
+  async function refreshSelectedAssetQuote(asset: AssetSearchResult) {
+    const requestId = quoteRequestIdRef.current + 1;
+    quoteRequestIdRef.current = requestId;
+    setIsQuoting(true);
+
+    try {
+      const response = await fetch("/api/assets/quote", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify(asset)
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        quote?: AssetSearchResult & { quoteSource?: string; message?: string; quotedAt?: string };
+        error?: string;
+      };
+
+      if (quoteRequestIdRef.current !== requestId) return;
+
+      if (!response.ok || !payload.quote) {
+        setQuoteMessage(payload.error ?? "Live quote unavailable.");
+        return;
       }
-      return;
-    }
 
-    const parsedGrossAmount = parseDecimalInput(grossAmount);
-    if (parsedGrossAmount !== null) {
-      setQuantity(formatQuantityInput(parsedGrossAmount / priceUsd));
+      setSelectedAsset(payload.quote);
+      recalculateFromPrice(getAssetPriceUsd(payload.quote));
+      setQuoteMessage(
+        payload.quote.quoteSource === "live"
+          ? `Live quote refreshed for ${payload.quote.symbol}.`
+          : payload.quote.message ?? `Using latest saved price for ${payload.quote.symbol}.`
+      );
+    } catch {
+      if (quoteRequestIdRef.current === requestId) {
+        setQuoteMessage("Live quote unavailable. Using the latest saved price if present.");
+      }
+    } finally {
+      if (quoteRequestIdRef.current === requestId) {
+        setIsQuoting(false);
+      }
     }
   }
 
@@ -115,6 +149,23 @@ export function QuickAddTransactionForm() {
     }
   }
 
+  function recalculateFromPrice(priceUsd: number | undefined) {
+    if (!isPricedTrade || !priceUsd || !lastEdited) return;
+
+    if (lastEdited === "quantity") {
+      const parsedQuantity = parseDecimalInput(quantity);
+      if (parsedQuantity !== null) {
+        setGrossAmount(formatMoneyInput(parsedQuantity * priceUsd));
+      }
+      return;
+    }
+
+    const parsedGrossAmount = parseDecimalInput(grossAmount);
+    if (parsedGrossAmount !== null) {
+      setQuantity(formatQuantityInput(parsedGrossAmount / priceUsd));
+    }
+  }
+
   return (
     <form
       id="quick-add"
@@ -137,10 +188,21 @@ export function QuickAddTransactionForm() {
               onQueryChange={(query) => {
                 if (selectedAsset && query.trim().toUpperCase() !== selectedAsset.symbol) {
                   setSelectedAsset(null);
+                  setQuoteMessage(null);
                 }
               }}
               onSelect={handleAssetSelect}
             />
+            {selectedAsset && (
+              <>
+                <input type="hidden" name="assetName" value={selectedAsset.name} />
+                <input type="hidden" name="assetType" value={selectedAsset.type} />
+                <input type="hidden" name="assetCurrency" value={selectedAsset.currency} />
+                <input type="hidden" name="assetProvider" value={selectedAsset.provider} />
+                <input type="hidden" name="assetExternalId" value={selectedAsset.externalId} />
+                <input type="hidden" name="assetExchange" value={selectedAsset.exchange ?? ""} />
+              </>
+            )}
             <Input
               name="quantity"
               value={quantity}
@@ -161,9 +223,15 @@ export function QuickAddTransactionForm() {
           </div>
           {selectedAsset && (
             <p className="mt-2 text-xs text-zinc-500">
-              {selectedPriceUsd
-                ? `Using latest saved price for ${selectedAsset.symbol}: ${formatMoney(selectedPriceUsd, "USD")}. Fees stay separate.`
-                : `No saved price for ${selectedAsset.symbol} yet. Enter quantity and total manually.`}
+              {isQuoting
+                ? `Fetching live quote for ${selectedAsset.symbol}...`
+                : selectedPriceUsd
+                  ? `${quoteMessage ?? "Using quote"} Price: ${formatMoney(
+                      selectedPriceUsd,
+                      "USD"
+                    )}. Fees stay separate.`
+                  : quoteMessage ??
+                    `No live quote for ${selectedAsset.symbol} yet. Enter quantity and total manually.`}
             </p>
           )}
         </>

@@ -3,9 +3,12 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { auth } from "@/auth";
 import { sessionCookieName } from "@/lib/auth/constants";
+import { isEmailAllowed, isValidEmail, normalizeEmail } from "@/lib/auth/email";
 
 export { sessionCookieName };
+export { isEmailAllowed, isValidEmail, normalizeEmail };
 
 type SessionPayload = {
   email: string;
@@ -13,23 +16,6 @@ type SessionPayload = {
 };
 
 const maxAgeSeconds = 60 * 60 * 24 * 14;
-
-export function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
-
-export function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-export function isEmailAllowed(email: string) {
-  const allowed = (process.env.APP_ALLOWED_EMAILS ?? "")
-    .split(",")
-    .map((value) => normalizeEmail(value))
-    .filter(Boolean);
-
-  return allowed.length === 0 || allowed.includes(normalizeEmail(email));
-}
 
 export async function createSession(email: string) {
   const payload: SessionPayload = {
@@ -56,12 +42,15 @@ export async function clearSession() {
 export async function getSessionEmail() {
   const cookieStore = await cookies();
   const token = cookieStore.get(sessionCookieName)?.value;
-  if (!token) return null;
 
-  const payload = verifyToken(token);
-  if (!payload || payload.expiresAt < Date.now()) return null;
+  if (token) {
+    const payload = verifyToken(token);
+    if (payload && payload.expiresAt >= Date.now()) return payload.email;
+  }
 
-  return payload.email;
+  const authSession = await auth();
+  const email = authSession?.user?.email;
+  return email ? normalizeEmail(email) : null;
 }
 
 export async function requireSessionEmail() {

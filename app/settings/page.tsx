@@ -91,6 +91,11 @@ function buildApiStatuses(): ApiStatus[] {
       provider: "Email gate",
       configured: Boolean(process.env.APP_ALLOWED_EMAILS),
       purpose: "Private MVP access control"
+    },
+    {
+      provider: "Google login",
+      configured: Boolean(process.env.AUTH_GOOGLE_ID) && Boolean(process.env.AUTH_GOOGLE_SECRET),
+      purpose: "OAuth sign-in for allowlisted Google accounts"
     }
   ];
 }

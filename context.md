@@ -12,6 +12,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Time-weighted return is the primary performance metric; deposits and withdrawals are capital flows, not gains or losses.
 - External asset search should be dynamic and provider-backed when API keys exist, with mock-backed fallback behavior.
 - Transfers should stay disabled in quick-add until paired multi-portfolio transfer support exists.
+- Quick-add should fetch a single live quote only after explicit asset selection, not while the user is typing search queries.
 
 ## Technical Decisions
 
@@ -20,6 +21,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Recharts for portfolio value, TWR, allocation, and performance charts.
 - Drizzle ORM with Neon Postgres for the database layer.
 - Mock-first services for asset search, prices, FX, snapshots, and portfolio metrics until DB-backed CRUD and providers are stable.
+- Google OAuth uses Auth.js/NextAuth when `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are configured; email allowlist login remains the fallback path.
 - `AGENTS.md` is the durable instruction file; this file is the concise project state summary.
 
 ## Current Implementation Status
@@ -28,13 +30,13 @@ The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio 
 
 Production is deployed on Vercel at `https://foliocore.vercel.app`. The current production deployment includes inline edit/delete flows for transactions and manual positions.
 
-CoinGecko and Twelve Data provider keys are configured as sensitive Vercel Production environment variables. Do not record or commit their values.
+CoinGecko and Twelve Data provider keys are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
 
-Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from the selected asset's latest saved price.
+Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from a live quote fetched on explicit asset selection. Selected provider metadata is submitted with the transaction so new assets keep their CoinGecko/Twelve Data identity instead of becoming mock symbol-only assets.
 
-Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint.
+Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup.
 
-Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Data, production auth hardening beyond email allowlist, paired transfer support, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Data, Google OAuth credentials in Vercel, paired transfer support, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
@@ -77,15 +79,14 @@ Generated TODO/FIXME scan:
 
 ## Open Questions
 
-- Which real market data/search/FX providers should be used first?
-- Should email allowlist auth remain the private MVP path, or should Google OAuth be added next?
+- Which Google Cloud OAuth client ID and secret should be used for production login?
 - Which portfolio workflows need persistence before visual polish continues?
 
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
 2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
-3. Wire real provider price refresh and FX updates after the tested manual workflows remain stable.
+3. Add Google OAuth credentials to Vercel and run a browser login smoke test.
 4. Add paired transfer support once multiple portfolios are available.
 5. Continue UI iteration against the deployed app, keeping components modular and compact.
 
@@ -98,4 +99,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T11:52:53.868Z - Refreshed generated context from 7 recent commits, 20 changed files, and 0 TODO/FIXME items.
+2026-04-27T12:16:29.689Z - Refreshed generated context from 7 recent commits, 20 changed files, and 0 TODO/FIXME items.

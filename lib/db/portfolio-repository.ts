@@ -17,6 +17,8 @@ import type {
   AllocationSlice,
   ApiStatus,
   Asset,
+  AssetSearchResult,
+  AssetType,
   Currency,
   ManualPosition,
   Portfolio,
@@ -259,6 +261,44 @@ export async function listAssetsForEmail(email: string) {
   return buildAssetViews(dbAssets, latestPrices, rates);
 }
 
+export async function upsertAssetFromSearchResult(input: AssetSearchResult): Promise<RefreshableAsset> {
+  const db = getDb();
+  const symbol = input.symbol.trim().toUpperCase();
+  const name = input.name.trim() || symbol;
+  const provider = normalizeProvider(input.provider);
+  const externalId = input.externalId.trim();
+
+  if (!symbol) throw new Error("Asset symbol is required.");
+  if (!externalId) throw new Error("Asset external ID is required.");
+
+  const [asset] = await db
+    .insert(assets)
+    .values({
+      symbol,
+      name,
+      type: normalizeAssetType(input.type),
+      currency: normalizeCurrency(input.currency),
+      exchange: emptyToNull(input.exchange ?? ""),
+      provider,
+      externalId,
+      color: colorForAssetType(input.type)
+    })
+    .onConflictDoUpdate({
+      target: [assets.provider, assets.externalId],
+      set: {
+        symbol,
+        name,
+        type: normalizeAssetType(input.type),
+        currency: normalizeCurrency(input.currency),
+        exchange: emptyToNull(input.exchange ?? ""),
+        updatedAt: new Date()
+      }
+    })
+    .returning();
+
+  return asset;
+}
+
 export async function listAssetsForPriceRefresh(): Promise<RefreshableAsset[]> {
   const rows = await getDb().select().from(assets).where(eq(assets.isActive, true));
   return rows.filter((asset) => !["manual", "mock"].includes(asset.provider));
@@ -317,7 +357,7 @@ export async function createTransactionForEmail(email: string, input: FormData |
   const parsed = parseTransactionInput(input);
   const db = getDb();
   const portfolio = await getPrimaryPortfolioForUser(user.id);
-  const asset = await resolveTransactionAsset(parsed.type, parsed.assetSymbol);
+  const asset = await resolveTransactionAsset(parsed);
 
   if (parsed.type === "SELL") {
     if (!asset) throw new Error("Cannot sell an asset that is not in the local asset list.");
@@ -357,7 +397,7 @@ export async function updateTransactionForEmail(
 
   if (!existing) throw new Error("Transaction not found.");
 
-  const asset = await resolveTransactionAsset(parsed.type, parsed.assetSymbol);
+  const asset = await resolveTransactionAsset(parsed);
 
   if (parsed.type === "SELL") {
     if (!asset) throw new Error("Cannot sell an asset that is not in the local asset list.");
@@ -517,9 +557,16 @@ async function findAssetBySymbol(symbol: string) {
   return existing;
 }
 
-async function resolveTransactionAsset(type: TransactionType, assetSymbol: string) {
-  if (!assetSymbol || !["BUY", "SELL"].includes(type)) return undefined;
-  return type === "BUY" ? findOrCreateAssetBySymbol(assetSymbol) : findAssetBySymbol(assetSymbol);
+async function resolveTransactionAsset(parsed: ReturnType<typeof parseTransactionInput>) {
+  if (!parsed.assetSymbol || !["BUY", "SELL"].includes(parsed.type)) return undefined;
+
+  if (parsed.assetMetadata) {
+    return upsertAssetFromSearchResult(parsed.assetMetadata);
+  }
+
+  return parsed.type === "BUY"
+    ? findOrCreateAssetBySymbol(parsed.assetSymbol)
+    : findAssetBySymbol(parsed.assetSymbol);
 }
 
 async function upsertCurrentPortfolioSnapshot(portfolioId: string) {
@@ -643,7 +690,7 @@ async function getLatestPrices() {
   return latest;
 }
 
-async function getLatestFxRates(): Promise<FxRateMap> {
+export async function getLatestFxRates(): Promise<FxRateMap> {
   const rows = await getDb().select().from(fxSnapshots).orderBy(desc(fxSnapshots.capturedAt));
   const rates = { ...fallbackFxRates };
   const seenPairs = new Set<string>();
@@ -962,6 +1009,7 @@ function parseTransactionInput(input: FormData | Record<string, unknown>) {
     type,
     currency,
     assetSymbol,
+    assetMetadata: buildAssetMetadata(values, assetSymbol),
     quantity: ["BUY", "SELL"].includes(type) ? quantity : undefined,
     grossAmount,
     fees,
@@ -969,6 +1017,23 @@ function parseTransactionInput(input: FormData | Record<string, unknown>) {
     platform: emptyToNull(String(values.platform ?? "")),
     note: emptyToNull(String(values.note ?? ""))
   };
+}
+
+function buildAssetMetadata(values: Record<string, unknown>, assetSymbol: string) {
+  const provider = String(values.assetProvider ?? "").trim();
+  const externalId = String(values.assetExternalId ?? "").trim();
+
+  if (!provider || !externalId || !assetSymbol) return undefined;
+
+  return {
+    symbol: assetSymbol,
+    name: String(values.assetName ?? assetSymbol).trim() || assetSymbol,
+    type: normalizeAssetType(String(values.assetType ?? "STOCK")),
+    exchange: emptyToUndefined(String(values.assetExchange ?? "")),
+    currency: normalizeCurrency(String(values.assetCurrency ?? "USD")),
+    provider: normalizeProvider(provider),
+    externalId
+  } satisfies AssetSearchResult;
 }
 
 function parseOptionalNumber(value: unknown) {
@@ -989,9 +1054,53 @@ function normalizeCurrency(value: string): Currency {
   return value.toUpperCase() === "EUR" ? "EUR" : "USD";
 }
 
+function normalizeAssetType(value: string): AssetType {
+  const normalized = value.toUpperCase();
+  if (
+    normalized === "CRYPTO" ||
+    normalized === "STOCK" ||
+    normalized === "ETF" ||
+    normalized === "COMMODITY" ||
+    normalized === "CASH" ||
+    normalized === "MANUAL"
+  ) {
+    return normalized;
+  }
+  return "STOCK";
+}
+
+function normalizeProvider(value: string): PriceProvider {
+  if (
+    value === "coingecko" ||
+    value === "twelve-data" ||
+    value === "fmp" ||
+    value === "manual" ||
+    value === "mock"
+  ) {
+    return value;
+  }
+  return "mock";
+}
+
+function colorForAssetType(type: AssetType) {
+  const colors: Record<AssetType, string> = {
+    CRYPTO: "#f59e0b",
+    STOCK: "#3b82f6",
+    ETF: "#00c2a8",
+    COMMODITY: "#d97706",
+    CASH: "#14b8a6",
+    MANUAL: "#8b5cf6"
+  };
+  return colors[type];
+}
+
 function emptyToNull(value: string) {
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
+}
+
+function emptyToUndefined(value: string) {
+  return emptyToNull(value) ?? undefined;
 }
 
 function validateTransactionInput(

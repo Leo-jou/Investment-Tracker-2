@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { signIn, signOut } from "@/auth";
 import {
   clearSession,
   createSession,
@@ -9,6 +10,7 @@ import {
   isValidEmail,
   normalizeEmail
 } from "@/lib/auth/session";
+import { isGoogleLoginConfigured } from "@/lib/auth/google";
 import { ensureUserWorkspace } from "@/lib/db/portfolio-repository";
 
 export async function loginWithEmail(formData: FormData) {
@@ -27,7 +29,14 @@ export async function loginWithEmail(formData: FormData) {
   redirect("/dashboard");
 }
 
+export async function loginWithGoogle() {
+  if (!isGoogleLoginConfigured()) {
+    redirect("/login?error=google-not-configured");
+  }
+  await signIn("google", { redirectTo: "/dashboard" });
+}
+
 export async function logout() {
   await clearSession();
-  redirect("/login");
+  await signOut({ redirectTo: "/login" });
 }

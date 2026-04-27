@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { sessionCookieName } from "@/lib/auth/constants";
 
-const publicPaths = ["/login", "/api/auth/login"];
+const publicPaths = ["/login", "/api/auth"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -16,7 +16,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const hasSession = Boolean(request.cookies.get(sessionCookieName)?.value);
+  const hasSession =
+    Boolean(request.cookies.get(sessionCookieName)?.value) ||
+    request.cookies.getAll().some((cookie) => isAuthJsSessionCookie(cookie.name));
 
   if (!hasSession) {
     const loginUrl = request.nextUrl.clone();
@@ -26,6 +28,13 @@ export function proxy(request: NextRequest) {
   }
 
   return NextResponse.next();
+}
+
+function isAuthJsSessionCookie(name: string) {
+  return (
+    name.includes("authjs.session-token") ||
+    name.includes("next-auth.session-token")
+  );
 }
 
 export const config = {

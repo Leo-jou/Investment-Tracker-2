@@ -106,6 +106,49 @@ async function fetchProviderPrices(
   return [...coinGeckoPrices, ...twelveDataPrices];
 }
 
+export async function fetchLivePriceSnapshot(
+  asset: RefreshableAsset,
+  capturedAt = new Date()
+): Promise<PriceSnapshotInput | null> {
+  if (asset.provider === "coingecko") {
+    return fetchCoinGeckoPrice(asset, capturedAt);
+  }
+
+  if (asset.provider === "twelve-data") {
+    const apiKey = process.env.TWELVE_DATA_API_KEY;
+    if (!apiKey) return null;
+    return fetchTwelveDataPrice(asset, apiKey, capturedAt);
+  }
+
+  return null;
+}
+
+async function fetchCoinGeckoPrice(
+  asset: RefreshableAsset,
+  capturedAt: Date
+): Promise<PriceSnapshotInput | null> {
+  const apiKey = process.env.COINGECKO_DEMO_API_KEY;
+  if (!apiKey) return null;
+
+  const response = await fetch(
+    `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(
+      asset.externalId
+    )}&vs_currencies=usd,eur&include_last_updated_at=true`,
+    {
+      headers: {
+        "x-cg-demo-api-key": apiKey
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Price request failed with HTTP ${response.status}.`);
+  }
+
+  const data = (await response.json()) as CoinGeckoSimplePrice;
+  return normalizeCoinGeckoPrice(asset, data[asset.externalId], capturedAt);
+}
+
 async function fetchCoinGeckoPrices(
   assets: RefreshableAsset[],
   capturedAt: Date,

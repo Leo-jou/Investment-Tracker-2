@@ -145,7 +145,13 @@ function mapTwelveDataType(type?: string): AssetSearchResult["type"] {
   const normalized = type?.toLowerCase() ?? "";
 
   if (normalized.includes("etf")) return "ETF";
-  if (normalized.includes("crypto")) return "CRYPTO";
-  if (normalized.includes("commodity")) return "COMMODITY";
+  if (normalized.includes("crypto") || normalized.includes("digital currency")) return "CRYPTO";
+  if (
+    normalized.includes("commodity") ||
+    normalized.includes("physical currency") ||
+    normalized.includes("metal")
+  ) {
+    return "COMMODITY";
+  }
   return "STOCK";
 }
