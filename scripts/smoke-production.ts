@@ -32,6 +32,9 @@ async function main() {
   if (process.env.SMOKE_QUOTE === "1") {
     await expectLiveQuote(cookie);
   }
+  if (process.env.SMOKE_QUOTE_MATRIX === "1") {
+    await expectLiveQuoteMatrix(cookie);
+  }
   await expectStatus("/dashboard", 200, cookie);
 
   console.log(`Production smoke passed for ${baseUrl}`);
@@ -138,20 +141,91 @@ async function expectPriceRefresh(cookie: string) {
 }
 
 async function expectLiveQuote(cookie: string) {
-  const response = await fetch(`${baseUrl}/api/assets/quote`, {
-    method: "POST",
-    headers: {
-      cookie,
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({
+  await expectQuote(cookie, {
+    symbol: "BTC",
+    name: "Bitcoin",
+    type: "CRYPTO",
+    currency: "USD",
+    provider: "coingecko",
+    externalId: "bitcoin"
+  });
+
+  checks.push("/api/assets/quote returned a live BTC quote");
+}
+
+async function expectLiveQuoteMatrix(cookie: string) {
+  const cases = [
+    {
       symbol: "BTC",
       name: "Bitcoin",
       type: "CRYPTO",
       currency: "USD",
       provider: "coingecko",
       externalId: "bitcoin"
-    }),
+    },
+    {
+      symbol: "ETH",
+      name: "Ethereum",
+      type: "CRYPTO",
+      currency: "USD",
+      provider: "coingecko",
+      externalId: "ethereum"
+    },
+    {
+      symbol: "NVDA",
+      name: "NVIDIA Corporation",
+      type: "STOCK",
+      currency: "USD",
+      provider: "twelve-data",
+      externalId: "NVDA:NASDAQ",
+      exchange: "NASDAQ"
+    },
+    {
+      symbol: "SPY",
+      name: "SPDR S&P 500 ETF Trust",
+      type: "ETF",
+      currency: "USD",
+      provider: "twelve-data",
+      externalId: "SPY"
+    },
+    {
+      symbol: "XAU/USD",
+      name: "Gold Spot / U.S. Dollar",
+      type: "COMMODITY",
+      currency: "USD",
+      provider: "twelve-data",
+      externalId: "XAU/USD"
+    }
+  ];
+
+  const results = [];
+  for (const quoteCase of cases) {
+    const quote = await expectQuote(cookie, quoteCase);
+    results.push(quote.symbol);
+  }
+
+  checks.push(`/api/assets/quote returned live quotes for ${results.join(", ")}`);
+}
+
+async function expectQuote(
+  cookie: string,
+  input: {
+    symbol: string;
+    name: string;
+    type: string;
+    currency: string;
+    provider: string;
+    externalId: string;
+    exchange?: string;
+  }
+) {
+  const response = await fetch(`${baseUrl}/api/assets/quote`, {
+    method: "POST",
+    headers: {
+      cookie,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(input),
     redirect: "manual"
   });
 
@@ -160,7 +234,8 @@ async function expectLiveQuote(cookie: string) {
   }
 
   const payload = (await response.json()) as {
-    quote?: {
+      quote?: {
+      symbol?: unknown;
       priceUsd?: unknown;
       quoteSource?: unknown;
     };
@@ -171,10 +246,15 @@ async function expectLiveQuote(cookie: string) {
     payload.quote.priceUsd <= 0 ||
     payload.quote.quoteSource !== "live"
   ) {
-    throw new Error("/api/assets/quote did not return a live positive USD quote.");
+    throw new Error(
+      `/api/assets/quote did not return a live positive USD quote for ${input.symbol}.`
+    );
   }
 
-  checks.push("/api/assets/quote returned a live BTC quote");
+  return {
+    symbol: typeof payload.quote.symbol === "string" ? payload.quote.symbol : input.symbol,
+    priceUsd: payload.quote.priceUsd
+  };
 }
 
 function getSetCookies(headers: Headers) {

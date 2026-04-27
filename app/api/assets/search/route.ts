@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireSessionEmail } from "@/lib/auth/session";
 import { listAssetsForEmail } from "@/lib/db/portfolio-repository";
 import { searchAssets } from "@/lib/pricing/asset-search";
+import { rankAssetSearchResults } from "@/lib/pricing/search-ranking";
 import type { Asset, AssetSearchResult } from "@/lib/types";
 
 export async function GET(request: Request) {
@@ -15,7 +16,10 @@ export async function GET(request: Request) {
       searchLocalAssets(email, query),
       searchAssets(query)
     ]);
-    const results = dedupeSearchResults([...localResults, ...providerResults]).slice(0, 10);
+    const results = rankAssetSearchResults(
+      query,
+      dedupeSearchResults([...localResults, ...providerResults])
+    ).slice(0, 10);
     return NextResponse.json({ results, source: "dynamic-with-mock-fallback" });
   } catch {
     const results = await searchAssets("");

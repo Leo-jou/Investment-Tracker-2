@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Bot, Settings } from "lucide-react";
+import { Bot, LogOut, Settings } from "lucide-react";
+
+import { logout } from "@/app/login/actions";
 
 export function TopBar() {
   return (
@@ -33,9 +35,23 @@ export function TopBar() {
         <span className="hidden sm:inline">Ask AI</span>
       </button>
 
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#7657ad] text-base font-semibold">
-        L
-      </div>
+      <details className="group relative">
+        <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full bg-[#7657ad] text-base font-semibold">
+          L
+        </summary>
+        <div className="absolute right-0 top-12 z-50 w-[220px] rounded-[8px] border border-[#2b2b2f] bg-[#090909] p-2 shadow-2xl">
+          <p className="px-3 py-2 text-xs text-zinc-500">Signed in</p>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="flex h-10 w-full items-center gap-2 rounded-[6px] px-3 text-left text-sm font-medium text-zinc-200 hover:bg-[#17171a]"
+            >
+              <LogOut className="h-4 w-4" />
+              Log out
+            </button>
+          </form>
+        </div>
+      </details>
     </header>
   );
 }

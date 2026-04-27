@@ -1,4 +1,8 @@
 import { mockAssetSearchResults } from "@/lib/mock-data";
+import {
+  getCuratedSearchResults,
+  rankAssetSearchResults
+} from "@/lib/pricing/search-ranking";
 import type { AssetSearchResult } from "@/lib/types";
 
 type CoinGeckoCoin = {
@@ -35,15 +39,19 @@ export async function searchAssets(query: string): Promise<AssetSearchResult[]> 
     searchFmp(normalized)
   ]);
 
+  const curatedResults = getCuratedSearchResults(normalized);
   const merged = providerResults.flatMap((result) =>
     result.status === "fulfilled" ? result.value : []
   );
 
-  if (merged.length === 0) {
+  if (merged.length === 0 && curatedResults.length === 0) {
     return searchMockAssets(normalized);
   }
 
-  return dedupeResults([...merged, ...searchMockAssets(normalized)]).slice(0, 10);
+  return rankAssetSearchResults(
+    normalized,
+    dedupeResults([...curatedResults, ...merged, ...searchMockAssets(normalized)])
+  ).slice(0, 10);
 }
 
 async function searchCoinGecko(query: string): Promise<AssetSearchResult[]> {

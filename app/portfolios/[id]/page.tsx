@@ -7,8 +7,8 @@ export default async function PortfolioPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await params;
+  const { id } = await params;
   const email = await requireSessionEmail();
-  const data = await getDashboardDataForEmail(email);
+  const data = await getDashboardDataForEmail(email, id);
   return <PortfolioWorkspace data={data} />;
 }

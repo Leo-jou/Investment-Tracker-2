@@ -1,11 +1,7 @@
 import { convertCurrency } from "@/lib/data/conversions";
-import {
-  getLatestFxRates,
-  insertPriceSnapshotsForRefresh,
-  upsertAssetFromSearchResult
-} from "@/lib/db/portfolio-repository";
+import { getLatestFxRates, type RefreshableAsset } from "@/lib/db/portfolio-repository";
 import { fetchLivePriceSnapshot } from "@/lib/pricing/refresh";
-import type { AssetSearchResult } from "@/lib/types";
+import type { AssetSearchResult, AssetType, Currency, PriceProvider } from "@/lib/types";
 
 export type LiveQuoteResult = AssetSearchResult & {
   quotedAt?: string;
@@ -14,14 +10,12 @@ export type LiveQuoteResult = AssetSearchResult & {
 };
 
 export async function quoteAssetForTransaction(input: AssetSearchResult): Promise<LiveQuoteResult> {
-  const asset = await upsertAssetFromSearchResult(input);
+  const asset = normalizeTransientAsset(input);
   const capturedAt = new Date();
-  const liveSnapshot = await fetchLivePriceSnapshot(asset, capturedAt);
+  const liveSnapshot = await fetchProviderSnapshot(asset, capturedAt);
   const rates = await getLatestFxRates();
 
   if (liveSnapshot) {
-    await insertPriceSnapshotsForRefresh([liveSnapshot]);
-
     return {
       symbol: asset.symbol,
       name: asset.name,
@@ -52,4 +46,63 @@ export async function quoteAssetForTransaction(input: AssetSearchResult): Promis
         ? "Live quotes for FMP assets are not wired yet."
         : "Live quote unavailable. The latest saved price was kept."
   };
+}
+
+async function fetchProviderSnapshot(asset: RefreshableAsset, capturedAt: Date) {
+  try {
+    return await fetchLivePriceSnapshot(asset, capturedAt);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeTransientAsset(input: AssetSearchResult): RefreshableAsset {
+  const symbol = input.symbol.trim().toUpperCase();
+  const externalId = input.externalId.trim();
+
+  if (!symbol) throw new Error("Asset symbol is required.");
+  if (!externalId) throw new Error("Asset external ID is required.");
+
+  return {
+    id: `transient:${input.provider}:${externalId}`,
+    symbol,
+    name: input.name.trim() || symbol,
+    type: normalizeAssetType(input.type),
+    currency: normalizeCurrency(input.currency),
+    exchange: input.exchange?.trim() || null,
+    provider: normalizeProvider(input.provider),
+    externalId
+  };
+}
+
+function normalizeCurrency(value: string): Currency {
+  return value.toUpperCase() === "EUR" ? "EUR" : "USD";
+}
+
+function normalizeAssetType(value: string): AssetType {
+  const normalized = value.toUpperCase();
+  if (
+    normalized === "CRYPTO" ||
+    normalized === "STOCK" ||
+    normalized === "ETF" ||
+    normalized === "COMMODITY" ||
+    normalized === "CASH" ||
+    normalized === "MANUAL"
+  ) {
+    return normalized;
+  }
+  return "STOCK";
+}
+
+function normalizeProvider(value: string): PriceProvider {
+  if (
+    value === "coingecko" ||
+    value === "twelve-data" ||
+    value === "fmp" ||
+    value === "manual" ||
+    value === "mock"
+  ) {
+    return value;
+  }
+  return "mock";
 }

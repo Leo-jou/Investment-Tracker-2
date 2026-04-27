@@ -22,8 +22,14 @@ const transactionTypes: Array<{ label: string; value: TransactionType }> = [
   { label: "Manual", value: "MANUAL_VALUE" }
 ];
 
-export function QuickAddTransactionForm() {
-  const [type, setType] = useState<TransactionType>("BUY");
+export function QuickAddTransactionForm({
+  portfolioId,
+  initialType
+}: {
+  portfolioId?: string;
+  initialType?: string;
+}) {
+  const [type, setType] = useState<TransactionType>(normalizeTransactionType(initialType));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<AssetSearchResult | null>(null);
@@ -182,6 +188,7 @@ export function QuickAddTransactionForm() {
 
       {isPricedTrade && (
         <>
+          {portfolioId && <input type="hidden" name="portfolioId" value={portfolioId} />}
           <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr_0.7fr_0.7fr]">
             <AssetSearchInput
               inputName="assetSymbol"
@@ -201,6 +208,13 @@ export function QuickAddTransactionForm() {
                 <input type="hidden" name="assetProvider" value={selectedAsset.provider} />
                 <input type="hidden" name="assetExternalId" value={selectedAsset.externalId} />
                 <input type="hidden" name="assetExchange" value={selectedAsset.exchange ?? ""} />
+                <input type="hidden" name="assetPriceUsd" value={selectedAsset.priceUsd ?? ""} />
+                <input type="hidden" name="assetPriceEur" value={selectedAsset.priceEur ?? ""} />
+                <input
+                  type="hidden"
+                  name="assetQuotedAt"
+                  value={"quotedAt" in selectedAsset ? String(selectedAsset.quotedAt ?? "") : ""}
+                />
               </>
             )}
             <Input
@@ -239,6 +253,7 @@ export function QuickAddTransactionForm() {
 
       {isCashFlow && (
         <div className="grid gap-4 lg:grid-cols-[1fr_0.4fr_0.8fr]">
+          {portfolioId && <input type="hidden" name="portfolioId" value={portfolioId} />}
           <Input
             name="grossAmount"
             value={grossAmount}
@@ -254,6 +269,7 @@ export function QuickAddTransactionForm() {
 
       {isManualValue && (
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.7fr_0.4fr]">
+          {portfolioId && <input type="hidden" name="portfolioId" value={portfolioId} />}
           <Input name="label" placeholder="Label, e.g. SpaceX fundraising participation" required />
           <Input name="value" placeholder="Value" inputMode="decimal" required />
           <Input name="currency" placeholder="Currency" defaultValue="USD" />
@@ -320,4 +336,18 @@ function formatMoneyInput(value: number) {
 
 function formatQuantityInput(value: number) {
   return value.toFixed(8).replace(/\.?0+$/, "");
+}
+
+function normalizeTransactionType(value?: string | null): TransactionType {
+  const normalized = String(value ?? "").toUpperCase();
+  if (
+    normalized === "BUY" ||
+    normalized === "SELL" ||
+    normalized === "DEPOSIT" ||
+    normalized === "WITHDRAW" ||
+    normalized === "MANUAL_VALUE"
+  ) {
+    return normalized;
+  }
+  return "BUY";
 }

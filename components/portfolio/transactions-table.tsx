@@ -27,12 +27,25 @@ type TransactionsTableProps = {
   currency: Currency;
 };
 
+type TransactionFilter = "Trades" | "Cash" | "Dividends";
+
 export function TransactionsTable({ transactions, assets, currency }: TransactionsTableProps) {
   const assetById = new Map(assets.map((asset) => [asset.id, asset]));
+  const [activeFilter, setActiveFilter] = useState<TransactionFilter>("Trades");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (activeFilter === "Trades") return ["BUY", "SELL"].includes(transaction.type);
+    if (activeFilter === "Cash") {
+      return ["DEPOSIT", "WITHDRAW", "TRANSFER_IN", "TRANSFER_OUT", "CASH_ADJUSTMENT"].includes(
+        transaction.type
+      );
+    }
+    return false;
+  });
 
   async function handleDelete(transaction: Transaction) {
     const confirmed = window.confirm(`Delete ${transaction.type.replace("_", " ")} transaction?`);
@@ -84,13 +97,14 @@ export function TransactionsTable({ transactions, assets, currency }: Transactio
           <h2 className="text-3xl font-bold">Transactions</h2>
           <p className="mt-2 text-sm text-zinc-500">Display currency: {currency}</p>
           <div className="mt-8 flex gap-2">
-            {["Trades", "Cash", "Dividends"].map((tab, index) => (
+            {(["Trades", "Cash", "Dividends"] as TransactionFilter[]).map((tab) => (
               <button
                 key={tab}
                 type="button"
+                onClick={() => setActiveFilter(tab)}
                 className={cn(
                   "rounded-full bg-[#2c2c2f] px-4 py-2 text-sm text-zinc-300",
-                  index === 0 && "bg-white text-black"
+                  activeFilter === tab && "bg-white text-black"
                 )}
               >
                 {tab}
@@ -99,11 +113,11 @@ export function TransactionsTable({ transactions, assets, currency }: Transactio
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost">
+          <Button variant="ghost" disabled title="Import is not implemented yet.">
             <Upload className="h-5 w-5" />
             Upload
           </Button>
-          <Button variant="ghost">
+          <Button variant="ghost" disabled title="Export is not implemented yet.">
             <Download className="h-5 w-5" />
             Download
           </Button>
@@ -121,7 +135,7 @@ export function TransactionsTable({ transactions, assets, currency }: Transactio
                   <span>
                     Symbol
                     <span className="block text-xs text-zinc-400">
-                      {transactions.length} transactions
+	                      {filteredTransactions.length} transactions
                     </span>
                   </span>
                 </div>
@@ -137,7 +151,7 @@ export function TransactionsTable({ transactions, assets, currency }: Transactio
             </tr>
           </thead>
           <tbody>
-            {transactions.map((transaction) => {
+            {filteredTransactions.map((transaction) => {
               const asset = transaction.assetId ? assetById.get(transaction.assetId) : null;
               const unitPrice = calculateUnitPrice(transaction);
               const isCashIncrease = ["SELL", "DEPOSIT", "TRANSFER_IN"].includes(transaction.type);
@@ -305,6 +319,15 @@ export function TransactionsTable({ transactions, assets, currency }: Transactio
                 </Fragment>
               );
             })}
+            {filteredTransactions.length === 0 && (
+              <tr>
+                <td colSpan={9} className="py-8 text-center text-sm text-zinc-500">
+                  {activeFilter === "Dividends"
+                    ? "Dividend tracking is not implemented yet."
+                    : "No transactions in this filter."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

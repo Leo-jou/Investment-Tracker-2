@@ -12,9 +12,10 @@ import type { Currency, ManualPosition } from "@/lib/types";
 type ManualPositionsCardProps = {
   positions: ManualPosition[];
   currency: Currency;
+  portfolioId?: string;
 };
 
-export function ManualPositionsCard({ positions, currency }: ManualPositionsCardProps) {
+export function ManualPositionsCard({ positions, currency, portfolioId }: ManualPositionsCardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -101,6 +102,7 @@ export function ManualPositionsCard({ positions, currency }: ManualPositionsCard
       </div>
 
       <form onSubmit={handleSubmit} className="mt-5 grid gap-4 lg:grid-cols-[1fr_0.7fr_0.5fr_auto]">
+        {portfolioId && <input type="hidden" name="portfolioId" value={portfolioId} />}
         <Input name="label" placeholder="Label" required />
         <Input name="value" placeholder="Value" inputMode="decimal" required />
         <Input name="currency" placeholder="Currency" defaultValue={currency} />

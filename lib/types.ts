@@ -39,6 +39,12 @@ export type Portfolio = {
   netContributionsEur: number;
 };
 
+export type PortfolioOption = {
+  id: string;
+  name: string;
+  description: string;
+};
+
 export type Asset = {
   id: string;
   symbol: string;

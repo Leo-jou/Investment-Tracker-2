@@ -1,5 +1,6 @@
 import { CheckCircle2, CircleAlert } from "lucide-react";
 
+import { PageBackLink } from "@/components/layout/page-back-link";
 import { Badge } from "@/components/ui/badge";
 import type { ApiStatus } from "@/lib/types";
 
@@ -34,6 +35,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-10">
       <div>
+        <PageBackLink />
         <h1 className="text-4xl font-bold">Settings</h1>
         <p className="mt-3 max-w-2xl text-zinc-500">
           User preferences for portfolio display, snapshots, backups, and exports.

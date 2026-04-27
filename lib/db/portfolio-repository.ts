@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 
 import { convertCurrency, fallbackFxRates, toDisplayPair, type FxRateMap } from "@/lib/data/conversions";
 import { demoAssets, demoTransactions } from "@/lib/data/demo-seed";
@@ -22,6 +22,7 @@ import type {
   Currency,
   ManualPosition,
   Portfolio,
+  PortfolioOption,
   PortfolioSnapshot,
   Position,
   PriceProvider,
@@ -39,6 +40,7 @@ import {
 
 export type DashboardData = {
   portfolio: Portfolio;
+  portfolios: PortfolioOption[];
   assets: Asset[];
   positions: Position[];
   transactions: Transaction[];
@@ -202,12 +204,16 @@ export async function ensureUserWorkspace(email: string) {
   return user;
 }
 
-export async function getDashboardDataForEmail(email: string): Promise<DashboardData> {
+export async function getDashboardDataForEmail(
+  email: string,
+  portfolioId?: string
+): Promise<DashboardData> {
   const user = await ensureUserWorkspace(email);
   const db = getDb();
-  const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const portfolio = await getPortfolioForUser(user.id, portfolioId);
 
-  const [dbAssets, dbTransactions, dbManualPositions, dbSnapshots, rates] = await Promise.all([
+  const [dbAssets, dbTransactions, dbManualPositions, dbSnapshots, portfolioOptions, rates] =
+    await Promise.all([
     db.select().from(assets).where(eq(assets.isActive, true)),
     db
       .select()
@@ -220,6 +226,7 @@ export async function getDashboardDataForEmail(email: string): Promise<Dashboard
       .from(portfolioSnapshots)
       .where(eq(portfolioSnapshots.portfolioId, portfolio.id))
       .orderBy(portfolioSnapshots.snapshotDate),
+    listPortfolioOptionsForUser(user.id),
     getLatestFxRates()
   ]);
 
@@ -243,6 +250,7 @@ export async function getDashboardDataForEmail(email: string): Promise<Dashboard
 
   return {
     portfolio: portfolioView,
+    portfolios: portfolioOptions,
     assets: assetViews,
     positions,
     transactions: transactionViews,
@@ -259,6 +267,68 @@ export async function listAssetsForEmail(email: string) {
   const rates = await getLatestFxRates();
   const latestPrices = await getLatestPrices();
   return buildAssetViews(dbAssets, latestPrices, rates);
+}
+
+export async function createPortfolioForEmail(email: string, input: FormData | Record<string, unknown>) {
+  const user = await ensureUserWorkspace(email);
+  const values = readInput(input);
+  const existingPortfolios = await listPortfolioOptionsForUser(user.id);
+  const fallbackName = `Portfolio ${existingPortfolios.length + 1}`;
+  const name = String(values.name ?? fallbackName).trim() || fallbackName;
+  const description = emptyToNull(String(values.description ?? ""));
+
+  const [portfolio] = await getDb()
+    .insert(portfolios)
+    .values({
+      userId: user.id,
+      name,
+      description,
+      baseCurrency: "USD"
+    })
+    .returning();
+
+  await upsertCurrentPortfolioSnapshot(portfolio.id);
+
+  return {
+    id: portfolio.id,
+    name: portfolio.name,
+    description: portfolio.description ?? ""
+  } satisfies PortfolioOption;
+}
+
+export async function updatePortfolioForEmail(
+  email: string,
+  portfolioId: string,
+  input: FormData | Record<string, unknown>
+) {
+  const user = await ensureUserWorkspace(email);
+  await getPortfolioForUser(user.id, portfolioId);
+  const values = readInput(input);
+  const updates: Partial<typeof portfolios.$inferInsert> = {
+    updatedAt: new Date()
+  };
+
+  if ("name" in values) {
+    const name = String(values.name ?? "").trim();
+    if (!name) throw new Error("Portfolio name is required.");
+    updates.name = name;
+  }
+
+  if ("description" in values) {
+    updates.description = emptyToNull(String(values.description ?? ""));
+  }
+
+  const [portfolio] = await getDb()
+    .update(portfolios)
+    .set(updates)
+    .where(eq(portfolios.id, portfolioId))
+    .returning();
+
+  return {
+    id: portfolio.id,
+    name: portfolio.name,
+    description: portfolio.description ?? ""
+  } satisfies PortfolioOption;
 }
 
 export async function upsertAssetFromSearchResult(input: AssetSearchResult): Promise<RefreshableAsset> {
@@ -356,13 +426,15 @@ export async function createTransactionForEmail(email: string, input: FormData |
   const user = await ensureUserWorkspace(email);
   const parsed = parseTransactionInput(input);
   const db = getDb();
-  const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const portfolio = await getPortfolioForUser(user.id, parsed.portfolioId);
   const asset = await resolveTransactionAsset(parsed);
 
   if (parsed.type === "SELL") {
     if (!asset) throw new Error("Cannot sell an asset that is not in the local asset list.");
     await assertSellQuantityAvailable(portfolio.id, asset.id, parsed.quantity ?? 0);
   }
+
+  await persistSubmittedQuote(asset, parsed.assetQuote);
 
   await db.insert(transactions).values({
     portfolioId: portfolio.id,
@@ -388,14 +460,14 @@ export async function updateTransactionForEmail(
   const user = await ensureUserWorkspace(email);
   const parsed = parseTransactionInput(input);
   const db = getDb();
-  const portfolio = await getPrimaryPortfolioForUser(user.id);
   const [existing] = await db
     .select()
     .from(transactions)
-    .where(and(eq(transactions.id, transactionId), eq(transactions.portfolioId, portfolio.id)))
+    .where(eq(transactions.id, transactionId))
     .limit(1);
 
   if (!existing) throw new Error("Transaction not found.");
+  const portfolio = await getPortfolioForUser(user.id, existing.portfolioId);
 
   const asset = await resolveTransactionAsset(parsed);
 
@@ -408,6 +480,8 @@ export async function updateTransactionForEmail(
       transactionId
     );
   }
+
+  await persistSubmittedQuote(asset, parsed.assetQuote);
 
   await db
     .update(transactions)
@@ -430,7 +504,14 @@ export async function updateTransactionForEmail(
 
 export async function deleteTransactionForEmail(email: string, transactionId: string) {
   const user = await ensureUserWorkspace(email);
-  const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const [existing] = await getDb()
+    .select()
+    .from(transactions)
+    .where(eq(transactions.id, transactionId))
+    .limit(1);
+
+  if (!existing) throw new Error("Transaction not found.");
+  const portfolio = await getPortfolioForUser(user.id, existing.portfolioId);
 
   await getDb()
     .delete(transactions)
@@ -453,7 +534,7 @@ export async function createManualPositionForEmail(
   if (!label) throw new Error("Manual position label is required.");
   if (value < 0) throw new Error("Manual position value cannot be negative.");
 
-  const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const portfolio = await getPortfolioForUser(user.id, readPortfolioId(values));
 
   await getDb().insert(manualPositions).values({
     portfolioId: portfolio.id,
@@ -482,14 +563,14 @@ export async function updateManualPositionForEmail(
   if (!label) throw new Error("Manual position label is required.");
   if (value < 0) throw new Error("Manual position value cannot be negative.");
 
-  const portfolio = await getPrimaryPortfolioForUser(user.id);
   const [existing] = await getDb()
     .select()
     .from(manualPositions)
-    .where(and(eq(manualPositions.id, positionId), eq(manualPositions.portfolioId, portfolio.id)))
+    .where(eq(manualPositions.id, positionId))
     .limit(1);
 
   if (!existing) throw new Error("Manual position not found.");
+  const portfolio = await getPortfolioForUser(user.id, existing.portfolioId);
 
   await getDb()
     .update(manualPositions)
@@ -508,7 +589,14 @@ export async function updateManualPositionForEmail(
 
 export async function deleteManualPositionForEmail(email: string, positionId: string) {
   const user = await ensureUserWorkspace(email);
-  const portfolio = await getPrimaryPortfolioForUser(user.id);
+  const [existing] = await getDb()
+    .select()
+    .from(manualPositions)
+    .where(eq(manualPositions.id, positionId))
+    .limit(1);
+
+  if (!existing) throw new Error("Manual position not found.");
+  const portfolio = await getPortfolioForUser(user.id, existing.portfolioId);
 
   await getDb()
     .delete(manualPositions)
@@ -517,16 +605,41 @@ export async function deleteManualPositionForEmail(email: string, positionId: st
   await upsertCurrentPortfolioSnapshot(portfolio.id);
 }
 
-async function getPrimaryPortfolioForUser(userId: string) {
+async function getPortfolioForUser(userId: string, portfolioId?: string) {
+  if (portfolioId) {
+    const [portfolio] = await getDb()
+      .select()
+      .from(portfolios)
+      .where(and(eq(portfolios.userId, userId), eq(portfolios.id, portfolioId)))
+      .limit(1);
+
+    if (!portfolio) throw new Error("Portfolio not found.");
+    return portfolio;
+  }
+
   const [portfolio] = await getDb()
     .select()
     .from(portfolios)
     .where(eq(portfolios.userId, userId))
-    .orderBy(desc(portfolios.createdAt))
+    .orderBy(asc(portfolios.createdAt))
     .limit(1);
 
   if (!portfolio) throw new Error("No portfolio found.");
   return portfolio;
+}
+
+async function listPortfolioOptionsForUser(userId: string): Promise<PortfolioOption[]> {
+  const rows = await getDb()
+    .select()
+    .from(portfolios)
+    .where(eq(portfolios.userId, userId))
+    .orderBy(asc(portfolios.createdAt));
+
+  return rows.map((portfolio) => ({
+    id: portfolio.id,
+    name: portfolio.name,
+    description: portfolio.description ?? ""
+  }));
 }
 
 async function assertSellQuantityAvailable(
@@ -567,6 +680,32 @@ async function resolveTransactionAsset(parsed: ReturnType<typeof parseTransactio
   return parsed.type === "BUY"
     ? findOrCreateAssetBySymbol(parsed.assetSymbol)
     : findAssetBySymbol(parsed.assetSymbol);
+}
+
+async function persistSubmittedQuote(
+  asset: RefreshableAsset | undefined,
+  quote: ReturnType<typeof buildSubmittedQuote>
+) {
+  if (!asset || !quote) return;
+
+  const price =
+    quote.priceUsd && quote.priceUsd > 0
+      ? { price: quote.priceUsd, currency: "USD" as Currency }
+      : quote.priceEur && quote.priceEur > 0
+        ? { price: quote.priceEur, currency: "EUR" as Currency }
+        : null;
+
+  if (!price) return;
+
+  await insertPriceSnapshotsForRefresh([
+    {
+      assetId: asset.id,
+      provider: asset.provider,
+      capturedAt: Number.isNaN(quote.quotedAt.getTime()) ? new Date() : quote.quotedAt,
+      price: price.price,
+      currency: price.currency
+    }
+  ]);
 }
 
 async function upsertCurrentPortfolioSnapshot(portfolioId: string) {
@@ -1006,16 +1145,37 @@ function parseTransactionInput(input: FormData | Record<string, unknown>) {
   validateTransactionInput(type, assetSymbol, quantity, grossAmount, fees);
 
   return {
+    portfolioId: readPortfolioId(values),
     type,
     currency,
     assetSymbol,
     assetMetadata: buildAssetMetadata(values, assetSymbol),
+    assetQuote: buildSubmittedQuote(values),
     quantity: ["BUY", "SELL"].includes(type) ? quantity : undefined,
     grossAmount,
     fees,
     occurredOn,
     platform: emptyToNull(String(values.platform ?? "")),
     note: emptyToNull(String(values.note ?? ""))
+  };
+}
+
+function readPortfolioId(values: Record<string, unknown>) {
+  const portfolioId = String(values.portfolioId ?? "").trim();
+  return portfolioId || undefined;
+}
+
+function buildSubmittedQuote(values: Record<string, unknown>) {
+  const priceUsd = parseOptionalNumber(values.assetPriceUsd);
+  const priceEur = parseOptionalNumber(values.assetPriceEur);
+  const quotedAt = String(values.assetQuotedAt ?? "").trim();
+
+  if (!priceUsd && !priceEur) return undefined;
+
+  return {
+    priceUsd,
+    priceEur,
+    quotedAt: quotedAt ? new Date(quotedAt) : new Date()
   };
 }
 

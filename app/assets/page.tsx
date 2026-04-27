@@ -1,3 +1,4 @@
+import { PageBackLink } from "@/components/layout/page-back-link";
 import { AssetSearchInput } from "@/components/portfolio/asset-search-input";
 import { Badge } from "@/components/ui/badge";
 import { requireSessionEmail } from "@/lib/auth/session";
@@ -12,6 +13,7 @@ export default async function AssetsPage() {
   return (
     <div className="space-y-10">
       <div>
+        <PageBackLink />
         <h1 className="text-4xl font-bold">Assets</h1>
         <p className="mt-3 max-w-2xl text-zinc-500">
           Search providers dynamically, then add selected instruments to the local database.

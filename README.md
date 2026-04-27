@@ -25,6 +25,7 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - Neon-backed first-run workspace bootstrap creates a Personal portfolio, demo assets, demo transactions, price/FX snapshots, and a manual SpaceX-style position.
 - Quick add supports BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries with type-specific fields.
 - BUY/SELL can auto-calculate total from quantity or quantity from total using a live quote fetched on explicit asset selection.
+- Search ranking prefers tradable Twelve Data stock/ETF results over tokenized CoinGecko securities for equity tickers, and curated aliases cover common searches like `S&P 500`, `XAU`, `gold`, `EURUSD`, and `Nasdaq 100`.
 - Transactions and manual positions can be edited inline and deleted from the UI with browser confirmation.
 - Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then persist snapshots and recalculate the current portfolio snapshot.
 - Google OAuth is wired through Auth.js and configured in production; the existing email allowlist login remains as fallback.
@@ -67,6 +68,14 @@ To also verify live quote lookup:
 ```bash
 SMOKE_QUOTE=1 npm run smoke:prod
 ```
+
+To run a broader provider quote matrix:
+
+```bash
+SMOKE_QUOTE_MATRIX=1 npm run smoke:prod
+```
+
+Quote coverage is provider-limited: CoinGecko-backed crypto and Twelve Data-backed stocks, ETFs, commodities, and FX pairs attempt live quotes. FMP, manual, mock, unsupported symbols, indexes, and plan-gated Twelve Data instruments require saved/manual values until additional provider support is added.
 
 ## Environment
 

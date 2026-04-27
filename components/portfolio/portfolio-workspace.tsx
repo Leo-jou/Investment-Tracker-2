@@ -27,7 +27,12 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
         <CurrencyToggle currency={currency} onCurrencyChange={setCurrency} />
       </div>
 
-      <PortfolioHeader portfolio={data.portfolio} currency={currency} />
+      <PortfolioHeader
+        key={data.portfolio.id}
+        portfolio={data.portfolio}
+        portfolios={data.portfolios}
+        currency={currency}
+      />
 
       <PortfolioTabs activeTab={activeTab} onChange={setActiveTab} />
 
@@ -35,7 +40,13 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
         <div className="space-y-20">
           <PortfolioValueChart snapshots={data.snapshots} currency={currency} />
           <DailyMovers />
-          <AssetAllocationChart allocations={data.allocations} currency={currency} />
+          <AssetAllocationChart
+            allocations={data.allocations}
+            currency={currency}
+            assets={data.assets}
+            positions={data.positions}
+            manualPositions={data.manualPositions}
+          />
           <NewsFeed />
         </div>
       )}
@@ -43,13 +54,17 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
       {activeTab === "Holdings" && (
         <div className="space-y-10">
           <PositionsTable positions={data.positions} assets={data.assets} currency={currency} />
-          <ManualPositionsCard positions={data.manualPositions} currency={currency} />
+          <ManualPositionsCard
+            positions={data.manualPositions}
+            currency={currency}
+            portfolioId={data.portfolio.id}
+          />
         </div>
       )}
 
       {activeTab === "Transactions" && (
         <div className="space-y-10">
-          <QuickAddTransactionForm />
+          <QuickAddTransactionForm portfolioId={data.portfolio.id} />
           <TransactionsTable
             transactions={data.transactions}
             assets={data.assets}
