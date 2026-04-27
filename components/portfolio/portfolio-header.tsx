@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 
 import { AddTransactionMenu } from "@/components/portfolio/add-transaction-menu";
 import { GlobalMetricsBar } from "@/components/portfolio/global-metrics-bar";
+import { PriceRefreshButton } from "@/components/portfolio/price-refresh-button";
 import { Button } from "@/components/ui/button";
 import type { Currency, Portfolio } from "@/lib/types";
 
@@ -27,7 +28,10 @@ export function PortfolioHeader({ portfolio, currency }: PortfolioHeaderProps) {
           </div>
           <button className="mt-4 text-lg text-[#2f7df6]">Add description</button>
         </div>
-        <AddTransactionMenu />
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start">
+          <PriceRefreshButton />
+          <AddTransactionMenu />
+        </div>
       </div>
 
       <button className="flex h-[70px] w-full items-center gap-4 rounded-[8px] border border-[#3a3a3f] px-7 text-left text-lg font-semibold text-zinc-200 hover:bg-[#050505]">

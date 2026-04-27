@@ -1,20 +1,55 @@
 import { CheckCircle2, CircleAlert } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { apiStatuses } from "@/lib/mock-data";
+import type { ApiStatus } from "@/lib/types";
+
+const preferenceCards = [
+  {
+    title: "Default currency",
+    value: "USD",
+    detail: "Portfolio screens can still be toggled to EUR."
+  },
+  {
+    title: "Daily snapshots",
+    value: "On",
+    detail: "One portfolio snapshot per day after refresh."
+  },
+  {
+    title: "Backup email",
+    value: "Not set",
+    detail: "Placeholder for account recovery and exports."
+  },
+  {
+    title: "Daily export",
+    value: "Off",
+    detail: "Placeholder for email reports once notifications exist."
+  }
+];
 
 export default function SettingsPage() {
+  const apiStatuses = buildApiStatuses();
+
   return (
     <div className="space-y-10">
       <div>
         <h1 className="text-4xl font-bold">Settings</h1>
         <p className="mt-3 max-w-2xl text-zinc-500">
-          MVP configuration for currency display, provider keys, mock mode, and database readiness.
+          User preferences for portfolio display, snapshots, backups, and exports.
         </p>
       </div>
 
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {preferenceCards.map((item) => (
+          <div key={item.title} className="rounded-[8px] border border-[#2b2b2f] bg-black p-4">
+            <p className="text-sm text-zinc-500">{item.title}</p>
+            <p className="mt-3 text-2xl font-bold text-zinc-100">{item.value}</p>
+            <p className="mt-2 text-sm text-zinc-500">{item.detail}</p>
+          </div>
+        ))}
+      </section>
+
       <section className="rounded-[8px] border border-[#2b2b2f] bg-black p-4">
-        <h2 className="text-2xl font-bold">API status</h2>
+        <h2 className="text-2xl font-bold">Operational status</h2>
         <div className="mt-6 divide-y divide-[#202024]">
           {apiStatuses.map((status) => (
             <div key={status.provider} className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
@@ -36,17 +71,26 @@ export default function SettingsPage() {
           ))}
         </div>
       </section>
-
-      <section className="grid gap-5 lg:grid-cols-3">
-        {["Single-user auth", "EUR/USD display", "Daily snapshots"].map((item) => (
-          <div key={item} className="rounded-[8px] border border-[#2b2b2f] bg-black p-4">
-            <h3 className="font-semibold text-zinc-200">{item}</h3>
-            <p className="mt-2 text-sm text-zinc-500">
-              Structured for the MVP and ready to harden once the UI and core model settle.
-            </p>
-          </div>
-        ))}
-      </section>
     </div>
   );
+}
+
+function buildApiStatuses(): ApiStatus[] {
+  return [
+    {
+      provider: "Market prices",
+      configured: Boolean(process.env.COINGECKO_DEMO_API_KEY) && Boolean(process.env.TWELVE_DATA_API_KEY),
+      purpose: "CoinGecko and Twelve Data provider access"
+    },
+    {
+      provider: "Database",
+      configured: Boolean(process.env.DATABASE_URL),
+      purpose: "Persistent portfolios, transactions, prices, FX, and snapshots"
+    },
+    {
+      provider: "Email gate",
+      configured: Boolean(process.env.APP_ALLOWED_EMAILS),
+      purpose: "Private MVP access control"
+    }
+  ];
 }

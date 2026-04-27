@@ -28,11 +28,13 @@ The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio 
 
 Production is deployed on Vercel at `https://foliocore.vercel.app`. The current production deployment includes inline edit/delete flows for transactions and manual positions.
 
+CoinGecko and Twelve Data provider keys are configured as sensitive Vercel Production environment variables. Do not record or commit their values.
+
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from the selected asset's latest saved price.
 
-Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering.
+Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, and external cash-flow scoping. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint.
 
-Still missing or likely incomplete: full real-provider integration, production auth hardening beyond email allowlist, paired transfer support, complete DB-backed CRUD coverage, and end-to-end test coverage.
+Still missing or likely incomplete: provider coverage beyond CoinGecko/Twelve Data, production auth hardening beyond email allowlist, paired transfer support, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
@@ -92,4 +94,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T11:25:03.308Z - Refreshed generated context from 5 recent commits, 13 changed files, and 0 TODO/FIXME items.
+2026-04-27T11:46:41.153Z - Refreshed generated context from 5 recent commits, 13 changed files, and 0 TODO/FIXME items.

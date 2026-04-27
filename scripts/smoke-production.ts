@@ -26,6 +26,9 @@ async function main() {
 
   const cookie = await login();
   await expectTransactionsApi(cookie);
+  if (process.env.SMOKE_REFRESH === "1") {
+    await expectPriceRefresh(cookie);
+  }
   await expectStatus("/dashboard", 200, cookie);
 
   console.log(`Production smoke passed for ${baseUrl}`);
@@ -98,6 +101,37 @@ async function expectTransactionsApi(cookie: string) {
   }
 
   checks.push(`/api/transactions returned ${payload.transactions.length} transactions`);
+}
+
+async function expectPriceRefresh(cookie: string) {
+  const response = await fetch(`${baseUrl}/api/prices/refresh`, {
+    method: "POST",
+    headers: { cookie },
+    redirect: "manual"
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`/api/prices/refresh returned ${response.status}; expected 200.`);
+  }
+
+  const payload = (await response.json()) as {
+    pricesUpdated?: unknown;
+    fxPairsUpdated?: unknown;
+    portfolioSnapshotsUpdated?: unknown;
+    message?: unknown;
+  };
+
+  if (
+    typeof payload.pricesUpdated !== "number" ||
+    typeof payload.fxPairsUpdated !== "number" ||
+    typeof payload.portfolioSnapshotsUpdated !== "number"
+  ) {
+    throw new Error("/api/prices/refresh did not return structured refresh counts.");
+  }
+
+  checks.push(
+    `/api/prices/refresh updated ${payload.pricesUpdated} prices, ${payload.fxPairsUpdated} FX pairs, and ${payload.portfolioSnapshotsUpdated} portfolio snapshots`
+  );
 }
 
 function getSetCookies(headers: Headers) {

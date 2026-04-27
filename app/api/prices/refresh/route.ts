@@ -4,7 +4,7 @@ import { requireSessionEmail } from "@/lib/auth/session";
 import { refreshPortfolioData } from "@/lib/pricing/refresh";
 
 export async function POST() {
-  await requireSessionEmail();
-  const result = await refreshPortfolioData();
+  const email = await requireSessionEmail();
+  const result = await refreshPortfolioData(email);
   return NextResponse.json(result);
 }

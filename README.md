@@ -26,8 +26,9 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - Quick add supports BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries with type-specific fields.
 - BUY/SELL can auto-calculate total from quantity or quantity from total using the selected asset's latest saved USD price.
 - Transactions and manual positions can be edited inline and deleted from the UI with browser confirmation.
+- Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then persist snapshots and recalculate the current portfolio snapshot.
 - Transfers are intentionally disabled in quick add until paired multi-portfolio transfer support exists.
-- Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, and oversell-safe position state.
+- Focused tests cover TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, and oversell-safe position state.
 
 ## Getting Started
 
@@ -53,6 +54,12 @@ npm run smoke:prod
 ```
 
 It checks `/login`, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. It uses `SMOKE_BASE_URL` when set, otherwise `https://foliocore.vercel.app`, and uses `SMOKE_EMAIL` or the first email in `APP_ALLOWED_EMAILS`.
+
+To include the snapshot-writing price refresh endpoint in the smoke test:
+
+```bash
+SMOKE_REFRESH=1 npm run smoke:prod
+```
 
 ## Environment
 

@@ -50,6 +50,26 @@ type DbAsset = typeof assets.$inferSelect;
 type DbTransaction = typeof transactions.$inferSelect;
 type DbManualPosition = typeof manualPositions.$inferSelect;
 
+export type RefreshableAsset = Pick<
+  DbAsset,
+  "id" | "symbol" | "name" | "type" | "currency" | "exchange" | "provider" | "externalId"
+>;
+
+export type PriceSnapshotInput = {
+  assetId: string;
+  provider: PriceProvider;
+  price: number;
+  currency: Currency;
+  capturedAt: Date;
+};
+
+export type FxSnapshotInput = {
+  baseCurrency: Currency;
+  quoteCurrency: Currency;
+  rate: number;
+  capturedAt: Date;
+};
+
 const bootstrapTimestamp = new Date("2026-04-27T00:00:00.000Z");
 
 export async function ensureUserWorkspace(email: string) {
@@ -237,6 +257,59 @@ export async function listAssetsForEmail(email: string) {
   const rates = await getLatestFxRates();
   const latestPrices = await getLatestPrices();
   return buildAssetViews(dbAssets, latestPrices, rates);
+}
+
+export async function listAssetsForPriceRefresh(): Promise<RefreshableAsset[]> {
+  const rows = await getDb().select().from(assets).where(eq(assets.isActive, true));
+  return rows.filter((asset) => !["manual", "mock"].includes(asset.provider));
+}
+
+export async function insertPriceSnapshotsForRefresh(snapshots: PriceSnapshotInput[]) {
+  if (snapshots.length === 0) return 0;
+
+  await getDb()
+    .insert(priceSnapshots)
+    .values(
+      snapshots.map((snapshot) => ({
+        assetId: snapshot.assetId,
+        provider: snapshot.provider,
+        capturedAt: snapshot.capturedAt,
+        price: snapshot.price,
+        currency: snapshot.currency
+      }))
+    )
+    .onConflictDoNothing();
+
+  return snapshots.length;
+}
+
+export async function insertFxSnapshotsForRefresh(snapshots: FxSnapshotInput[]) {
+  if (snapshots.length === 0) return 0;
+
+  await getDb()
+    .insert(fxSnapshots)
+    .values(
+      snapshots.map((snapshot) => ({
+        baseCurrency: snapshot.baseCurrency,
+        quoteCurrency: snapshot.quoteCurrency,
+        rate: snapshot.rate,
+        capturedAt: snapshot.capturedAt
+      }))
+    )
+    .onConflictDoNothing();
+
+  return snapshots.length;
+}
+
+export async function refreshCurrentPortfolioSnapshotsForEmail(email: string) {
+  const user = await ensureUserWorkspace(email);
+  const userPortfolios = await getDb().select().from(portfolios).where(eq(portfolios.userId, user.id));
+
+  for (const portfolio of userPortfolios) {
+    await upsertCurrentPortfolioSnapshot(portfolio.id);
+  }
+
+  return userPortfolios.length;
 }
 
 export async function createTransactionForEmail(email: string, input: FormData | Record<string, unknown>) {
@@ -599,6 +672,7 @@ function buildAssetViews(
   return dbAssets.map((asset) => {
     const latestPrice = latestPrices.get(asset.id);
     const nativePrice = latestPrice?.price ?? 0;
+    const priceCurrency = latestPrice?.currency ?? asset.currency;
     return {
       id: asset.id,
       symbol: asset.symbol,
@@ -608,8 +682,8 @@ function buildAssetViews(
       exchange: asset.exchange ?? undefined,
       provider: asset.provider as PriceProvider,
       externalId: asset.externalId,
-      priceEur: convertCurrency(nativePrice, asset.currency, "EUR", rates),
-      priceUsd: convertCurrency(nativePrice, asset.currency, "USD", rates),
+      priceEur: convertCurrency(nativePrice, priceCurrency, "EUR", rates),
+      priceUsd: convertCurrency(nativePrice, priceCurrency, "USD", rates),
       change24hPercent: estimateDailyChange(asset.symbol),
       color: asset.color
     };
