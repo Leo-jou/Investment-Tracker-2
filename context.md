@@ -51,7 +51,7 @@ Generated refresh summary:
 - Database: 1 file
 
 Recent commits:
-- 1061d1f 2026-04-27 Wire portfolio controls and improve live quote search
+- 7d1785d 2026-04-27 Wire portfolio controls and improve live quote search
 - 603d04e 2026-04-27 Document Google OAuth production setup
 - 037d026 2026-04-27 Make settings status runtime-aware
 - d0a4c74 2026-04-27 Add live transaction quotes and Google auth scaffold
@@ -101,4 +101,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T13:48:18.370Z - Refreshed generated context from 8 recent commits, 45 changed files, and 0 TODO/FIXME items.
+2026-04-27T13:49:33.136Z - Refreshed generated context from 8 recent commits, 45 changed files, and 0 TODO/FIXME items.
