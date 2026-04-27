@@ -48,6 +48,7 @@ Generated refresh summary:
 - Database: 1 file
 
 Recent commits:
+- b28ea68 2026-04-27 Add Twelve Data symbol fallback
 - 7d7dc40 2026-04-27 Add provider-backed price refresh
 - 7c247e8 2026-04-27 Stabilize context updater
 - 476830b 2026-04-27 Add production smoke test
@@ -97,4 +98,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T11:50:54.342Z - Refreshed generated context from 6 recent commits, 20 changed files, and 0 TODO/FIXME items.
+2026-04-27T11:52:53.868Z - Refreshed generated context from 7 recent commits, 20 changed files, and 0 TODO/FIXME items.
