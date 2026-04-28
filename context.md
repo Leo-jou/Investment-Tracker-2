@@ -18,6 +18,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Portfolio news must use trusted source feeds first. Google/search fallbacks are removed. Broad GDELT search is opt-in only because it sends holding terms to a third party.
 - News matching is source-backed, not AI-analyzed. AI is useful later for materiality ranking and portfolio-impact commentary, but not required for headline matching or exports.
 - Risk analytics should prefer withholding a metric over showing a mathematically weak number. Sharpe/Sortino require regular snapshot cadence; beta requires aligned benchmark history.
+- `BACKLOG.md` is the product backlog source of truth for roadmap planning, priorities, acceptance criteria, dependencies, and where user input is required.
 
 ## Technical Decisions
 
@@ -56,6 +57,8 @@ Settings preferences are browser-persisted for now: default currency, manual-ref
 Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints. On 2026-04-28, production smoke passed for export/news/digest, quote matrix returned BTC, ETH, NVDA, SPY, and XAU/USD live quotes, backup JSON returned schema version 1, and `/api/news` returned 9 matched headlines across BTC, ETH, SPY, NVDA, and the manual SpaceX holding.
 
 Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a guarded beta with 1-3 trusted friends, not for broad public launch.
+
+`BACKLOG.md` now captures the next roadmap: favicon/app icons, useful portfolio checks, metric clarity, unified timeframes, export modal, imports, dividends, fees/taxes, DB-backed preferences, scheduled email exports, news source registry, digest improvements, risk readiness explanations, benchmark history, holdings/distribution cleanup, and future AI assistant work.
 
 Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
@@ -110,6 +113,7 @@ Generated TODO/FIXME scan:
 
 - Whether to add an AI layer for portfolio-impact news summaries and weekly digest commentary.
 - Whether to prioritize DB-backed user preferences or transaction import next.
+- Which backlog cluster should be implemented first after the immediate favicon/placeholder cleanup.
 
 ## Next Recommended Steps
 
@@ -120,7 +124,7 @@ Generated TODO/FIXME scan:
 5. Configure `CRON_SECRET`, `CRON_REFRESH_EMAILS`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled refresh and digest email should actually run.
 6. Add paired transfer support once multiple portfolios are available.
 7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from documented methodology to real calculated output.
-8. Continue UI iteration against the deployed app, keeping components modular and compact.
+8. Align on `BACKLOG.md`, then implement the highest-priority P0 cluster in focused batches.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -131,4 +135,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-28T08:04:54.930Z - Refreshed generated context from 8 recent commits, 56 changed files, and 0 TODO/FIXME items.
+2026-04-28T12:55:52.500Z - Refreshed generated context from 8 recent commits, 56 changed files, and 0 TODO/FIXME items.
