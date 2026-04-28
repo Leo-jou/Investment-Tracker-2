@@ -19,7 +19,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - News matching is source-backed, not AI-analyzed. AI is useful later for materiality ranking and portfolio-impact commentary, but not required for headline matching or exports.
 - Risk analytics should prefer withholding a metric over showing a mathematically weak number. Sharpe/Sortino require regular snapshot cadence; beta requires aligned benchmark history.
 - Dashboard summaries and charts should use a shared timeframe model. Sparse ranges must show a data-quality state such as "Need data" instead of fabricated zeros or hardcoded period returns.
-- `BACKLOG.md` is the product backlog source of truth for roadmap planning, priorities, acceptance criteria, dependencies, and where user input is required.
+- `BACKLOG.md` is the product backlog source of truth for roadmap planning, priorities, acceptance criteria, dependencies, and where user input is required. Backlog progress should be visible in-place with `[ ]`, `[~]`, `[x]`, and `[blocked]` labels, not only summarized at the bottom.
 
 ## Technical Decisions
 
@@ -59,16 +59,16 @@ Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution
 
 Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a guarded beta with 1-3 trusted friends, not for broad public launch.
 
-`BACKLOG.md` now captures the next roadmap after the first trust/polish batch: export modal, imports, dividends, fees/taxes, DB-backed preferences, scheduled email exports, news source registry, digest improvements, risk readiness explanations, benchmark history, holdings/distribution cleanup, and future AI assistant work.
+`BACKLOG.md` now captures the next roadmap after the first trust/polish batch with inline status labels: export modal, branded report improvements, imports, dividends, fees/taxes, DB-backed preferences, scheduled email exports, news source registry, digest improvements, risk readiness explanations, benchmark history, holdings/distribution cleanup, and future AI assistant work. The branded HTML report exists, but the preview and Highlights section still need a stronger design/content pass.
 
 Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- UI components: 17 files
-- Other: 15 files
+- UI components: 22 files
+- Other: 20 files
 - API routes: 9 files
-- App pages: 5 files
+- App pages: 7 files
 - Documentation: 4 files
 - Pricing providers: 4 files
 - Database: 1 file
@@ -76,6 +76,7 @@ Generated refresh summary:
 - Tooling: 1 file
 
 Recent commits:
+- fea08d6 2026-04-28 Ship first portfolio trust polish batch
 - 1545f6f 2026-04-28 Add product backlog
 - 6092036 2026-04-28 Improve portfolio news reports and readiness
 - 142b1dc 2026-04-27 Add trusted news and risk analytics
@@ -83,7 +84,6 @@ Recent commits:
 - 7592e04 2026-04-27 Refine portfolio UI controls and settings
 - 0262bd2 2026-04-27 Make quote matrix smoke provider-aware
 - 7d1785d 2026-04-27 Wire portfolio controls and improve live quote search
-- 603d04e 2026-04-27 Document Google OAuth production setup
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -109,6 +109,7 @@ Generated TODO/FIXME scan:
 - Context memory should stay low-noise and action-oriented.
 - Avoid noisy automated updates that make project memory less useful.
 - Preferred project-memory workflow: update before ending each meaningful work session and after major code exchanges; avoid hourly automation.
+- When the user asks methodology questions, answer the methodology directly in addition to making product/UI changes.
 
 ## Open Questions
 
@@ -136,4 +137,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-28T13:18:14.608Z - Refreshed generated context from 8 recent commits, 57 changed files, and 0 TODO/FIXME items.
+2026-04-28T14:04:39.347Z - Refreshed generated context from 8 recent commits, 69 changed files, and 0 TODO/FIXME items.

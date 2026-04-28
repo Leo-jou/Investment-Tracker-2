@@ -11,12 +11,28 @@ This backlog is the working agreement for what to improve next. It separates urg
 - Keep this file product-facing: user value, acceptance criteria, dependencies, and open decisions.
 - Keep durable engineering rules in `AGENTS.md`.
 - Keep current implementation memory in `context.md`.
-- When a backlog item is completed, move it to "Done / Shipped" with the commit or deployment note.
+- Keep status visible in-place so progress is readable without scrolling to the bottom.
+- Use status labels in headings:
+  - `[ ]`: not started.
+  - `[~]`: partially shipped or needs another pass.
+  - `[x]`: shipped.
+  - `[blocked]`: waiting on user input, credentials, provider access, or a decision.
+- When an item ships, keep a short shipped note under the original item instead of only moving it to a separate Done section.
 - Priority labels:
   - `P0`: blocks trust, usability, or beta readiness.
   - `P1`: important product depth or obvious UX gap.
   - `P2`: useful but not required before a small beta.
   - `R&D`: requires provider research, API choice, or product decision before implementation.
+
+## Progress Snapshot
+
+- [x] First trust/polish batch: favicon, portfolio checks, metric clarity, shared timeframes, holdings cleanup.
+- [~] Reporting: branded HTML report exists; preview and highlights still need a stronger information design pass.
+- [~] News: trusted RSS-backed headlines exist; source registry/admin visibility and AI impact commentary are not done.
+- [~] Risk: conservative readiness logic exists; benchmark history and clearer progress requirements are not done.
+- [ ] Export UX: one modal with format/date/section choices.
+- [ ] Transactions: upload/import, dividends, and fees/taxes.
+- [ ] Settings automation: DB-backed preferences and scheduled email exports.
 
 ## Current Product Position
 
@@ -24,21 +40,80 @@ FolioCore is good enough for a guarded beta with a few trusted users, but not re
 
 ## Recommended Work Order
 
-1. Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
-2. Implement dividends, fees/taxes, and import workflows.
-3. Add DB-backed settings and scheduled email/export preferences.
-4. Improve news source registry and digest quality.
-5. Add risk readiness progress and benchmark history for beta.
-6. Continue holdings/distribution polish after real usage feedback.
-7. Consider AI only where it adds clear leverage: import mapping, news impact summaries, and portfolio Q&A.
+1. [ ] Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
+2. [ ] Improve branded portfolio report preview and highlights.
+3. [ ] Implement dividends, fees/taxes, and import workflows.
+4. [ ] Add DB-backed settings and scheduled email/export preferences.
+5. [ ] Improve news source registry and digest quality.
+6. [ ] Add risk readiness progress and benchmark history for beta.
+7. [ ] Continue holdings/distribution polish after real usage feedback.
+8. [ ] Consider AI only where it adds clear leverage: import mapping, news impact summaries, and portfolio Q&A.
 
 ## P0 - Immediate Trust And Usability
 
 No open P0 items after the first implementation batch. Treat metric correctness, transaction correctness, and backup/export reliability as P0 if regressions appear.
 
+### [x] Favicon And App Icons
+
+Problem: Browser tabs showed the default gray globe instead of the FolioCore logo.
+
+Shipped:
+- Added a local FolioCore SVG icon at `/icon.svg`.
+- Updated app metadata so the browser title and icon use FolioCore branding.
+- Verified production `/icon.svg` returns 200.
+
+### [x] Replace Placeholder Tips With Portfolio Checks
+
+Problem: The portfolio tips section felt like a placeholder.
+
+Shipped:
+- Replaced static tips with a compact `Portfolio checks` panel.
+- Checks are only generated from real portfolio state.
+- The panel is capped at four checks to avoid noise.
+
+Current check methodology:
+- Snapshot count: warn when fewer than two snapshots exist because period change/TWR needs a start and end point.
+- Snapshot freshness: warn when latest snapshot is more than two days old.
+- Concentration: flag the largest holding when it is at least 25% of priced holdings; severity becomes warning at 50% or more.
+- Platform labeling: flag holdings that do not have a platform label from buy transactions.
+- Saved/manual pricing: flag priced holdings that use `manual` or `mock` provider data.
+- Manual valuation freshness: flag manual positions not updated in more than 30 days.
+
+### [x] Clarify Overview Metrics
+
+Problem: `Portfolio value`, `Net contributions`, `Unrealized gain`, `Realized gain`, and TWR were not clear enough.
+
+Shipped:
+- Overview cards now distinguish current value, net contributions, unrealized P&L, realized P&L, and selected-period TWR.
+- Added plain-language tooltips and calculation details.
+- Removed fake split metrics that previously approximated realized/unrealized values.
+- Added focused tests for realized P&L and displayed metric inputs.
+
+### [x] Unified Timeframe Model
+
+Problem: Overview cards, portfolio charts, gain summaries, exports, and analysis used unclear or inconsistent timeframes.
+
+Shipped:
+- Added shared timeframe options: `1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `All`.
+- The dashboard timeframe controls summary cards and portfolio chart summaries.
+- Sparse ranges now show a data-quality state instead of fake zeroes.
+
+Still open:
+- Custom date range support for export/report workflows.
+
+### [x] Holdings Table Layout Cleanup
+
+Problem: Holdings tabs had uneven spacing, repeated metrics, and inconsistent column widths.
+
+Shipped:
+- Reduced holdings tabs to `Position`, `Performance`, `Risk`, and `Details`.
+- Added stable column widths and right-aligned numeric columns.
+- Removed loose platform chips under the table.
+- Added row-level platform display from transaction data.
+
 ## P1 - Export, Backup, And Reporting
 
-### Export Modal
+### [ ] Export Modal
 
 Problem: The dashboard has three direct export buttons, but users do not know the difference between CSV, JSON, and backup.
 
@@ -56,9 +131,13 @@ Acceptance criteria:
 
 User input needed: none.
 
-### Branded Portfolio Report Improvements
+### [~] Branded Portfolio Report Improvements
 
 Problem: The printable report is much better, but the Highlights section is weak and not insight-oriented.
+
+Current status:
+- Branded HTML report and open-report flow exist.
+- The preview and Highlights section still need a stronger layout and more useful insight cards.
 
 Acceptance criteria:
 - Replace generic highlight lines with structured cards:
@@ -72,7 +151,7 @@ Acceptance criteria:
 
 User input needed: preferred tone: neutral factual report, advisory-style digest, or concise executive summary.
 
-### Scheduled Email Exports
+### [blocked] Scheduled Email Exports
 
 Problem: Settings mention backup email and daily export, but preferences are browser-local and not active.
 
@@ -92,7 +171,7 @@ User input needed: sender/domain decision for email delivery.
 
 ## P1 - Transactions, Imports, Dividends, Fees
 
-### Upload Transactions
+### [ ] Upload Transactions
 
 Question: Does upload require AI?
 
@@ -111,7 +190,7 @@ User input needed:
 - Example CSV exports from the platforms you actually use, with sensitive data removed.
 - Decision: import only CSV first, or also XLSX.
 
-### Dividends
+### [ ] Dividends
 
 Problem: Dividend buttons exist conceptually but the feature is not implemented.
 
@@ -123,7 +202,7 @@ Acceptance criteria:
 
 User input needed: confirm whether dividends should affect TWR as investment return or be tracked as separate income. Recommendation: include dividends in investment return when tied to holdings, but show them separately in income breakdown.
 
-### Taxes And Fees
+### [ ] Taxes And Fees
 
 Problem: Taxes and fees need explicit handling without turning the app into a tax tool.
 
@@ -137,7 +216,7 @@ User input needed: confirm naming: `Fees`, `Taxes`, or combined `Fees & Taxes`.
 
 ## P1 - Settings And Automation
 
-### DB-Backed User Preferences
+### [blocked] DB-Backed User Preferences
 
 Problem: Settings currently use browser local storage.
 
@@ -150,7 +229,7 @@ Dependencies: working migration credentials or a migration workflow approved by 
 
 User input needed: Neon migration permission/path.
 
-### Daily Snapshots And Refresh State
+### [~] Daily Snapshots And Refresh State
 
 Problem: Daily refresh cron exists, but user-facing status is not explicit.
 
@@ -164,7 +243,7 @@ User input needed: production cron env values if not already configured.
 
 ## P1 - News And Digest
 
-### News Source Registry
+### [ ] News Source Registry
 
 Problem: User is flying blind about where headlines come from.
 
@@ -184,7 +263,7 @@ Current source types:
 
 User input needed: approval for source list and whether to enable GDELT.
 
-### AI-Assisted Digest Commentary
+### [ ] AI-Assisted Digest Commentary
 
 Problem: Headlines are now live, but they do not explain likely impact.
 
@@ -203,7 +282,7 @@ User input needed:
 
 ## P1 - Analytics And Risk
 
-### Explain Risk Readiness
+### [ ] Explain Risk Readiness
 
 Problem: Analysis says metrics are not ready but users do not know exactly why or when they will be.
 
@@ -217,7 +296,7 @@ Acceptance criteria:
 
 User input needed: none.
 
-### Benchmark History For Beta
+### [ ] Benchmark History For Beta
 
 Problem: Beta is documented but not implemented because benchmark snapshots are missing.
 
@@ -230,7 +309,7 @@ Acceptance criteria:
 
 User input needed: agree on benchmark methodology for mixed portfolios.
 
-### Performance Semantics
+### [~] Performance Semantics
 
 Problem: Value and performance charts currently feel like the same chart with different units.
 
@@ -246,7 +325,7 @@ User input needed: none.
 
 ## P2 - Distribution And Holdings Details
 
-### Distribution Tabs
+### [ ] Distribution Tabs
 
 Problem: Currency distribution is likely redundant with the global USD/EUR toggle. Sectors is coming soon but not useful yet.
 
@@ -261,7 +340,7 @@ Acceptance criteria:
 
 User input needed: confirm whether native-currency distribution matters to you.
 
-### Manual Positions Placement
+### [ ] Manual Positions Placement
 
 Problem: Manual positions below holdings feels odd.
 
@@ -276,7 +355,7 @@ User input needed: preference after first UI proposal.
 
 ## P2 - Visual Polish
 
-### Button Shape And UI Polish
+### [ ] Button Shape And UI Polish
 
 Problem: Transaction button and some controls need more polished shape/density.
 
@@ -287,7 +366,7 @@ Acceptance criteria:
 
 User input needed: none.
 
-### Table And Component Audit
+### [ ] Table And Component Audit
 
 Problem: Some sections look good, but layout consistency varies.
 
@@ -300,7 +379,7 @@ User input needed: screenshots/comments after first pass.
 
 ## R&D - Future Product Ideas
 
-### Portfolio AI Assistant
+### [ ] Portfolio AI Assistant
 
 Potential scope:
 - Ask questions about holdings, transactions, performance, and news.
@@ -315,7 +394,7 @@ Risks:
 
 User input needed: desired level of AI, provider/budget decision.
 
-### Broker/API Sync
+### [ ] Broker/API Sync
 
 Current position: out of MVP scope.
 
@@ -335,27 +414,8 @@ Reason:
 ## Codex Can Do Autonomously
 
 - Build export modal and date-range plumbing.
+- Improve branded report preview and highlights.
 - Add risk readiness panel.
 - Hide pointless/empty distribution tabs.
-- Improve report highlights and layout.
 - Add deterministic CSV import framework before platform-specific templates.
 - Add source registry docs and admin UI.
-
-## Done / Shipped
-
-- First trust/polish implementation batch:
-  - FolioCore favicon/app icon added with no external image dependency.
-  - Placeholder portfolio tips replaced by actionable portfolio checks.
-  - Overview cards now distinguish portfolio value, net contributions, unrealized P&L, realized P&L, and TWR with tooltips and calculation details.
-  - Shared timeframe model added for `1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, and `All`; sparse ranges now show "Need data" instead of fake numbers.
-  - Holdings table reduced to Position, Performance, Risk, and Details with stable column widths and real platform display.
-  - Realized P&L, unique platform tracking, timeframe stats, and portfolio checks have focused tests.
-  - Deployed to production as `dpl_HDmhELnmJMopycFfefJbGDZtn4qx`.
-- Live quote lookup on explicit asset selection.
-- Google/email login.
-- Multiple portfolios basics.
-- Trusted-source portfolio news without Google search fallback.
-- Branded HTML report preview.
-- CSV/report JSON/backup JSON exports.
-- Daily refresh and weekly digest cron endpoints, guarded by env.
-- Production Vercel CLI authentication and deployment.
