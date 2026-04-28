@@ -72,6 +72,22 @@ export function buildPortfolioExport(data: DashboardData) {
   };
 }
 
+export function buildPortfolioBackupExport(data: DashboardData) {
+  return {
+    schemaVersion: 1,
+    app: "FolioCore",
+    generatedAt: new Date().toISOString(),
+    portfolio: data.portfolio,
+    portfolios: data.portfolios,
+    assets: data.assets,
+    positions: data.positions,
+    manualPositions: data.manualPositions,
+    transactions: data.transactions,
+    snapshots: data.snapshots,
+    allocations: data.allocations
+  };
+}
+
 export function buildPortfolioCsvExport(data: DashboardData) {
   const portfolioExport = buildPortfolioExport(data);
   return [
@@ -102,6 +118,16 @@ export function exportFilename(portfolioName: string, extension: "csv" | "json")
     .replace(/^-|-$/g, "");
   const date = new Date().toISOString().slice(0, 10);
   return `${slug || "portfolio"}-${date}.${extension}`;
+}
+
+export function backupExportFilename(portfolioName: string) {
+  const slug = portfolioName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  const date = new Date().toISOString().slice(0, 10);
+  return `${slug || "portfolio"}-backup-${date}.json`;
 }
 
 function escapeCsvCell(value: CsvValue) {

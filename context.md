@@ -16,6 +16,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Every selectable provider-backed quick-add result should attempt a fresh quote, but coverage is limited to CoinGecko and Twelve Data. FMP/manual/mock/unsupported or plan-gated instruments must show an unavailable/saved-price fallback instead of silently pretending to be live.
 - Exports and digest emails should be authenticated. On-demand digest is live; weekly cron digest is wired behind fail-closed env vars and allowlisted recipients.
 - Portfolio news must use trusted source feeds first. Google/search fallbacks are removed. Broad GDELT search is opt-in only because it sends holding terms to a third party.
+- News matching is source-backed, not AI-analyzed. AI is useful later for materiality ranking and portfolio-impact commentary, but not required for headline matching or exports.
 - Risk analytics should prefer withholding a metric over showing a mathematically weak number. Sharpe/Sortino require regular snapshot cadence; beta requires aligned benchmark history.
 
 ## Technical Decisions
@@ -40,30 +41,36 @@ Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, W
 
 Holdings sub-tabs now switch between position, price, financials, performance, risk, and technical table views. Portfolio distribution supports assets, asset types, and currency modes without donut labels, avoiding the previous 100x percentage display issue.
 
-The dashboard now exposes authenticated CSV/JSON portfolio exports through `/api/export`. `/api/news` builds portfolio-aware headlines from trusted RSS sources, limited symbol/tag feeds, and optional SEC EDGAR filing enrichment. GDELT broad-news search is disabled unless `NEWS_GDELT_ENABLED=true`, HTTPS-only, and restricted to trusted domains. Local Google/search fallback rows have been removed.
+The dashboard now exposes authenticated CSV/JSON portfolio exports plus a restore-oriented backup JSON export through `/api/export`. `/api/news` builds portfolio-aware headlines from trusted RSS sources, Yahoo/Nasdaq symbol feeds, limited crypto tag feeds, and optional SEC EDGAR filing enrichment. GDELT broad-news search is disabled unless `NEWS_GDELT_ENABLED=true`, HTTPS-only, and restricted to trusted domains. Local Google/search fallback rows have been removed. The News UI is labeled as matched headlines and shows coverage chips per holding so missing source coverage is visible.
 
-`/api/digest` returns a portfolio digest preview in JSON/text/html and can send it to the signed-in email when `RESEND_API_KEY` and `EMAIL_FROM` are configured. `/api/cron/digest` is configured through Vercel Cron for weekly delivery on Monday at 08:00 UTC, but fails closed unless `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, and email delivery variables are configured. Cron recipients are masked in responses and must also be in `APP_ALLOWED_EMAILS`.
+`/api/digest` returns a branded portfolio report preview in JSON/text/html with metrics, allocation bars, top positions, recent transactions, and matched headlines. It can send to the signed-in email when `RESEND_API_KEY` and `EMAIL_FROM` are configured. Report links use an absolute base URL when available so emailed reports can link back to authenticated CSV/backup downloads. `/api/cron/digest` is configured through Vercel Cron for weekly delivery on Monday at 08:00 UTC, but fails closed unless `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, and email delivery variables are configured. Cron recipients are masked in responses and must also be in `APP_ALLOWED_EMAILS`.
 
-The Analysis tab now calculates risk diagnostics from selected-currency TWR returns. Sharpe and Sortino are withheld for irregular snapshot cadence; beta is withheld until aligned benchmark history exists and low-confidence until at least thirty aligned periods. Holdings Risk no longer shows fake beta or volatility estimates.
+`/api/cron/refresh` is configured through Vercel Cron for daily price/FX refresh and portfolio snapshot writes at 07:00 UTC. It fails closed unless `CRON_SECRET` and `CRON_REFRESH_EMAILS` or `DIGEST_EMAIL_RECIPIENTS` are configured, and recipients must be allowlisted.
+
+The Analysis tab now calculates risk diagnostics from selected-currency TWR returns. Sharpe and Sortino are hidden in the UI until ready, not shown as low-confidence numbers. Beta is withheld until aligned benchmark history exists. Methodology now shows snapshot gap range, selected currency, risk-free rate, and benchmark connection status. Holdings Risk no longer shows fake beta or volatility estimates, and the performance chart no longer draws a synthetic SPX benchmark line.
 
 Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
 
 Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints.
 
-Still missing or likely incomplete: DB-backed settings persistence, production email variables for scheduled digest delivery, broader SEC CIK coverage, official company IR feed registry, benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a guarded beta with 1-3 trusted friends, not for broad public launch.
+
+Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 19 files
-- UI components: 15 files
-- API routes: 9 files
+- Other: 21 files
+- UI components: 16 files
+- API routes: 10 files
 - App pages: 7 files
 - Pricing providers: 4 files
 - Documentation: 2 files
 - Database: 1 file
+- Metrics: 1 file
 - Tooling: 1 file
 
 Recent commits:
+- 142b1dc 2026-04-27 Add trusted news and risk analytics
 - c23ce80 2026-04-27 Add portfolio exports and digest news
 - 7592e04 2026-04-27 Refine portfolio UI controls and settings
 - 0262bd2 2026-04-27 Make quote matrix smoke provider-aware
@@ -71,7 +78,6 @@ Recent commits:
 - 603d04e 2026-04-27 Document Google OAuth production setup
 - 037d026 2026-04-27 Make settings status runtime-aware
 - d0a4c74 2026-04-27 Add live transaction quotes and Google auth scaffold
-- b28ea68 2026-04-27 Add Twelve Data symbol fallback
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -83,6 +89,8 @@ Recent commits:
 - The local `.env.local` Neon URL currently fails authentication; production env values are sensitive in Vercel and cannot be pulled back locally. Avoid schema migrations until migration credentials or an approved migration path are available.
 - GDELT is disabled by default for privacy and source-quality reasons. If enabled, it is still best-effort and restricted to trusted HTTPS domains.
 - Current risk diagnostics depend on snapshot cadence. Irregular historical snapshots will intentionally show unavailable metrics until enough regular daily/weekly/monthly history exists.
+- Seeded/demo snapshots can legitimately show 28-57 day gaps because they were created as monthly-ish historical anchors. Future daily refreshes will only become regular after the daily refresh cron is configured and runs over time.
+- Beta will not become available merely by waiting for more portfolio snapshots. It requires a benchmark snapshot pipeline that aligns portfolio returns to a weighted benchmark series.
 
 <!-- context:auto:start:known-issues -->
 Generated TODO/FIXME scan:
@@ -98,7 +106,8 @@ Generated TODO/FIXME scan:
 
 ## Open Questions
 
-- Which portfolio workflows need persistence before visual polish continues?
+- Whether to add an AI layer for portfolio-impact news summaries and weekly digest commentary.
+- Whether to prioritize DB-backed user preferences or transaction import next.
 
 ## Next Recommended Steps
 
@@ -106,7 +115,7 @@ Generated TODO/FIXME scan:
 2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
 3. Run a manual browser Google login smoke test with an allowlisted Google account.
 4. Move settings preferences from browser storage into Neon once migration access is resolved.
-5. Configure `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled digest email should actually send.
+5. Configure `CRON_SECRET`, `CRON_REFRESH_EMAILS`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled refresh and digest email should actually run.
 6. Add paired transfer support once multiple portfolios are available.
 7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from documented methodology to real calculated output.
 8. Continue UI iteration against the deployed app, keeping components modular and compact.
@@ -120,4 +129,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-27T16:50:16.069Z - Refreshed generated context from 8 recent commits, 58 changed files, and 0 TODO/FIXME items.
+2026-04-28T07:23:53.900Z - Refreshed generated context from 8 recent commits, 63 changed files, and 0 TODO/FIXME items.

@@ -8,11 +8,19 @@ import type { PortfolioNewsItem } from "@/lib/types";
 
 type NewsFeedProps = {
   portfolioId: string;
+  holdings: NewsFeedHolding[];
 };
 
-export function NewsFeed({ portfolioId }: NewsFeedProps) {
+export type NewsFeedHolding = {
+  symbol: string;
+  label: string;
+  isManual?: boolean;
+};
+
+export function NewsFeed({ portfolioId, holdings }: NewsFeedProps) {
   const [items, setItems] = useState<PortfolioNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const coverage = buildCoverage(holdings, items);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,10 +47,26 @@ export function NewsFeed({ portfolioId }: NewsFeedProps) {
   return (
     <section>
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <h2 className="text-3xl font-bold">News</h2>
-        <p className="text-sm text-zinc-500">
-          {isLoading ? "Loading portfolio headlines" : `${items.length} portfolio headlines`}
-        </p>
+        <div>
+          <h2 className="text-3xl font-bold">Matched headlines</h2>
+          <p className="mt-2 max-w-3xl text-sm text-zinc-500">
+            Source-backed headlines matched to current holdings. Coverage is strongest for crypto,
+            major US tickers, ETFs, and official US company filings when configured.
+          </p>
+        </div>
+        <p className="text-sm text-zinc-500">{isLoading ? "Loading" : `${items.length} matches`}</p>
+      </div>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {coverage.map((entry) => (
+          <span
+            key={entry.symbol}
+            className="rounded-[6px] border border-[#2b2b2f] px-3 py-1 text-xs text-zinc-400"
+            title={entry.detail}
+          >
+            <span className="font-semibold text-zinc-200">{entry.symbol}</span>{" "}
+            {entry.count > 0 ? `${entry.count} matched` : "no fresh match"}
+          </span>
+        ))}
       </div>
       <div className="mt-8 overflow-x-auto tv-scrollbar">
         <table className="w-full min-w-[900px] border-collapse text-sm">
@@ -72,9 +96,7 @@ export function NewsFeed({ portfolioId }: NewsFeedProps) {
                     <ExternalLink className="h-4 w-4 text-zinc-500" />
                   </a>
                   <p className="mt-1 text-xs text-zinc-500">{item.summary}</p>
-                  <p className="mt-1 text-xs text-zinc-600">
-                    {item.sourceType.replaceAll("-", " ")} · confidence {Math.round(item.confidence)}%
-                  </p>
+                  <p className="mt-1 text-xs text-zinc-600">{sourceTypeLabel(item.sourceType)}</p>
                 </td>
                 <td className="py-4 text-right text-zinc-500">{item.source}</td>
               </tr>
@@ -91,6 +113,26 @@ export function NewsFeed({ portfolioId }: NewsFeedProps) {
       </div>
     </section>
   );
+}
+
+function buildCoverage(holdings: NewsFeedHolding[], items: PortfolioNewsItem[]) {
+  return holdings.slice(0, 12).map((holding) => {
+    const count = items.filter((item) => item.matchedSymbols?.includes(holding.symbol) || item.symbol === holding.symbol)
+      .length;
+    return {
+      symbol: holding.symbol,
+      count,
+      detail: holding.isManual
+        ? "Manual holdings are matched only against trusted source text; private labels are not sent to broad-news providers."
+        : `${holding.label} matched against configured feeds and symbol-aware sources.`
+    };
+  });
+}
+
+function sourceTypeLabel(sourceType: PortfolioNewsItem["sourceType"]) {
+  if (sourceType === "filing") return "Official US filing";
+  if (sourceType === "broad-news") return "Optional broad news search";
+  return "News feed";
 }
 
 function formatRelativeTime(value: string) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, RefreshCw } from "lucide-react";
+import { ExternalLink, Mail, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { PortfolioDigest } from "@/lib/types";
@@ -60,11 +60,7 @@ export function DigestPanel({ portfolioId }: DigestPanelProps) {
         digest?: PortfolioDigest;
       };
       if (payload.digest) setDigest(payload.digest);
-      setStatus(
-        payload.result?.sent
-          ? "Digest email sent"
-          : payload.result?.reason ?? "Digest email not sent"
-      );
+      setStatus(payload.result?.sent ? "Digest email sent" : userSafeEmailStatus(payload.result?.reason));
       setHasWarning(!payload.result?.sent);
     } catch {
       setStatus("Digest email not sent");
@@ -80,10 +76,20 @@ export function DigestPanel({ portfolioId }: DigestPanelProps) {
         <div>
           <h2 className="text-2xl font-bold">Portfolio digest</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            On-demand summary with portfolio metrics, recent activity, and headlines.
+            Branded portfolio report with metrics, holdings, recent activity, and matched headlines.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="subtle" size="sm">
+            <a
+              href={`/api/digest?format=html&portfolioId=${encodeURIComponent(portfolioId)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open report
+            </a>
+          </Button>
           <Button type="button" variant="subtle" size="sm" onClick={previewDigest} disabled={isLoading}>
             <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
             Preview
@@ -133,4 +139,10 @@ export function DigestPanel({ portfolioId }: DigestPanelProps) {
       )}
     </section>
   );
+}
+
+function userSafeEmailStatus(reason?: string) {
+  if (!reason) return "Digest email not sent";
+  if (/provider|resend|configured|api|env/i.test(reason)) return "Email delivery is not configured";
+  return reason;
 }

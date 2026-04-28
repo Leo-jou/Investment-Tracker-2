@@ -2,13 +2,14 @@
 
 ## Overview
 
-This MVP is a mock-first Next.js app that uses the real production shape from day one:
+This MVP is a provider-ready Next.js app that uses the real production shape while keeping expensive or fragile integrations optional:
 
 - Next.js App Router handles pages and API routes.
 - React components are split by portfolio surface area so UI sections can be iterated independently.
-- Drizzle models the Neon Postgres schema without requiring a live database during UI design.
-- Pricing and asset search services are provider-ready, with mock fallback when keys are missing.
+- Drizzle models and reads/writes the Neon Postgres schema for production portfolio data.
+- Pricing and asset search services use CoinGecko and Twelve Data when configured, with mock/fallback behavior when provider data is missing.
 - Performance logic keeps external cash flows separate from investment return.
+- News, digest, export, and cron surfaces are authenticated and fail closed where automation could affect user data.
 
 ## Assumptions
 
@@ -18,6 +19,8 @@ This MVP is a mock-first Next.js app that uses the real production shape from da
 - Daily snapshots are enough for refresh and performance calculations.
 - TWR is the primary performance metric because deposits and withdrawals must not distort returns.
 - Provider failures should degrade to mock/fallback data instead of blocking the app.
+- News matching should prefer trusted RSS/symbol feeds and official filings. Broad third-party news search remains opt-in.
+- Risk metrics should be withheld when cadence or benchmark data is too weak to support a defensible number.
 
 ## Schema
 
@@ -46,17 +49,18 @@ Important rules:
 4. Performance engine: portfolio value, invested capital, TWR periods, daily snapshots.
 5. UI: dashboard, portfolio tabs, holdings, transactions, assets, manual positions, settings.
 6. Polish: density, responsive behavior, component-level iteration from user feedback.
+7. Automation: guarded daily price/snapshot refresh, weekly digest/report delivery, backup exports.
+8. Readiness hardening: DB-backed settings, imports, paired transfers, dividends, benchmark history, and mutation-capable end-to-end tests.
 
 ## What Is Needed From You
 
 Now:
 
 - Review the live UI and comment by area/component.
-- Confirm Vercel access once the plugin is configured.
+- Configure cron/email variables when scheduled refreshes and digest emails should run.
 
 Later:
 
-- Neon connection string.
-- Google OAuth credentials for login.
-- CoinGecko, Twelve Data, and optional FMP keys after DB-backed CRUD is stable.
 - A few real transaction examples to validate input speed and TWR behavior.
+- Decision on whether portfolio-impact news summaries should use an AI layer.
+- Migration access or a safe migration plan for DB-backed user preferences.

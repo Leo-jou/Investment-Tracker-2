@@ -86,7 +86,7 @@ export function SettingsPreferences({
 
         <PreferenceSwitch
           title="Daily snapshots"
-          detail="Applied to manual price refresh requests."
+          detail="Applied to manual price refresh requests. Automated refresh is admin-configured separately."
           enabled={preferences.dailySnapshotsEnabled}
           onChange={(enabled) => savePreferences({ dailySnapshotsEnabled: enabled })}
         />
@@ -95,7 +95,9 @@ export function SettingsPreferences({
           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-zinc-100">Backup email</p>
-              <p className="mt-1 text-sm text-zinc-500">Stored for recovery and exports.</p>
+              <p className="mt-1 text-sm text-zinc-500">
+                Stored in this browser only. Scheduled exports are not user-controlled yet.
+              </p>
               <Input
                 value={backupEmailDraft}
                 onChange={(event) => setBackupEmailDraft(event.target.value)}
@@ -114,7 +116,7 @@ export function SettingsPreferences({
 
         <PreferenceSwitch
           title="Daily export"
-          detail="Stored for the future email export service."
+          detail="Preference placeholder only; use dashboard CSV/backup downloads for active exports."
           enabled={preferences.dailyExportEnabled}
           onChange={(enabled) => savePreferences({ dailyExportEnabled: enabled })}
         />

@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { isEmailAllowed, isValidEmail, normalizeEmail } from "@/lib/auth/session";
-import { getDashboardDataForEmail } from "@/lib/db/portfolio-repository";
-import { buildPortfolioDigest } from "@/lib/digest/portfolio-digest";
-import { sendEmail } from "@/lib/email/resend";
-import { getPortfolioNews } from "@/lib/news/portfolio-news";
+import { refreshPortfolioData } from "@/lib/pricing/refresh";
 
 export const dynamic = "force-dynamic";
-
-type DigestCronResult = {
-  recipient: string;
-  status: "sent" | "skipped" | "failed";
-  reason?: string;
-};
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -29,16 +20,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, reason: "Unauthorized." }, { status: 401 });
   }
 
-  const recipients = parseDigestRecipients();
-  const baseUrl = process.env.AUTH_URL ?? new URL(request.url).origin;
+  const recipients = parseRefreshRecipients();
   if (recipients.length === 0) {
     return NextResponse.json({
       ok: false,
-      reason: "DIGEST_EMAIL_RECIPIENTS has no valid email recipients."
+      reason: "CRON_REFRESH_EMAILS or DIGEST_EMAIL_RECIPIENTS has no valid email recipients."
     });
   }
 
-  const results: DigestCronResult[] = [];
+  const results = [];
 
   for (const recipient of recipients) {
     if (!isEmailAllowed(recipient, { failClosed: true })) {
@@ -51,47 +41,40 @@ export async function GET(request: Request) {
     }
 
     try {
-      const data = await getDashboardDataForEmail(recipient);
-      const news = await getPortfolioNews(data);
-      const digest = buildPortfolioDigest(data, news, { baseUrl });
-      const email = await sendEmail({
-        to: recipient,
-        subject: digest.subject,
-        html: digest.html,
-        text: digest.text
+      const result = await refreshPortfolioData(recipient, { updatePortfolioSnapshots: true });
+      results.push({
+        recipient: maskEmail(recipient),
+        status: "refreshed",
+        mode: result.mode,
+        pricesUpdated: result.pricesUpdated,
+        fxPairsUpdated: result.fxPairsUpdated,
+        portfolioSnapshotsUpdated: result.portfolioSnapshotsUpdated,
+        errors: result.errors.length
       });
-
-      results.push(
-        email.sent
-          ? { recipient: maskEmail(recipient), status: "sent" }
-          : { recipient: maskEmail(recipient), status: "failed", reason: email.reason }
-      );
     } catch (error) {
       results.push({
         recipient: maskEmail(recipient),
         status: "failed",
-        reason: error instanceof Error ? error.message : "Unknown digest failure."
+        reason: error instanceof Error ? error.message : "Unknown refresh failure."
       });
     }
   }
 
-  const sent = results.filter((result) => result.status === "sent").length;
   const failed = results.filter((result) => result.status === "failed").length;
-  const skipped = results.filter((result) => result.status === "skipped").length;
 
   return NextResponse.json({
     ok: failed === 0,
-    sent,
+    refreshed: results.filter((result) => result.status === "refreshed").length,
     failed,
-    skipped,
+    skipped: results.filter((result) => result.status === "skipped").length,
     results
   });
 }
 
-function parseDigestRecipients() {
+function parseRefreshRecipients() {
   return [
     ...new Set(
-      (process.env.DIGEST_EMAIL_RECIPIENTS ?? "")
+      (process.env.CRON_REFRESH_EMAILS ?? process.env.DIGEST_EMAIL_RECIPIENTS ?? "")
         .split(",")
         .map((value) => normalizeEmail(value))
         .filter((value) => isValidEmail(value))

@@ -6,13 +6,16 @@ import { buildPortfolioDigest } from "../lib/digest/portfolio-digest.ts";
 import type { PortfolioNewsItem } from "../lib/types.ts";
 
 test("portfolio digest includes metrics, positions, transactions, and news", () => {
-  const digest = buildPortfolioDigest(mockDashboardData, mockNews);
+  const digest = buildPortfolioDigest(mockDashboardData, mockNews, {
+    baseUrl: "https://foliocore.example"
+  });
 
   assert.match(digest.subject, /Personal/);
   assert.match(digest.text, /Portfolio value/);
   assert.match(digest.text, /BTC/);
   assert.match(digest.text, /Bitcoin liquidity improves/);
   assert.match(digest.html, /Bitcoin liquidity improves/);
+  assert.match(digest.html, /https:\/\/foliocore\.example\/api\/export\?format=backup-json/);
   assert.equal(digest.news.length, 1);
 });
 

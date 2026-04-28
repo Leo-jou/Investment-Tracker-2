@@ -71,7 +71,7 @@ export function AnalysisPanels({
           <RiskMetric
             title="Beta"
             metric={risk.beta}
-            tooltip="Beta = covariance(portfolio TWR returns, benchmark returns) / variance(benchmark returns). For this mixed portfolio, the intended benchmark is weighted by asset class: stocks/ETFs to SPY, crypto to BTC, commodities to XAU/USD, cash/manual to 0. It is not shown until aligned benchmark history exists."
+            tooltip="Beta = covariance(portfolio TWR returns, benchmark returns) / variance(benchmark returns). For this mixed portfolio, the intended benchmark is weighted by asset class: stocks/ETFs to SPY, crypto to BTC, commodities to XAU/USD, cash/manual to 0. It will not become automatic until benchmark snapshots are stored and aligned with portfolio snapshots."
           />
           <RiskMetric
             title="Sharpe ratio"
@@ -87,8 +87,16 @@ export function AnalysisPanels({
 
         <div className="mt-8 rounded-[8px] border border-[#2b2b2f] bg-black p-4 text-sm text-zinc-500">
           <p className="font-semibold text-zinc-300">Methodology</p>
-          <p className="mt-2">
-            These are historical diagnostics, not forecasts. Metrics use the selected display currency and regular snapshot intervals; irregular daily/monthly mixes are withheld instead of normalized into misleading ratios. Thirty aligned periods is the first ready threshold.
+          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <MethodologyFact label="Snapshot gaps" value={cadenceRange(risk.cadence)} />
+            <MethodologyFact label="Currency basis" value={currency} />
+            <MethodologyFact label="Risk-free rate" value={`${(risk.riskFreeRateAnnual * 100).toFixed(2)}%`} />
+            <MethodologyFact label="Benchmark" value={risk.beta.status === "ready" ? "Connected" : "Not connected"} />
+          </div>
+          <p className="mt-4">
+            Metrics are historical diagnostics, not forecasts. Irregular daily/monthly mixes are
+            withheld instead of normalized into misleading ratios. Thirty regular or aligned periods
+            is the first ready threshold.
           </p>
         </div>
       </section>
@@ -133,12 +141,7 @@ function RiskMetric({
   tooltip: string;
 }) {
   const isReady = metric.status === "ready";
-  const value =
-    metric.value === null
-      ? metric.status === "low-sample"
-        ? "Low sample"
-        : "Not ready"
-      : metric.value.toFixed(2);
+  const value = isReady && metric.value !== null ? metric.value.toFixed(2) : "Not ready";
 
   return (
     <div>
@@ -155,9 +158,15 @@ function RiskMetric({
       <p className="mt-3 inline-flex rounded-[5px] bg-[#2c2c2f] px-3 py-1 text-xs font-bold uppercase text-zinc-200">
         {value}
       </p>
-      <p className="mt-2 text-xs uppercase tracking-wide text-[#f6b342]">
-        {isReady ? "Ready" : metric.status === "low-sample" ? "Low confidence" : "Unavailable"}
-      </p>
+    </div>
+  );
+}
+
+function MethodologyFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[6px] border border-[#202024] p-3">
+      <p className="text-xs uppercase tracking-wide text-zinc-600">{label}</p>
+      <p className="mt-1 font-semibold text-zinc-200">{value}</p>
     </div>
   );
 }
@@ -166,4 +175,14 @@ function cadenceLabel(status: "regular" | "irregular" | "insufficient") {
   if (status === "regular") return "regular cadence";
   if (status === "irregular") return "irregular cadence";
   return "insufficient cadence";
+}
+
+function cadenceRange(cadence: {
+  status: "regular" | "irregular" | "insufficient";
+  minDays: number | null;
+  medianDays: number | null;
+  maxDays: number | null;
+}) {
+  if (!cadence.minDays || !cadence.maxDays) return "Insufficient";
+  return `${cadence.minDays.toFixed(0)}-${cadence.maxDays.toFixed(0)} days`;
 }

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import type { DashboardData } from "../lib/db/portfolio-repository.ts";
 import {
+  buildPortfolioBackupExport,
   buildPortfolioCsvExport,
   buildPortfolioExport,
   csvSection
@@ -31,6 +32,16 @@ test("csvSection protects string cells that look like formulas", () => {
 
   assert.match(csv, /'\+SUM\(A1:A2\)/);
   assert.match(csv, /-42/);
+});
+
+test("backup export preserves full restore-oriented records", () => {
+  const backup = buildPortfolioBackupExport(mockDashboardData);
+
+  assert.equal(backup.schemaVersion, 1);
+  assert.equal(backup.assets[0].id, "asset-1");
+  assert.equal(backup.transactions[0].id, "tx-1");
+  assert.equal(backup.positions[0].id, "position-1");
+  assert.equal(backup.portfolio.id, "portfolio-1");
 });
 
 const mockDashboardData: DashboardData = {

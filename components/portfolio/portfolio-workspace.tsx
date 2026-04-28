@@ -9,7 +9,7 @@ import { DailyMovers } from "@/components/portfolio/daily-movers";
 import { DigestPanel } from "@/components/portfolio/digest-panel";
 import { ExportActions } from "@/components/portfolio/export-actions";
 import { ManualPositionsCard } from "@/components/portfolio/manual-positions-card";
-import { NewsFeed } from "@/components/portfolio/news-feed";
+import { NewsFeed, type NewsFeedHolding } from "@/components/portfolio/news-feed";
 import { PortfolioHeader } from "@/components/portfolio/portfolio-header";
 import { PortfolioTabs, type PortfolioTab } from "@/components/portfolio/portfolio-tabs";
 import { PortfolioValueChart } from "@/components/portfolio/portfolio-value-chart";
@@ -22,6 +22,7 @@ import type { Currency } from "@/lib/types";
 export function PortfolioWorkspace({ data }: { data: DashboardData }) {
   const [currency, setCurrency] = useState<Currency>(() => readStoredDefaultCurrency() ?? "USD");
   const [activeTab, setActiveTab] = useState<PortfolioTab>("Overview");
+  const newsHoldings = buildNewsHoldings(data);
 
   return (
     <div className="space-y-10">
@@ -50,7 +51,7 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
             positions={data.positions}
             manualPositions={data.manualPositions}
           />
-          <NewsFeed portfolioId={data.portfolio.id} />
+          <NewsFeed portfolioId={data.portfolio.id} holdings={newsHoldings} />
           <DigestPanel portfolioId={data.portfolio.id} />
         </div>
       )}
@@ -89,6 +90,23 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
       )}
     </div>
   );
+}
+
+function buildNewsHoldings(data: DashboardData): NewsFeedHolding[] {
+  const assetById = new Map(data.assets.map((asset) => [asset.id, asset]));
+  return [
+    ...data.positions.flatMap((position) => {
+      const asset = assetById.get(position.assetId);
+      return asset
+        ? [{ symbol: asset.symbol, label: asset.name } satisfies NewsFeedHolding]
+        : [];
+    }),
+    ...data.manualPositions.map((position) => ({
+      symbol: position.label,
+      label: position.label,
+      isManual: true
+    }))
+  ];
 }
 
 function readStoredDefaultCurrency(): Currency | null {

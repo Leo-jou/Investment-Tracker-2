@@ -134,12 +134,9 @@ export async function getPortfolioNews(data: DashboardData): Promise<PortfolioNe
   ]);
 
   return dedupeNews([...secItems, ...rssItems, ...gdeltItems])
-    .sort((left, right) => {
-      const confidenceOrder = right.confidence - left.confidence;
-      if (confidenceOrder !== 0) return confidenceOrder;
-      return new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime();
-    })
-    .slice(0, 12);
+    .sort(sortNewsItems)
+    .filter((item) => item.confidence >= 30)
+    .reduce(selectDiverseNews(subjects, 12), []);
 }
 
 export function getNewsSubjects(data: DashboardData) {
@@ -197,7 +194,7 @@ function buildRssSources(subjects: NewsSubject[]) {
     if (!byId.has(source.id)) byId.set(source.id, source);
   }
 
-  return [...byId.values()].slice(0, 16);
+  return [...byId.values()].slice(0, 24);
 }
 
 function dynamicRssSourcesForSubject(subject: NewsSubject): RssSource[] {
@@ -212,6 +209,20 @@ function dynamicRssSourcesForSubject(subject: NewsSubject): RssSource[] {
       sourceType: "market-rss",
       assetTypes: [subject.type],
       priority: 84
+    });
+  }
+
+  const yahooSymbol = yahooFinanceSymbol(subject);
+  if (yahooSymbol) {
+    sources.push({
+      id: `yahoo-symbol-${yahooSymbol}`,
+      name: `Yahoo Finance ${subject.symbol}`,
+      url: `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${encodeURIComponent(
+        yahooSymbol
+      )}&region=US&lang=en-US`,
+      sourceType: subject.type === "CRYPTO" ? "crypto-rss" : "market-rss",
+      assetTypes: subject.type === "MANUAL" ? undefined : [subject.type as AssetType],
+      priority: 88
     });
   }
 
@@ -478,11 +489,38 @@ function decodeXmlEntities(value: string) {
 function dedupeNews(items: PortfolioNewsItem[]) {
   const seen = new Set<string>();
   return items.filter((item) => {
-    const key = normalizeHttpsUrl(item.url) ?? item.title.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
+    const keys = [normalizeHttpsUrl(item.url), normalizeTitleKey(item.title)].filter(
+      (key): key is string => Boolean(key)
+    );
+    if (keys.some((key) => seen.has(key))) return false;
+    for (const key of keys) seen.add(key);
     return true;
   });
+}
+
+function sortNewsItems(left: PortfolioNewsItem, right: PortfolioNewsItem) {
+  const dateOrder = new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime();
+  if (dateOrder !== 0) return dateOrder;
+  return right.confidence - left.confidence;
+}
+
+function selectDiverseNews(subjects: NewsSubject[], limit: number) {
+  return (selected: PortfolioNewsItem[], item: PortfolioNewsItem) => {
+    if (selected.length >= limit) return selected;
+    const symbol = item.symbol ?? "Market";
+    const countForSymbol = selected.filter((candidate) => (candidate.symbol ?? "Market") === symbol)
+      .length;
+    const coveredSymbols = new Set(selected.map((candidate) => candidate.symbol).filter(Boolean));
+    const knownSymbols = new Set(subjects.map((subject) => subject.symbol));
+    const stillNeedsFirstMatch =
+      knownSymbols.has(symbol) && !coveredSymbols.has(symbol) && item.confidence >= 35;
+
+    if (stillNeedsFirstMatch || countForSymbol < 2) {
+      selected.push(item);
+    }
+
+    return selected;
+  };
 }
 
 function assetToSubject(asset: Asset): NewsSubject {
@@ -539,6 +577,25 @@ function cryptoNewsTag(symbol: string) {
     XRPUSD: "ripple"
   };
   return tags[symbol];
+}
+
+function yahooFinanceSymbol(subject: NewsSubject) {
+  const symbol = subject.symbol.toUpperCase();
+  const mappings: Record<string, string> = {
+    "XAU/USD": "GC=F",
+    XAU: "GC=F",
+    GOLD: "GC=F",
+    "EUR/USD": "EURUSD=X",
+    EURUSD: "EURUSD=X",
+    BTC: "BTC-USD",
+    BTCUSD: "BTC-USD",
+    ETH: "ETH-USD",
+    ETHUSD: "ETH-USD"
+  };
+
+  if (mappings[symbol]) return mappings[symbol];
+  if (subject.type === "STOCK" || subject.type === "ETF") return symbol;
+  return null;
 }
 
 function dedupeTerms(terms: string[]) {
@@ -621,6 +678,13 @@ function normalizeGdeltDate(value?: string) {
 
 function normalizeSearchText(value: string) {
   return value.toLowerCase().replace(/&amp;/g, "&").replace(/[^a-z0-9+&]+/g, " ").trim();
+}
+
+function normalizeTitleKey(value: string) {
+  return normalizeSearchText(value)
+    .replace(/\b[-+]?\d+(\.\d+)?%?\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function containsNormalizedTerm(text: string, term: string) {

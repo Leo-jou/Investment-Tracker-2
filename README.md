@@ -22,6 +22,7 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 ## Current MVP Status
 
 - Production is deployed on Vercel at `https://foliocore.vercel.app`.
+- Current sharing status: guarded beta only. See `docs/READINESS.md` for what is safe to test with friends and what is still incomplete.
 - Neon-backed first-run workspace bootstrap creates a Personal portfolio, demo assets, demo transactions, price/FX snapshots, and a manual SpaceX-style position.
 - Quick add supports BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries with type-specific fields.
 - BUY/SELL can auto-calculate total from quantity or quantity from total using a live quote fetched on explicit asset selection.
@@ -30,10 +31,12 @@ A self-hostable personal portfolio tracker MVP focused on fast manual input, cor
 - Holdings sub-tabs switch between position, price, financials, performance, risk, and technical column sets.
 - Portfolio distribution supports assets, asset types, and currency modes; chart labels are kept off the donut to avoid cramped or misleading percentages.
 - Portfolio exports are available as authenticated CSV and JSON downloads from the dashboard and via `/api/export`.
-- Portfolio news is generated from current holdings through `/api/news`, using trusted RSS sources, limited symbol/tag feeds, and optional SEC EDGAR filing enrichment. Google/search fallbacks are removed.
-- Portfolio digest preview is available through `/api/digest`, combining metrics, top positions, recent transactions, and portfolio headlines.
+- Portfolio news is generated from current holdings through `/api/news`, using trusted RSS sources, Yahoo/Nasdaq symbol feeds, limited crypto tag feeds, and optional SEC EDGAR filing enrichment. Google/search fallbacks are removed and results are diversified by holding.
+- Portfolio digest/report preview is available through `/api/digest`, combining metrics, top positions, recent transactions, allocation bars, and matched headlines in print-ready branded HTML.
 - On-demand digest email is wired behind optional `RESEND_API_KEY` and `EMAIL_FROM` variables; without them the UI degrades to a clear "email provider not configured" state.
 - A guarded weekly digest cron endpoint exists at `/api/cron/digest`; it only sends when `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` are configured, and recipients must also be in `APP_ALLOWED_EMAILS`.
+- A guarded daily refresh cron endpoint exists at `/api/cron/refresh`; it refreshes provider prices/FX and writes portfolio snapshots for allowlisted configured recipients.
+- Dashboard exports now distinguish human reports from recovery backups: CSV/JSON reports for review and `backup-json` for restore-oriented records.
 - Risk analytics now show TWR-based Sharpe, Sortino, and beta methodology instead of placeholder values. Ratios are withheld for irregular snapshot cadence or missing benchmark history, rather than normalized into misleading numbers.
 - Price refresh can fetch CoinGecko crypto prices, Twelve Data stock/ETF prices, and Twelve Data EUR/USD FX, then optionally persist snapshots and recalculate the current portfolio snapshot.
 - Settings preferences are currently browser-persisted: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. DB-backed user preferences are deferred until migration access is clean.
@@ -92,10 +95,22 @@ To include export, news, and digest preview endpoints:
 SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod
 ```
 
+Export formats:
+
+- `/api/export?format=csv` human-readable sectioned CSV
+- `/api/export?format=json` compact report JSON
+- `/api/export?format=backup-json` restore-oriented backup with schema version, assets, positions, transactions, manual positions, snapshots, and allocations
+
 Cron digest can be checked manually with a bearer token once production env is configured:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" https://foliocore.vercel.app/api/cron/digest
+```
+
+Cron price/snapshot refresh can be checked the same way:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://foliocore.vercel.app/api/cron/refresh
 ```
 
 ## Environment
@@ -131,13 +146,19 @@ Optional email variables:
 - `EMAIL_FROM`
 - `CRON_SECRET`
 - `DIGEST_EMAIL_RECIPIENTS`
+- `CRON_REFRESH_EMAILS`
 
 Optional filings/news variables:
 
 - `SEC_USER_AGENT`
 - `NEWS_GDELT_ENABLED`
 
-Vercel Cron is configured for a weekly digest on Monday at 08:00 UTC. It is safe to deploy before email variables are configured because the endpoint fails closed without `CRON_SECRET` and only emails allowlisted recipients.
+Vercel Cron is configured for daily price/snapshot refresh at 07:00 UTC and weekly digest on Monday at 08:00 UTC. It is safe to deploy before cron variables are configured because both endpoints fail closed without `CRON_SECRET` and only process allowlisted recipients.
+
+Terminology:
+
+- SEC EDGAR is the official US company filing system for reports such as 10-K, 10-Q, and 8-K. It is not a tax feature.
+- GDELT is an optional broad-news search API. It is disabled by default because it sends public holding terms to a third-party search service.
 
 Do not commit local secret files. `.env*`, `.vercel`, `env.txt`, and local Google auth scratch files are ignored.
 

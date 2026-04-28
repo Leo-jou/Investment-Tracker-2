@@ -197,6 +197,50 @@ test("portfolio news matches ticker terms on word boundaries", async () => {
   }
 });
 
+test("portfolio news diversifies repeated headlines across covered holdings", async () => {
+  const originalFetch = globalThis.fetch;
+
+  try {
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("NVDA") || url.includes("nvda")) {
+        return rssResponse([
+          ["NVIDIA shares rise after data center update", "https://example.com/nvda-news"]
+        ]);
+      }
+
+      return rssResponse([
+        ["Bitcoin liquidity improves", "https://example.com/rss-bitcoin-a"],
+        ["Bitcoin liquidity improves", "https://example.com/rss-bitcoin-b"],
+        ["Bitcoin whale holdings climb", "https://example.com/rss-bitcoin-c"]
+      ]);
+    }) as typeof fetch;
+
+    const news = await getPortfolioNews(multiAssetDashboardData);
+
+    assert.ok(news.some((item) => item.symbol === "BTC"));
+    assert.ok(news.some((item) => item.symbol === "NVDA"));
+    assert.ok(news.filter((item) => item.title === "Bitcoin liquidity improves").length <= 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+function rssResponse(items: Array<[title: string, url: string]>) {
+  return new Response(
+    `<?xml version="1.0"?><rss><channel>${items
+      .map(
+        ([title, url]) => `<item>
+          <title>${title}</title>
+          <link>${url}</link>
+          <pubDate>Mon, 27 Apr 2026 12:00:00 GMT</pubDate>
+        </item>`
+      )
+      .join("")}</channel></rss>`,
+    { status: 200, headers: { "content-type": "application/xml" } }
+  );
+}
+
 function emptyRssResponse() {
   return new Response("<rss><channel /></rss>", {
     status: 200,
@@ -284,4 +328,43 @@ const coinDashboardData: DashboardData = {
     }
   ],
   allocations: [{ label: "COIN", value: 9000, percent: 100, color: "#2563eb" }]
+};
+
+const multiAssetDashboardData: DashboardData = {
+  ...mockDashboardData,
+  assets: [
+    ...mockDashboardData.assets,
+    {
+      id: "asset-nvda",
+      symbol: "NVDA",
+      name: "NVIDIA Corporation",
+      type: "STOCK",
+      currency: "USD",
+      provider: "twelve-data",
+      externalId: "NVDA",
+      priceEur: 800,
+      priceUsd: 900,
+      change24hPercent: 0.4,
+      color: "#22c55e"
+    }
+  ],
+  positions: [
+    ...mockDashboardData.positions,
+    {
+      id: "position-nvda",
+      portfolioId: "portfolio-1",
+      assetId: "asset-nvda",
+      quantity: 3,
+      averageCostEur: 700,
+      marketValueEur: 2400,
+      marketValueUsd: 2700,
+      pnlEur: 300,
+      pnlPercent: 14.2,
+      allocationPercent: 23
+    }
+  ],
+  allocations: [
+    { label: "BTC", value: 9000, percent: 77, color: "#f59e0b" },
+    { label: "NVDA", value: 2400, percent: 23, color: "#22c55e" }
+  ]
 };

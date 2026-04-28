@@ -5,7 +5,6 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -36,8 +35,7 @@ export function PerformanceChart({
     date: snapshot.date.slice(5),
     value: currency === "EUR" ? snapshot.valueEur : snapshot.valueUsd,
     capital: currency === "EUR" ? snapshot.investedCapitalEur : snapshot.investedCapitalEur * 1.077,
-    twr: snapshot.twr,
-    benchmark: snapshot.twr * 0.72 + 1.2
+    twr: snapshot.twr
   }));
 
   const valueKey = mode === "value" ? "value" : "twr";
@@ -108,16 +106,6 @@ export function PerformanceChart({
                 }}
                 labelStyle={{ color: "#a1a1aa" }}
               />
-              {mode === "performance" && (
-                <Line
-                  type="monotone"
-                  dataKey="benchmark"
-                  name="SPX"
-                  stroke="#4ed6e7"
-                  strokeWidth={3}
-                  dot={false}
-                />
-              )}
               <Area
                 type="monotone"
                 dataKey={valueKey}

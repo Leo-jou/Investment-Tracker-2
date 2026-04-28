@@ -9,6 +9,7 @@ type ExportActionsProps = {
 export function ExportActions({ portfolioId }: ExportActionsProps) {
   const csvHref = `/api/export?format=csv&portfolioId=${encodeURIComponent(portfolioId)}`;
   const jsonHref = `/api/export?format=json&portfolioId=${encodeURIComponent(portfolioId)}`;
+  const backupHref = `/api/export?format=backup-json&portfolioId=${encodeURIComponent(portfolioId)}`;
 
   return (
     <div className="flex flex-wrap justify-end gap-2">
@@ -22,6 +23,12 @@ export function ExportActions({ portfolioId }: ExportActionsProps) {
         <a href={jsonHref}>
           <Download className="h-4 w-4" />
           JSON
+        </a>
+      </Button>
+      <Button asChild variant="subtle" size="sm">
+        <a href={backupHref}>
+          <Download className="h-4 w-4" />
+          Backup
         </a>
       </Button>
     </div>

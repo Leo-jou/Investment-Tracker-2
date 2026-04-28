@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { requireSessionEmail } from "@/lib/auth/session";
 import { getDashboardDataForEmail } from "@/lib/db/portfolio-repository";
 import {
+  backupExportFilename,
+  buildPortfolioBackupExport,
   buildPortfolioCsvExport,
   buildPortfolioExport,
   exportFilename
@@ -12,14 +14,23 @@ export async function GET(request: Request) {
   const email = await requireSessionEmail();
   const { searchParams } = new URL(request.url);
   const portfolioId = searchParams.get("portfolioId") ?? undefined;
-  const format = searchParams.get("format") === "json" ? "json" : "csv";
+  const requestedFormat = searchParams.get("format");
+  const format =
+    requestedFormat === "json" || requestedFormat === "backup-json" ? requestedFormat : "csv";
   const data = await getDashboardDataForEmail(email, portfolioId);
-  const filename = exportFilename(data.portfolio.name, format);
+
+  if (format === "backup-json") {
+    return NextResponse.json(buildPortfolioBackupExport(data), {
+      headers: {
+        "content-disposition": `attachment; filename="${backupExportFilename(data.portfolio.name)}"`
+      }
+    });
+  }
 
   if (format === "json") {
     return NextResponse.json(buildPortfolioExport(data), {
       headers: {
-        "content-disposition": `attachment; filename="${filename}"`
+        "content-disposition": `attachment; filename="${exportFilename(data.portfolio.name, "json")}"`
       }
     });
   }
@@ -27,7 +38,7 @@ export async function GET(request: Request) {
   return new Response(buildPortfolioCsvExport(data), {
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename="${filename}"`
+      "content-disposition": `attachment; filename="${exportFilename(data.portfolio.name, "csv")}"`
     }
   });
 }
