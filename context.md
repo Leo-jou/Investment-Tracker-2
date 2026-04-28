@@ -33,9 +33,11 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 
 The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio components, API routes for assets, transactions, manual positions, item editing/deletion, price refresh, auth login, Drizzle schema/migration files, mock/demo data, metrics utilities, and provider-ready pricing seams.
 
-Production is deployed on Vercel at `https://foliocore.vercel.app`. The current production deployment includes inline edit/delete flows for transactions and manual positions.
+Production is deployed on Vercel at `https://foliocore.vercel.app`. Current production deployment `dpl_8cJ5emD1iRNkAF2d4x2ukqK4PV3G` includes the portfolio news/report/readiness iteration from commit `6092036`.
 
 CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
+
+The local Vercel CLI is authenticated as `leopoldjourdain-6225`, so future production deploys can use `npx vercel build --prod` followed by `npx vercel deploy --prebuilt --prod --yes`. The Vercel MCP connector still did not list teams during the 2026-04-28 session, so CLI deploy is the reliable path for now.
 
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from a live quote fetched on explicit asset selection. Quote lookup is transient and does not create assets until the transaction is saved; selected provider metadata and the submitted quote are then persisted with the transaction.
 
@@ -51,7 +53,7 @@ The Analysis tab now calculates risk diagnostics from selected-currency TWR retu
 
 Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
 
-Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints.
+Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints. On 2026-04-28, production smoke passed for export/news/digest, quote matrix returned BTC, ETH, NVDA, SPY, and XAU/USD live quotes, backup JSON returned schema version 1, and `/api/news` returned 9 matched headlines across BTC, ETH, SPY, NVDA, and the manual SpaceX holding.
 
 Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a guarded beta with 1-3 trusted friends, not for broad public launch.
 
@@ -59,17 +61,18 @@ Still missing or likely incomplete: DB-backed settings persistence, production c
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 21 files
-- UI components: 16 files
-- API routes: 10 files
-- App pages: 7 files
+- UI components: 17 files
+- Other: 14 files
+- API routes: 9 files
+- App pages: 5 files
+- Documentation: 4 files
 - Pricing providers: 4 files
-- Documentation: 2 files
 - Database: 1 file
 - Metrics: 1 file
 - Tooling: 1 file
 
 Recent commits:
+- 6092036 2026-04-28 Improve portfolio news reports and readiness
 - 142b1dc 2026-04-27 Add trusted news and risk analytics
 - c23ce80 2026-04-27 Add portfolio exports and digest news
 - 7592e04 2026-04-27 Refine portfolio UI controls and settings
@@ -77,7 +80,6 @@ Recent commits:
 - 7d1785d 2026-04-27 Wire portfolio controls and improve live quote search
 - 603d04e 2026-04-27 Document Google OAuth production setup
 - 037d026 2026-04-27 Make settings status runtime-aware
-- d0a4c74 2026-04-27 Add live transaction quotes and Google auth scaffold
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -129,4 +131,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-28T07:23:53.900Z - Refreshed generated context from 8 recent commits, 63 changed files, and 0 TODO/FIXME items.
+2026-04-28T08:04:54.930Z - Refreshed generated context from 8 recent commits, 56 changed files, and 0 TODO/FIXME items.
