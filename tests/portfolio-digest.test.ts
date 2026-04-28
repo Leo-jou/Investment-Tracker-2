@@ -16,6 +16,8 @@ test("portfolio digest includes metrics, positions, transactions, and news", () 
   assert.match(digest.text, /Bitcoin liquidity improves/);
   assert.match(digest.html, /Bitcoin liquidity improves/);
   assert.match(digest.html, /https:\/\/foliocore\.example\/api\/export\?format=backup-json/);
+  assert.ok(digest.highlightCards.length >= 5);
+  assert.ok(digest.highlightCards.some((card) => card.label === "Data quality"));
   assert.equal(digest.news.length, 1);
 });
 
@@ -105,5 +107,17 @@ const mockDashboardData: DashboardData = {
       twr: 4.2
     }
   ],
+  analyticsSnapshots: [
+    {
+      date: "2026-04-27",
+      valueEur: 9000,
+      valueUsd: 10000,
+      investedCapitalEur: 8200,
+      cashFlowEur: 0,
+      twr: 4.2
+    }
+  ],
+  benchmarkReturns: [],
+  analyticsHistoryMode: "actual",
   apiStatuses: []
 };

@@ -1,6 +1,12 @@
 import type { DashboardData } from "../db/portfolio-repository.ts";
 import { formatMoney, formatPercent, formatQuantity } from "../format.ts";
-import type { PortfolioDigest, PortfolioNewsItem, Position } from "../types.ts";
+import { buildPortfolioChecks } from "../portfolio/checks.ts";
+import type {
+  PortfolioDigest,
+  PortfolioDigestHighlight,
+  PortfolioNewsItem,
+  Position
+} from "../types.ts";
 
 type PortfolioDigestOptions = {
   baseUrl?: string;
@@ -17,6 +23,7 @@ export function buildPortfolioDigest(
     .slice(0, 8);
   const latestSnapshot = data.snapshots.at(-1);
   const recentTransactions = data.transactions.slice(0, 8);
+  const highlightCards = buildHighlightCards(data);
   const highlights = [
     `Portfolio value: ${formatMoney(data.portfolio.valueUsd, "USD")} (${formatMoney(
       data.portfolio.valueEur,
@@ -49,7 +56,7 @@ export function buildPortfolioDigest(
     `Generated ${formatDateTime(generatedAt)}`,
     "",
     "Highlights",
-    ...highlights.map((line) => `- ${line}`),
+    ...highlightCards.map((card) => `- ${card.label}: ${card.value}. ${card.detail}`),
     "",
     "Top positions",
     ...positionLines.map((line) => `- ${line}`),
@@ -69,22 +76,82 @@ export function buildPortfolioDigest(
       data,
       subject,
       generatedAt,
-      highlights,
+      highlightCards,
       topPositions,
       recentTransactions,
       news,
       options
     ),
     highlights,
+    highlightCards,
     news
   };
+}
+
+function buildHighlightCards(data: DashboardData): PortfolioDigestHighlight[] {
+  const topWinner = [...data.positions].sort((left, right) => right.pnlEur - left.pnlEur)[0];
+  const topLoser = [...data.positions].sort((left, right) => left.pnlEur - right.pnlEur)[0];
+  const largestAllocation = data.allocations.reduce(
+    (largest, item) => (item.percent > largest.percent ? item : largest),
+    data.allocations[0] ?? { label: "None", percent: 0, value: 0, color: "#71717a" }
+  );
+  const checks = buildPortfolioChecks({
+    positions: data.positions,
+    assets: data.assets,
+    manualPositions: data.manualPositions,
+    snapshots: data.snapshots
+  });
+  const warningCount = checks.filter((check) => check.severity === "warning").length;
+
+  return [
+    {
+      label: "Portfolio value",
+      value: formatMoney(data.portfolio.valueUsd, "USD"),
+      detail: `${formatPercent(data.portfolio.twr)} TWR; ${formatMoney(
+        data.portfolio.netContributionsUsd ?? data.portfolio.netContributionsEur,
+        "USD"
+      )} net contributions.`,
+      tone: data.portfolio.twr >= 0 ? "positive" : "negative"
+    },
+    {
+      label: "Largest winner",
+      value: positionLabel(data, topWinner),
+      detail: topWinner
+        ? `${formatMoney(topWinner.pnlEur, "EUR")} unrealized P&L.`
+        : "No priced holdings yet.",
+      tone: topWinner && topWinner.pnlEur >= 0 ? "positive" : "neutral"
+    },
+    {
+      label: "Largest drag",
+      value: positionLabel(data, topLoser),
+      detail: topLoser
+        ? `${formatMoney(topLoser.pnlEur, "EUR")} unrealized P&L.`
+        : "No priced holdings yet.",
+      tone: topLoser && topLoser.pnlEur < 0 ? "negative" : "neutral"
+    },
+    {
+      label: "Concentration",
+      value: largestAllocation.label,
+      detail: `${largestAllocation.percent.toFixed(1)}% of current allocation.`,
+      tone: largestAllocation.percent >= 50 ? "warning" : "neutral"
+    },
+    {
+      label: "Data quality",
+      value: warningCount > 0 ? `${warningCount} warning${warningCount === 1 ? "" : "s"}` : "No warnings",
+      detail:
+        checks.length > 0
+          ? checks.map((check) => check.title).join("; ")
+          : "No portfolio checks are currently active.",
+      tone: warningCount > 0 ? "warning" : "positive"
+    }
+  ];
 }
 
 function renderDigestHtml(
   data: DashboardData,
   subject: string,
   generatedAt: string,
-  highlights: string[],
+  highlightCards: PortfolioDigestHighlight[],
   topPositions: Position[],
   recentTransactions: DashboardData["transactions"],
   news: PortfolioNewsItem[],
@@ -121,6 +188,7 @@ function renderDigestHtml(
       p { color:#a1a1aa; line-height:1.55; }
       .muted { color:#71717a; font-size:13px; }
       .grid { display:grid; gap:12px; grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .highlight-grid { display:grid; gap:12px; grid-template-columns:repeat(5,minmax(0,1fr)); }
       .card { border:1px solid #2b2b2f; border-radius:8px; padding:16px; background:#080808; }
       .label { color:#71717a; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
       .value { margin-top:8px; font-size:24px; font-weight:700; color:#fff; }
@@ -130,11 +198,13 @@ function renderDigestHtml(
       .right { text-align:right; }
       .positive { color:#00c2a8; }
       .negative { color:#ff4777; }
+      .warning { color:#f6b342; }
       .bar { height:8px; border-radius:999px; background:#2b2b2f; overflow:hidden; min-width:120px; }
       .fill { height:100%; background:#3b82f6; }
       a { color:#60a5fa; text-decoration:none; }
       .print-actions { margin-top:20px; display:flex; gap:10px; }
       .button { display:inline-block; border:1px solid #2b2b2f; border-radius:6px; padding:10px 12px; color:#f4f4f5; }
+      @media (max-width: 900px) { .highlight-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
       @media (max-width: 760px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
       @media print {
         body { background:#fff; color:#111; }
@@ -174,8 +244,16 @@ function renderDigestHtml(
       </section>
 
       <h2>Highlights</h2>
-      <div class="card">
-        ${highlights.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+      <div class="highlight-grid">
+        ${highlightCards
+          .map(
+            (card) => `<div class="card">
+              <p class="label">${escapeHtml(card.label)}</p>
+              <p class="value ${toneClass(card.tone)}">${escapeHtml(card.value)}</p>
+              <p>${escapeHtml(card.detail)}</p>
+            </div>`
+          )
+          .join("")}
       </div>
 
       <h2>Allocation</h2>
@@ -274,6 +352,19 @@ function renderDigestHtml(
 function metricCard(label: string, value: string, trend?: number) {
   const trendClass = typeof trend === "number" ? (trend >= 0 ? "positive" : "negative") : "";
   return `<div class="card"><div class="label">${escapeHtml(label)}</div><div class="value ${trendClass}">${escapeHtml(value)}</div></div>`;
+}
+
+function positionLabel(data: DashboardData, position?: Position) {
+  if (!position) return "None";
+  const asset = data.assets.find((candidate) => candidate.id === position.assetId);
+  return asset?.symbol ?? "Unknown";
+}
+
+function toneClass(tone: PortfolioDigestHighlight["tone"]) {
+  if (tone === "positive") return "positive";
+  if (tone === "negative") return "negative";
+  if (tone === "warning") return "warning";
+  return "";
 }
 
 function sourceTypeLabel(sourceType: PortfolioNewsItem["sourceType"]) {

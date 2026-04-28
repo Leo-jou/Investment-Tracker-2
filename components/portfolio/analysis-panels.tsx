@@ -2,7 +2,12 @@ import { Info } from "lucide-react";
 
 import { AssetAllocationChart } from "@/components/portfolio/asset-allocation-chart";
 import { DailyMovers } from "@/components/portfolio/daily-movers";
-import { calculateRiskAnalytics, type RiskMetricValue } from "@/lib/performance/risk";
+import {
+  calculateRiskAnalytics,
+  type BenchmarkReturn,
+  type RiskMetricValue
+} from "@/lib/performance/risk";
+import type { AnalyticsHistoryMode } from "@/lib/data/demo-history";
 import type {
   AllocationSlice,
   Asset,
@@ -15,6 +20,9 @@ import type {
 export function AnalysisPanels({
   currency,
   snapshots,
+  benchmarkReturns,
+  analyticsHistoryMode,
+  analyticsHistoryNotice,
   allocations,
   assets,
   positions,
@@ -22,12 +30,15 @@ export function AnalysisPanels({
 }: {
   currency: Currency;
   snapshots: PortfolioSnapshot[];
+  benchmarkReturns: BenchmarkReturn[];
+  analyticsHistoryMode: AnalyticsHistoryMode;
+  analyticsHistoryNotice?: string;
   allocations: AllocationSlice[];
   assets: Asset[];
   positions: Position[];
   manualPositions: ManualPosition[];
 }) {
-  const risk = calculateRiskAnalytics({ snapshots, currency });
+  const risk = calculateRiskAnalytics({ snapshots, benchmarkReturns, currency });
   const latestTwr = snapshots.at(-1)?.twr ?? 0;
   const firstValue = currency === "USD" ? snapshots[0]?.valueUsd ?? 0 : snapshots[0]?.valueEur ?? 0;
   const latestValue =
@@ -64,6 +75,11 @@ export function AnalysisPanels({
             <p className="mt-2 max-w-3xl text-sm text-zinc-500">
               Calculated from portfolio snapshots using {currency}-basis TWR returns so deposits and withdrawals do not create fake gains or losses.
             </p>
+            {analyticsHistoryMode === "simulated" && analyticsHistoryNotice && (
+              <p className="mt-3 max-w-3xl rounded-[7px] border border-[#4a3820] bg-[#120d05] p-3 text-sm text-[#f6b342]">
+                {analyticsHistoryNotice}
+              </p>
+            )}
           </div>
         </div>
 
@@ -87,11 +103,18 @@ export function AnalysisPanels({
 
         <div className="mt-8 rounded-[8px] border border-[#2b2b2f] bg-black p-4 text-sm text-zinc-500">
           <p className="font-semibold text-zinc-300">Methodology</p>
-          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             <MethodologyFact label="Snapshot gaps" value={cadenceRange(risk.cadence)} />
             <MethodologyFact label="Currency basis" value={currency} />
             <MethodologyFact label="Risk-free rate" value={`${(risk.riskFreeRateAnnual * 100).toFixed(2)}%`} />
-            <MethodologyFact label="Benchmark" value={risk.beta.status === "ready" ? "Connected" : "Not connected"} />
+            <MethodologyFact
+              label="Benchmark"
+              value={benchmarkReturns.length > 0 ? "Demo composite" : "Not connected"}
+            />
+            <MethodologyFact
+              label="History source"
+              value={analyticsHistoryMode === "simulated" ? "Demo overlay" : "Portfolio snapshots"}
+            />
           </div>
           <p className="mt-4">
             Metrics are historical diagnostics, not forecasts. Irregular daily/monthly mixes are

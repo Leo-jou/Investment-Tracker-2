@@ -10,6 +10,7 @@ import type {
   Transaction,
   User
 } from "@/lib/types";
+import { buildSimulatedSnapshots } from "@/lib/data/demo-history";
 
 export const mockUser: User = {
   id: "user_1",
@@ -322,16 +323,12 @@ export const transactions: Transaction[] = [
   }
 ];
 
-export const portfolioSnapshots: PortfolioSnapshot[] = [
-  { date: "2025-10-01", valueEur: 127800, valueUsd: 137641, investedCapitalEur: 118400, cashFlowEur: 0, twr: 0 },
-  { date: "2025-11-01", valueEur: 132900, valueUsd: 143133, investedCapitalEur: 120900, cashFlowEur: 2500, twr: 2.01 },
-  { date: "2025-12-01", valueEur: 139450, valueUsd: 150187, investedCapitalEur: 124900, cashFlowEur: 4000, twr: 3.82 },
-  { date: "2026-01-01", valueEur: 151220, valueUsd: 162864, investedCapitalEur: 132200, cashFlowEur: 7300, twr: 7.92 },
-  { date: "2026-02-01", valueEur: 158930, valueUsd: 171167, investedCapitalEur: 135700, cashFlowEur: 3500, twr: 10.88 },
-  { date: "2026-03-01", valueEur: 171480, valueUsd: 184684, investedCapitalEur: 139200, cashFlowEur: 3500, twr: 15.62 },
-  { date: "2026-04-01", valueEur: 177120, valueUsd: 190758, investedCapitalEur: 141200, cashFlowEur: 2000, twr: 16.91 },
-  { date: "2026-04-27", valueEur: 184260, valueUsd: 198442, investedCapitalEur: 141200, cashFlowEur: 0, twr: 18.42 }
-];
+export const portfolioSnapshots: PortfolioSnapshot[] = buildSimulatedSnapshots({
+  currentValueEur: 184260,
+  currentValueUsd: 198442,
+  now: new Date("2026-04-28T00:00:00.000Z"),
+  dayCount: 120
+});
 
 export const allocationByAsset: AllocationSlice[] = [
   { label: "VWCE", value: 64854, percent: 35.2, color: "#2563eb" },

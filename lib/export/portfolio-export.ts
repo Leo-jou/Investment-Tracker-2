@@ -2,13 +2,64 @@ import type { DashboardData } from "../db/portfolio-repository.ts";
 
 type CsvValue = string | number | boolean | null | undefined;
 
-export function buildPortfolioExport(data: DashboardData) {
+export type ExportSection =
+  | "portfolio"
+  | "positions"
+  | "manualPositions"
+  | "transactions"
+  | "snapshots"
+  | "allocations";
+
+export type PortfolioExportOptions = {
+  sections?: ExportSection[];
+  startDate?: string;
+  endDate?: string;
+};
+
+type ExportRow = Record<string, CsvValue>;
+
+export type PortfolioExportPayload = {
+  generatedAt: string;
+  sections: ExportSection[];
+  dateRange: {
+    startDate: string | null;
+    endDate: string | null;
+  };
+  portfolio?: ExportRow;
+  positions?: ExportRow[];
+  manualPositions?: ExportRow[];
+  transactions?: ExportRow[];
+  snapshots?: ExportRow[];
+  allocations?: ExportRow[];
+};
+
+export const exportSections: ExportSection[] = [
+  "portfolio",
+  "positions",
+  "manualPositions",
+  "transactions",
+  "snapshots",
+  "allocations"
+];
+
+export function buildPortfolioExport(data: DashboardData, options: PortfolioExportOptions = {}) {
   const assetById = new Map(data.assets.map((asset) => [asset.id, asset]));
   const generatedAt = new Date().toISOString();
+  const sections = normalizeSections(options.sections);
+  const filteredTransactions = filterDatedRows(data.transactions, options);
+  const filteredSnapshots = filterDatedRows(data.snapshots, options);
 
-  return {
+  const exported: PortfolioExportPayload = {
     generatedAt,
-    portfolio: {
+    sections,
+    dateRange: {
+      startDate: options.startDate ?? null,
+      endDate: options.endDate ?? null
+    }
+  };
+
+  if (sections.includes("portfolio")) {
+    exported.portfolio = {
       id: data.portfolio.id,
       name: data.portfolio.name,
       description: data.portfolio.description,
@@ -25,8 +76,11 @@ export function buildPortfolioExport(data: DashboardData) {
       unrealizedGainUsd: round(data.portfolio.unrealizedGainUsd ?? 0),
       realizedGainEur: round(data.portfolio.realizedGainEur ?? 0),
       realizedGainUsd: round(data.portfolio.realizedGainUsd ?? 0)
-    },
-    positions: data.positions.map((position) => {
+    };
+  }
+
+  if (sections.includes("positions")) {
+    exported.positions = data.positions.map((position) => {
       const asset = assetById.get(position.assetId);
       return {
         symbol: asset?.symbol ?? "Unknown",
@@ -43,16 +97,22 @@ export function buildPortfolioExport(data: DashboardData) {
         pnlPercent: round(position.pnlPercent),
         platform: position.platform ?? ""
       };
-    }),
-    manualPositions: data.manualPositions.map((position) => ({
+    });
+  }
+
+  if (sections.includes("manualPositions")) {
+    exported.manualPositions = data.manualPositions.map((position) => ({
       label: position.label,
       currency: position.currency,
       valueUsd: round(position.valueUsd),
       valueEur: round(position.valueEur),
       updatedAt: position.updatedAt,
       note: position.note ?? ""
-    })),
-    transactions: data.transactions.map((transaction) => ({
+    }));
+  }
+
+  if (sections.includes("transactions")) {
+    exported.transactions = filteredTransactions.map((transaction) => ({
       date: transaction.date,
       type: transaction.type,
       symbol: transaction.assetSymbol ?? "",
@@ -62,21 +122,29 @@ export function buildPortfolioExport(data: DashboardData) {
       fees: round(transaction.fees),
       platform: transaction.platform ?? "",
       note: transaction.note ?? ""
-    })),
-    snapshots: data.snapshots.map((snapshot) => ({
+    }));
+  }
+
+  if (sections.includes("snapshots")) {
+    exported.snapshots = filteredSnapshots.map((snapshot) => ({
       date: snapshot.date,
       valueUsd: round(snapshot.valueUsd),
       valueEur: round(snapshot.valueEur),
       investedCapitalEur: round(snapshot.investedCapitalEur),
       cashFlowEur: round(snapshot.cashFlowEur),
       twrPercent: round(snapshot.twr)
-    })),
-    allocations: data.allocations.map((allocation) => ({
+    }));
+  }
+
+  if (sections.includes("allocations")) {
+    exported.allocations = data.allocations.map((allocation) => ({
       label: allocation.label,
       valueEur: round(allocation.value),
       percent: round(allocation.percent)
-    }))
-  };
+    }));
+  }
+
+  return exported;
 }
 
 export function buildPortfolioBackupExport(data: DashboardData) {
@@ -95,16 +163,31 @@ export function buildPortfolioBackupExport(data: DashboardData) {
   };
 }
 
-export function buildPortfolioCsvExport(data: DashboardData) {
-  const portfolioExport = buildPortfolioExport(data);
-  return [
-    csvSection("Portfolio", [portfolioExport.portfolio]),
-    csvSection("Positions", portfolioExport.positions),
-    csvSection("Manual Positions", portfolioExport.manualPositions),
-    csvSection("Transactions", portfolioExport.transactions),
-    csvSection("Snapshots", portfolioExport.snapshots),
-    csvSection("Allocations", portfolioExport.allocations)
-  ].join("\n\n");
+export function buildPortfolioCsvExport(data: DashboardData, options: PortfolioExportOptions = {}) {
+  const portfolioExport = buildPortfolioExport(data, options);
+  const sections = normalizeSections(options.sections);
+  const chunks: string[] = [];
+
+  if (sections.includes("portfolio") && isRecord(portfolioExport.portfolio)) {
+    chunks.push(csvSection("Portfolio", [portfolioExport.portfolio]));
+  }
+  if (sections.includes("positions") && Array.isArray(portfolioExport.positions)) {
+    chunks.push(csvSection("Positions", portfolioExport.positions));
+  }
+  if (sections.includes("manualPositions") && Array.isArray(portfolioExport.manualPositions)) {
+    chunks.push(csvSection("Manual Positions", portfolioExport.manualPositions));
+  }
+  if (sections.includes("transactions") && Array.isArray(portfolioExport.transactions)) {
+    chunks.push(csvSection("Transactions", portfolioExport.transactions));
+  }
+  if (sections.includes("snapshots") && Array.isArray(portfolioExport.snapshots)) {
+    chunks.push(csvSection("Snapshots", portfolioExport.snapshots));
+  }
+  if (sections.includes("allocations") && Array.isArray(portfolioExport.allocations)) {
+    chunks.push(csvSection("Allocations", portfolioExport.allocations));
+  }
+
+  return chunks.join("\n\n");
 }
 
 export function csvSection(title: string, rows: Array<Record<string, CsvValue>>) {
@@ -151,4 +234,23 @@ function sanitizeStringCell(value: string) {
 
 function round(value: number, digits = 4) {
   return Number(value.toFixed(digits));
+}
+
+function normalizeSections(sections?: ExportSection[]) {
+  if (!sections?.length) return exportSections;
+  const allowed = new Set(exportSections);
+  const normalized = sections.filter((section) => allowed.has(section));
+  return normalized.length > 0 ? normalized : exportSections;
+}
+
+function filterDatedRows<T extends { date: string }>(rows: T[], options: PortfolioExportOptions) {
+  return rows.filter((row) => {
+    if (options.startDate && row.date < options.startDate) return false;
+    if (options.endDate && row.date > options.endDate) return false;
+    return true;
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, CsvValue> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

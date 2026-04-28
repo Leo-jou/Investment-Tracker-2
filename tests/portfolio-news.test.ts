@@ -304,6 +304,9 @@ const mockDashboardData: DashboardData = {
   manualPositions: [],
   allocations: [{ label: "BTC", value: 9000, percent: 100, color: "#f59e0b" }],
   snapshots: [],
+  analyticsSnapshots: [],
+  benchmarkReturns: [],
+  analyticsHistoryMode: "actual",
   apiStatuses: []
 };
 

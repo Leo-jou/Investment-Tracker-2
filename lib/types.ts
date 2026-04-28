@@ -174,5 +174,13 @@ export type PortfolioDigest = {
   text: string;
   html: string;
   highlights: string[];
+  highlightCards: PortfolioDigestHighlight[];
   news: PortfolioNewsItem[];
+};
+
+export type PortfolioDigestHighlight = {
+  label: string;
+  value: string;
+  detail: string;
+  tone?: "positive" | "negative" | "neutral" | "warning";
 };

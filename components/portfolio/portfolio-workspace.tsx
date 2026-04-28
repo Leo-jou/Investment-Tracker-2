@@ -27,8 +27,9 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
   const [currency, setCurrency] = useState<Currency>(() => readStoredDefaultCurrency() ?? "USD");
   const [activeTab, setActiveTab] = useState<PortfolioTab>("Overview");
   const [timeframe, setTimeframe] = useState<TimeframeKey>("ALL");
+  const analyticsSnapshots = data.analyticsSnapshots;
   const newsHoldings = buildNewsHoldings(data);
-  const timeframeStats = calculateTimeframeStats(data.snapshots, timeframe, currency);
+  const timeframeStats = calculateTimeframeStats(analyticsSnapshots, timeframe, currency);
   const portfolioChecks = buildPortfolioChecks({
     positions: data.positions,
     assets: data.assets,
@@ -60,7 +61,7 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
 
       {activeTab === "Overview" && (
         <div className="space-y-20">
-          <PortfolioValueChart snapshots={data.snapshots} currency={currency} timeframe={timeframe} />
+          <PortfolioValueChart snapshots={analyticsSnapshots} currency={currency} timeframe={timeframe} />
           <DailyMovers />
           <AssetAllocationChart
             allocations={data.allocations}
@@ -99,7 +100,10 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
       {activeTab === "Analysis" && (
         <AnalysisPanels
           currency={currency}
-          snapshots={data.snapshots}
+          snapshots={analyticsSnapshots}
+          benchmarkReturns={data.benchmarkReturns}
+          analyticsHistoryMode={data.analyticsHistoryMode}
+          analyticsHistoryNotice={data.analyticsHistoryNotice}
           allocations={data.allocations}
           assets={data.assets}
           positions={data.positions}

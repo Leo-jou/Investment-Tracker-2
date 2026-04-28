@@ -11,6 +11,10 @@ import {
 
 test("portfolio export includes core sections", () => {
   const exported = buildPortfolioExport(mockDashboardData);
+  assert.ok(exported.portfolio);
+  assert.ok(exported.positions);
+  assert.ok(exported.transactions);
+  assert.ok(exported.snapshots);
 
   assert.equal(exported.portfolio.name, "Personal");
   assert.equal(exported.positions[0].symbol, "BTC");
@@ -42,6 +46,31 @@ test("backup export preserves full restore-oriented records", () => {
   assert.equal(backup.transactions[0].id, "tx-1");
   assert.equal(backup.positions[0].id, "position-1");
   assert.equal(backup.portfolio.id, "portfolio-1");
+});
+
+test("portfolio export filters dated sections and selected sections", () => {
+  const exported = buildPortfolioExport(mockDashboardData, {
+    sections: ["transactions", "snapshots"],
+    startDate: "2026-04-20",
+    endDate: "2026-04-30"
+  });
+
+  assert.equal("portfolio" in exported, false);
+  assert.equal("positions" in exported, false);
+  assert.equal(Array.isArray(exported.transactions), true);
+  assert.equal(Array.isArray(exported.snapshots), true);
+  assert.equal((exported.transactions as unknown[]).length, 1);
+  assert.equal((exported.snapshots as unknown[]).length, 1);
+});
+
+test("CSV export respects selected sections", () => {
+  const csv = buildPortfolioCsvExport(mockDashboardData, {
+    sections: ["transactions"]
+  });
+
+  assert.doesNotMatch(csv, /Portfolio\n/);
+  assert.match(csv, /Transactions\n/);
+  assert.doesNotMatch(csv, /Positions\n/);
 });
 
 const mockDashboardData: DashboardData = {
@@ -116,5 +145,17 @@ const mockDashboardData: DashboardData = {
       twr: 4.2
     }
   ],
+  analyticsSnapshots: [
+    {
+      date: "2026-04-27",
+      valueEur: 9000,
+      valueUsd: 10000,
+      investedCapitalEur: 8200,
+      cashFlowEur: 0,
+      twr: 4.2
+    }
+  ],
+  benchmarkReturns: [],
+  analyticsHistoryMode: "actual",
   apiStatuses: []
 };

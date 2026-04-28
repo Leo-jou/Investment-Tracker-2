@@ -27,10 +27,11 @@ This backlog is the working agreement for what to improve next. It separates urg
 ## Progress Snapshot
 
 - [x] First trust/polish batch: favicon, portfolio checks, metric clarity, shared timeframes, holdings cleanup.
-- [~] Reporting: branded HTML report exists; preview and highlights still need a stronger information design pass.
+- [~] Reporting: branded HTML report, preview cards, and structured highlights exist; selected-timeframe reporting and email polish still need a later pass.
 - [~] News: trusted RSS-backed headlines exist; source registry/admin visibility and AI impact commentary are not done.
-- [~] Risk: conservative readiness logic exists; benchmark history and clearer progress requirements are not done.
-- [ ] Export UX: one modal with format/date/section choices.
+- [~] Risk: demo analytics backfill now makes charts/ratios visible for review; a persisted benchmark history pipeline is still not done.
+- [x] Export UX: one modal with format/date/section choices.
+- [x] Portfolio checks: review/acknowledge controls shipped.
 - [ ] Transactions: upload/import, dividends, and fees/taxes.
 - [ ] Settings automation: DB-backed preferences and scheduled email exports.
 
@@ -40,8 +41,8 @@ FolioCore is good enough for a guarded beta with a few trusted users, but not re
 
 ## Recommended Work Order
 
-1. [ ] Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
-2. [ ] Improve branded portfolio report preview and highlights.
+1. [x] Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
+2. [x] Improve branded portfolio report preview and highlights.
 3. [ ] Implement dividends, fees/taxes, and import workflows.
 4. [ ] Add DB-backed settings and scheduled email/export preferences.
 5. [ ] Improve news source registry and digest quality.
@@ -70,6 +71,7 @@ Shipped:
 - Replaced static tips with a compact `Portfolio checks` panel.
 - Checks are only generated from real portfolio state.
 - The panel is capped at four checks to avoid noise.
+- Added local acknowledgement controls so users can mark checks reviewed; reviewed checks reappear if their underlying detail changes.
 
 Current check methodology:
 - Snapshot count: warn when fewer than two snapshots exist because period change/TWR needs a start and end point.
@@ -113,7 +115,7 @@ Shipped:
 
 ## P1 - Export, Backup, And Reporting
 
-### [ ] Export Modal
+### [x] Export Modal
 
 Problem: The dashboard has three direct export buttons, but users do not know the difference between CSV, JSON, and backup.
 
@@ -131,13 +133,21 @@ Acceptance criteria:
 
 User input needed: none.
 
-### [~] Branded Portfolio Report Improvements
+Shipped:
+- Replaced the three direct dashboard export links with one `Export` modal.
+- Added CSV, report JSON, and full backup JSON format choices.
+- Added all-time, 1D, 1W, 1M, 6M, YTD, and custom date ranges.
+- Added section selection for summary, holdings, transactions, manual positions, snapshots, and allocations.
+- Backup JSON remains restore-oriented and always includes the full dataset, ignoring filters by design.
+
+### [x] Branded Portfolio Report Improvements
 
 Problem: The printable report is much better, but the Highlights section is weak and not insight-oriented.
 
-Current status:
-- Branded HTML report and open-report flow exist.
-- The preview and Highlights section still need a stronger layout and more useful insight cards.
+Shipped:
+- Replaced generic highlight lines with structured digest cards in both the in-app preview and HTML report.
+- Added highlight cards for portfolio value, largest winner, largest drag, concentration, and data quality.
+- Kept allocation and top positions sections in the full report.
 
 Acceptance criteria:
 - Replace generic highlight lines with structured cards:
@@ -149,7 +159,7 @@ Acceptance criteria:
 - Keep allocation and top positions tables.
 - Use selected timeframe once the unified timeframe model exists.
 
-User input needed: preferred tone: neutral factual report, advisory-style digest, or concise executive summary.
+User input needed later: preferred tone for the next pass: neutral factual report, advisory-style digest, or concise executive summary.
 
 ### [blocked] Scheduled Email Exports
 
@@ -282,7 +292,7 @@ User input needed:
 
 ## P1 - Analytics And Risk
 
-### [ ] Explain Risk Readiness
+### [~] Explain Risk Readiness
 
 Problem: Analysis says metrics are not ready but users do not know exactly why or when they will be.
 
@@ -296,7 +306,15 @@ Acceptance criteria:
 
 User input needed: none.
 
-### [ ] Benchmark History For Beta
+Shipped:
+- Added a deterministic demo analytics overlay when real history is too sparse or irregular.
+- The overlay generates 120 regular daily snapshots and aligned benchmark returns so charts, Sharpe, Sortino, and beta are visible during product review.
+- The Analysis tab labels the overlay clearly and distinguishes `Demo overlay` from real `Portfolio snapshots`.
+
+Still open:
+- Add a dedicated progress panel for real history requirements once the persisted benchmark pipeline exists.
+
+### [~] Benchmark History For Beta
 
 Problem: Beta is documented but not implemented because benchmark snapshots are missing.
 
@@ -308,6 +326,13 @@ Acceptance criteria:
 - Add tests for missing benchmark dates and mixed-asset weights.
 
 User input needed: agree on benchmark methodology for mixed portfolios.
+
+Shipped:
+- Added an aligned demo benchmark-return series for analytics display and tests.
+
+Still open:
+- Persist benchmark snapshots from real market providers.
+- Agree on the production mixed-asset benchmark methodology.
 
 ### [~] Performance Semantics
 

@@ -108,16 +108,46 @@ export function DigestPanel({ portfolioId }: DigestPanelProps) {
       )}
 
       {digest && (
-        <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="mt-5 space-y-5">
           <div>
             <p className="text-sm font-semibold text-zinc-300">Highlights</p>
-            <ul className="mt-3 space-y-2 text-sm text-zinc-500">
-              {digest.highlights.map((highlight) => (
-                <li key={highlight}>{highlight}</li>
+            <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              {digest.highlightCards.map((highlight) => (
+                <article
+                  key={highlight.label}
+                  className="rounded-[7px] border border-[#202024] bg-[#070707] p-3"
+                >
+                  <p className="text-xs uppercase tracking-wide text-zinc-600">{highlight.label}</p>
+                  <p
+                    className={cn(
+                      "mt-2 text-lg font-bold text-zinc-100",
+                      highlight.tone === "positive" && "text-[#00c2a8]",
+                      highlight.tone === "negative" && "text-[#ff4d64]",
+                      highlight.tone === "warning" && "text-[#f6b342]"
+                    )}
+                  >
+                    {highlight.value}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-zinc-500">{highlight.detail}</p>
+                </article>
               ))}
-            </ul>
+            </div>
           </div>
-          <div>
+
+          <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <p className="text-sm font-semibold text-zinc-300">Report sections</p>
+              <div className="mt-3 grid gap-2 text-sm text-zinc-500 sm:grid-cols-2">
+                {["Metrics", "Allocation", "Top positions", "Matched headlines", "Recent transactions"].map(
+                  (section) => (
+                    <span key={section} className="rounded-[6px] border border-[#202024] px-3 py-2">
+                      {section}
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+            <div>
             <p className="text-sm font-semibold text-zinc-300">Headlines</p>
             <div className="mt-3 space-y-2">
               {digest.news.slice(0, 3).map((item) => (
@@ -133,6 +163,7 @@ export function DigestPanel({ portfolioId }: DigestPanelProps) {
                 </a>
               ))}
               {digest.news.length === 0 && <p className="text-sm text-zinc-500">No headlines available.</p>}
+            </div>
             </div>
           </div>
         </div>

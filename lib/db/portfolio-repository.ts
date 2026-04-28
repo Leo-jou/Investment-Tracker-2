@@ -2,6 +2,11 @@ import { and, asc, desc, eq } from "drizzle-orm";
 
 import { normalizeEmail } from "@/lib/auth/email";
 import { convertCurrency, fallbackFxRates, toDisplayPair, type FxRateMap } from "@/lib/data/conversions";
+import {
+  buildAnalyticsHistory,
+  buildSimulatedSnapshots,
+  type AnalyticsHistoryMode
+} from "@/lib/data/demo-history";
 import { demoAssets, demoTransactions } from "@/lib/data/demo-seed";
 import { getDb } from "@/lib/db/client";
 import {
@@ -30,6 +35,7 @@ import type {
   Transaction,
   TransactionType
 } from "@/lib/types";
+import type { BenchmarkReturn } from "@/lib/performance/risk";
 import { calculateTimeWeightedReturn } from "@/lib/performance/twr";
 import {
   buildPositionStates,
@@ -49,6 +55,10 @@ export type DashboardData = {
   manualPositions: ManualPosition[];
   allocations: AllocationSlice[];
   snapshots: PortfolioSnapshot[];
+  analyticsSnapshots: PortfolioSnapshot[];
+  benchmarkReturns: BenchmarkReturn[];
+  analyticsHistoryMode: AnalyticsHistoryMode;
+  analyticsHistoryNotice?: string;
   apiStatuses: ApiStatus[];
 };
 
@@ -237,7 +247,7 @@ export async function getDashboardDataForEmail(
   const transactionViews = buildTransactionViews(dbTransactions, dbAssets);
   const manualViews = buildManualPositionViews(dbManualPositions, rates);
   const positions = buildPositions(dbTransactions, dbAssets, latestPrices, rates, portfolio.id);
-  const snapshots = buildSnapshotViews(dbSnapshots);
+  const rawSnapshots = buildSnapshotViews(dbSnapshots);
   const portfolioView = buildPortfolioView(
     portfolio.id,
     portfolio.name,
@@ -245,9 +255,14 @@ export async function getDashboardDataForEmail(
     positions,
     dbTransactions,
     manualViews,
-    snapshots,
+    rawSnapshots,
     rates
   );
+  const analyticsHistory = buildAnalyticsHistory({
+    snapshots: rawSnapshots,
+    currentValueUsd: portfolioView.valueUsd,
+    currentValueEur: portfolioView.valueEur
+  });
   const allocations = buildAllocations(positions, manualViews, dbAssets);
 
   return {
@@ -258,7 +273,11 @@ export async function getDashboardDataForEmail(
     transactions: transactionViews,
     manualPositions: manualViews,
     allocations,
-    snapshots,
+    snapshots: rawSnapshots,
+    analyticsSnapshots: analyticsHistory.snapshots,
+    benchmarkReturns: analyticsHistory.benchmarkReturns,
+    analyticsHistoryMode: analyticsHistory.mode,
+    analyticsHistoryNotice: analyticsHistory.notice,
     apiStatuses: buildApiStatuses()
   };
 }
@@ -1061,44 +1080,22 @@ function buildSnapshotViews(rows: (typeof portfolioSnapshots.$inferSelect)[]): P
 async function seedPortfolioSnapshots(portfolioId: string) {
   await getDb()
     .insert(portfolioSnapshots)
-    .values([
-      {
+    .values(
+      buildSimulatedSnapshots({
+        currentValueUsd: 58_469,
+        currentValueEur: 54_290,
+        now: new Date("2026-04-28T00:00:00.000Z"),
+        dayCount: 120
+      }).map((snapshot) => ({
         portfolioId,
-        snapshotDate: "2026-01-03",
-        valueEur: 46425,
-        valueUsd: 50000,
-        investedCapitalEur: 46425,
-        externalCashFlowEur: 46425,
-        twrPercent: 0
-      },
-      {
-        portfolioId,
-        snapshotDate: "2026-02-01",
-        valueEur: 49280,
-        valueUsd: 53075,
-        investedCapitalEur: 46425,
-        externalCashFlowEur: 0,
-        twrPercent: 6.15
-      },
-      {
-        portfolioId,
-        snapshotDate: "2026-03-01",
-        valueEur: 52110,
-        valueUsd: 56122,
-        investedCapitalEur: 46425,
-        externalCashFlowEur: 0,
-        twrPercent: 12.24
-      },
-      {
-        portfolioId,
-        snapshotDate: "2026-04-27",
-        valueEur: 54290,
-        valueUsd: 58469,
-        investedCapitalEur: 43640,
-        externalCashFlowEur: -2785,
-        twrPercent: 18.42
-      }
-    ])
+        snapshotDate: snapshot.date,
+        valueEur: snapshot.valueEur,
+        valueUsd: snapshot.valueUsd,
+        investedCapitalEur: snapshot.investedCapitalEur,
+        externalCashFlowEur: snapshot.cashFlowEur,
+        twrPercent: snapshot.twr
+      }))
+    )
     .onConflictDoNothing();
 }
 
