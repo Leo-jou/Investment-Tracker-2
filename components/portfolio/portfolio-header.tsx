@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Save, X } from "lucide-react";
+import { ChevronDown, MoreHorizontal, Plus, Save, X } from "lucide-react";
 
 import { AddTransactionMenu } from "@/components/portfolio/add-transaction-menu";
 import { GlobalMetricsBar } from "@/components/portfolio/global-metrics-bar";
 import { PriceRefreshButton } from "@/components/portfolio/price-refresh-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { TimeframeStats } from "@/lib/portfolio/timeframes";
 import type { Currency, Portfolio, PortfolioOption } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -18,9 +19,15 @@ type PortfolioHeaderProps = {
   portfolio: Portfolio;
   portfolios: PortfolioOption[];
   currency: Currency;
+  timeframeStats: TimeframeStats;
 };
 
-export function PortfolioHeader({ portfolio, portfolios, currency }: PortfolioHeaderProps) {
+export function PortfolioHeader({
+  portfolio,
+  portfolios,
+  currency,
+  timeframeStats
+}: PortfolioHeaderProps) {
   const router = useRouter();
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isAddingPortfolio, setIsAddingPortfolio] = useState(false);
@@ -189,20 +196,7 @@ export function PortfolioHeader({ portfolio, portfolios, currency }: PortfolioHe
         </div>
       </div>
 
-      <details className="rounded-[8px] border border-[#3a3a3f]">
-        <summary className="flex h-[70px] cursor-pointer list-none items-center gap-4 px-7 text-left text-lg font-semibold text-zinc-200 hover:bg-[#050505]">
-          <ChevronRight className="h-6 w-6" />
-          Portfolio tips
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-black">
-            1
-          </span>
-        </summary>
-        <p className="border-t border-[#202024] px-7 py-4 text-sm text-zinc-500">
-          Use deposits and withdrawals for cash flows; use buy and sell only for investment trades.
-        </p>
-      </details>
-
-      <GlobalMetricsBar portfolio={portfolio} currency={currency} />
+      <GlobalMetricsBar portfolio={portfolio} currency={currency} timeframeStats={timeframeStats} />
     </section>
   );
 }

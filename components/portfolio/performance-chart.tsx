@@ -13,6 +13,11 @@ import {
 
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { formatMoney, formatPercent } from "@/lib/format";
+import {
+  calculateTimeframeStats,
+  timeframeOptions,
+  type TimeframeKey
+} from "@/lib/portfolio/timeframes";
 import type { Currency, PortfolioSnapshot } from "@/lib/types";
 
 type ChartMode = "value" | "performance";
@@ -20,6 +25,7 @@ type ChartMode = "value" | "performance";
 type PerformanceChartProps = {
   snapshots: PortfolioSnapshot[];
   currency: Currency;
+  timeframe: TimeframeKey;
   mode: ChartMode;
   onModeChange: (mode: ChartMode) => void;
 };
@@ -27,14 +33,16 @@ type PerformanceChartProps = {
 export function PerformanceChart({
   snapshots,
   currency,
+  timeframe,
   mode,
   onModeChange
 }: PerformanceChartProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const data = snapshots.map((snapshot) => ({
+  const activeStats = calculateTimeframeStats(snapshots, timeframe, currency);
+  const chartSnapshots = activeStats.snapshots.length > 0 ? activeStats.snapshots : snapshots;
+  const data = chartSnapshots.map((snapshot) => ({
     date: snapshot.date.slice(5),
     value: currency === "EUR" ? snapshot.valueEur : snapshot.valueUsd,
-    capital: currency === "EUR" ? snapshot.investedCapitalEur : snapshot.investedCapitalEur * 1.077,
     twr: snapshot.twr
   }));
 
@@ -49,7 +57,14 @@ export function PerformanceChart({
   return (
     <section>
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-3xl font-bold">Portfolio change</h2>
+        <div>
+          <h2 className="text-3xl font-bold">Portfolio change</h2>
+          <p className="mt-2 text-sm text-zinc-500">
+            {mode === "value"
+              ? "Absolute portfolio value, including deposits, withdrawals, cash, and manual positions."
+              : "Time-weighted return, excluding external deposits and withdrawals."}
+          </p>
+        </div>
         <SegmentedControl
           options={[
             { label: "Value", value: "value" },
@@ -122,23 +137,42 @@ export function PerformanceChart({
         )}
       </div>
 
-      <div className="grid gap-4 pt-5 text-center sm:grid-cols-2 lg:grid-cols-6">
-        {[
-          ["1 month", mode === "value" ? "+4.03%" : "+1.51%"],
-          ["3 months", "+6.81%"],
-          ["6 months", "+10.42%"],
-          ["Year to date", "+8.98%"],
-          ["1 year", "+17.62%"],
-          ["All time", "+18.42%"]
-        ].map(([period, value], index) => (
+      <div className="grid gap-4 pt-5 text-center sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+        {timeframeOptions.map((option) => {
+          const stats = calculateTimeframeStats(snapshots, option.key, currency);
+          const display =
+            mode === "value"
+              ? stats.valueChange === null
+                ? "Need data"
+                : formatMoney(stats.valueChange, currency)
+              : stats.twr === null
+                ? "Need data"
+                : formatPercent(stats.twr);
+          const trendValue = mode === "value" ? stats.valueChange : stats.twr;
+          return (
           <div
-            key={period}
-            className={index === 5 ? "rounded-[8px] bg-[#2c2c2f] py-4" : "py-4"}
+            key={option.key}
+            className={
+              option.key === timeframe
+                ? "rounded-[8px] bg-[#2c2c2f] py-4"
+                : "rounded-[8px] py-4"
+            }
           >
-            <p className="text-base text-zinc-200">{period}</p>
-            <p className="mt-1 text-base font-semibold text-[#00c2a8]">{value}</p>
+            <p className="text-sm text-zinc-200">{option.shortLabel}</p>
+            <p
+              className={
+                trendValue === null
+                  ? "mt-1 text-sm font-semibold text-zinc-600"
+                  : trendValue >= 0
+                    ? "mt-1 text-sm font-semibold text-[#00c2a8]"
+                    : "mt-1 text-sm font-semibold text-[#ff4d64]"
+              }
+            >
+              {display}
+            </p>
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

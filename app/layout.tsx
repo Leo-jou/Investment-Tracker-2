@@ -4,8 +4,13 @@ import { AppFrame } from "@/components/layout/app-frame";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Investment Tracker",
-  description: "Self-hosted personal portfolio tracking MVP"
+  title: "FolioCore",
+  description: "Self-hosted personal portfolio tracking MVP",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg"
+  }
 };
 
 export default function RootLayout({

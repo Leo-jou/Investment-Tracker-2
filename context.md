@@ -18,6 +18,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Portfolio news must use trusted source feeds first. Google/search fallbacks are removed. Broad GDELT search is opt-in only because it sends holding terms to a third party.
 - News matching is source-backed, not AI-analyzed. AI is useful later for materiality ranking and portfolio-impact commentary, but not required for headline matching or exports.
 - Risk analytics should prefer withholding a metric over showing a mathematically weak number. Sharpe/Sortino require regular snapshot cadence; beta requires aligned benchmark history.
+- Dashboard summaries and charts should use a shared timeframe model. Sparse ranges must show a data-quality state such as "Need data" instead of fabricated zeros or hardcoded period returns.
 - `BACKLOG.md` is the product backlog source of truth for roadmap planning, priorities, acceptance criteria, dependencies, and where user input is required.
 
 ## Technical Decisions
@@ -34,7 +35,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 
 The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio components, API routes for assets, transactions, manual positions, item editing/deletion, price refresh, auth login, Drizzle schema/migration files, mock/demo data, metrics utilities, and provider-ready pricing seams.
 
-Production is deployed on Vercel at `https://foliocore.vercel.app`. Current production deployment `dpl_8cJ5emD1iRNkAF2d4x2ukqK4PV3G` includes the portfolio news/report/readiness iteration from commit `6092036`.
+Production is deployed on Vercel at `https://foliocore.vercel.app`. Current production deployment `dpl_HDmhELnmJMopycFfefJbGDZtn4qx` includes the first trust/polish implementation batch.
 
 CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
 
@@ -42,7 +43,7 @@ The local Vercel CLI is authenticated as `leopoldjourdain-6225`, so future produ
 
 Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, WITHDRAW, and MANUAL entries. Manual entries create manual positions instead of dead transactions. BUY/SELL can derive total or quantity from a live quote fetched on explicit asset selection. Quote lookup is transient and does not create assets until the transaction is saved; selected provider metadata and the submitted quote are then persisted with the transaction.
 
-Holdings sub-tabs now switch between position, price, financials, performance, risk, and technical table views. Portfolio distribution supports assets, asset types, and currency modes without donut labels, avoiding the previous 100x percentage display issue.
+The first trust/polish implementation batch added the FolioCore app icon, replaced placeholder portfolio tips with actionable portfolio checks, clarified overview metrics, added a shared timeframe selector for dashboard summaries/charts, and simplified holdings to Position, Performance, Risk, and Details views with stable column widths and real platform display. Portfolio distribution supports assets, asset types, and currency modes without donut labels, avoiding the previous 100x percentage display issue.
 
 The dashboard now exposes authenticated CSV/JSON portfolio exports plus a restore-oriented backup JSON export through `/api/export`. `/api/news` builds portfolio-aware headlines from trusted RSS sources, Yahoo/Nasdaq symbol feeds, limited crypto tag feeds, and optional SEC EDGAR filing enrichment. GDELT broad-news search is disabled unless `NEWS_GDELT_ENABLED=true`, HTTPS-only, and restricted to trusted domains. Local Google/search fallback rows have been removed. The News UI is labeled as matched headlines and shows coverage chips per holding so missing source coverage is visible.
 
@@ -54,18 +55,18 @@ The Analysis tab now calculates risk diagnostics from selected-currency TWR retu
 
 Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
 
-Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints. On 2026-04-28, production smoke passed for export/news/digest, quote matrix returned BTC, ETH, NVDA, SPY, and XAU/USD live quotes, backup JSON returned schema version 1, and `/api/news` returned 9 matched headlines across BTC, ETH, SPY, NVDA, and the manual SpaceX holding.
+Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, realized P&L average-cost handling, unique platform tracking, timeframe stats, portfolio checks, portfolio export generation, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the new read-only export/news/digest endpoints. On 2026-04-28, production smoke passed for deployment `dpl_HDmhELnmJMopycFfefJbGDZtn4qx`: export/news/digest worked, quote matrix returned BTC, ETH, NVDA, SPY, and XAU/USD live quotes, `/icon.svg` returned 200, `/login` included the FolioCore title/icon metadata, and `/api/news` returned 9 matched headlines across BTC, ETH, SPY, NVDA, and the manual SpaceX holding.
 
 Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a guarded beta with 1-3 trusted friends, not for broad public launch.
 
-`BACKLOG.md` now captures the next roadmap: favicon/app icons, useful portfolio checks, metric clarity, unified timeframes, export modal, imports, dividends, fees/taxes, DB-backed preferences, scheduled email exports, news source registry, digest improvements, risk readiness explanations, benchmark history, holdings/distribution cleanup, and future AI assistant work.
+`BACKLOG.md` now captures the next roadmap after the first trust/polish batch: export modal, imports, dividends, fees/taxes, DB-backed preferences, scheduled email exports, news source registry, digest improvements, risk readiness explanations, benchmark history, holdings/distribution cleanup, and future AI assistant work.
 
 Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - UI components: 17 files
-- Other: 14 files
+- Other: 15 files
 - API routes: 9 files
 - App pages: 5 files
 - Documentation: 4 files
@@ -75,6 +76,7 @@ Generated refresh summary:
 - Tooling: 1 file
 
 Recent commits:
+- 1545f6f 2026-04-28 Add product backlog
 - 6092036 2026-04-28 Improve portfolio news reports and readiness
 - 142b1dc 2026-04-27 Add trusted news and risk analytics
 - c23ce80 2026-04-27 Add portfolio exports and digest news
@@ -82,7 +84,6 @@ Recent commits:
 - 0262bd2 2026-04-27 Make quote matrix smoke provider-aware
 - 7d1785d 2026-04-27 Wire portfolio controls and improve live quote search
 - 603d04e 2026-04-27 Document Google OAuth production setup
-- 037d026 2026-04-27 Make settings status runtime-aware
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -113,7 +114,7 @@ Generated TODO/FIXME scan:
 
 - Whether to add an AI layer for portfolio-impact news summaries and weekly digest commentary.
 - Whether to prioritize DB-backed user preferences or transaction import next.
-- Which backlog cluster should be implemented first after the immediate favicon/placeholder cleanup.
+- Whether the next implementation batch should start with export modal/reporting, import/dividends/fees, or settings automation.
 
 ## Next Recommended Steps
 
@@ -124,7 +125,7 @@ Generated TODO/FIXME scan:
 5. Configure `CRON_SECRET`, `CRON_REFRESH_EMAILS`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled refresh and digest email should actually run.
 6. Add paired transfer support once multiple portfolios are available.
 7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from documented methodology to real calculated output.
-8. Align on `BACKLOG.md`, then implement the highest-priority P0 cluster in focused batches.
+8. Implement the next `BACKLOG.md` batch, likely export modal/reporting or import/dividend/fee workflows.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -135,4 +136,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-28T12:55:52.500Z - Refreshed generated context from 8 recent commits, 56 changed files, and 0 TODO/FIXME items.
+2026-04-28T13:18:14.608Z - Refreshed generated context from 8 recent commits, 57 changed files, and 0 TODO/FIXME items.

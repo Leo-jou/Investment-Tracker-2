@@ -20,89 +20,21 @@ This backlog is the working agreement for what to improve next. It separates urg
 
 ## Current Product Position
 
-FolioCore is good enough for a guarded beta with a few trusted users, but not ready for a public launch. The core manual-entry loop is usable; the next work should focus on clarity, consistency, exports/imports, recurring automation, and reducing placeholder-feeling UI.
+FolioCore is good enough for a guarded beta with a few trusted users, but not ready for a public launch. The core manual-entry loop is usable, and the first trust/polish batch has removed the most visible placeholder UI. The next work should focus on export UX, imports/dividends/fees, DB-backed preferences, recurring automation, and deeper analytics methodology.
 
 ## Recommended Work Order
 
-1. Fix trust and polish gaps users see immediately: favicon, placeholders, confusing metrics, tooltips, and table layout.
-2. Build a coherent timeframe model so overview cards, charts, gains, TWR, and exports are scoped consistently.
-3. Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
-4. Implement dividends, fees/taxes, and import workflows.
-5. Add DB-backed settings and scheduled email/export preferences.
-6. Improve news source registry and digest quality.
-7. Build benchmark history and risk methodology depth.
-8. Consider AI only where it adds clear leverage: import mapping, news impact summaries, and portfolio Q&A.
+1. Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
+2. Implement dividends, fees/taxes, and import workflows.
+3. Add DB-backed settings and scheduled email/export preferences.
+4. Improve news source registry and digest quality.
+5. Add risk readiness progress and benchmark history for beta.
+6. Continue holdings/distribution polish after real usage feedback.
+7. Consider AI only where it adds clear leverage: import mapping, news impact summaries, and portfolio Q&A.
 
 ## P0 - Immediate Trust And Usability
 
-### Favicon and App Icons
-
-Problem: Browser tabs show the default gray globe instead of the FolioCore logo.
-
-Acceptance criteria:
-- Add favicon and app icons using the existing FolioCore mark.
-- Browser tab, pinned tab, and mobile bookmark have recognizable FolioCore branding.
-- No external image dependency.
-
-User input needed: none.
-
-### Remove Or Make Portfolio Tips Useful
-
-Problem: The portfolio tips section currently feels like a placeholder.
-
-Options:
-- Remove it for now.
-- Replace it with useful dynamic tips: missing snapshots, unsupported live prices, concentration risk, no backup export yet, stale holdings prices, missing platform labels.
-
-Recommendation: Replace with a compact "Portfolio checks" panel only when there are actionable checks. Hide it when there is nothing useful to say.
-
-User input needed: none.
-
-### Clarify Overview Metrics
-
-Problem: `Portfolio value`, `Net contributions`, `Unrealized gain`, `Realized gain`, and TWR are not clear enough. The math currently feels inconsistent to the user.
-
-Acceptance criteria:
-- Add tooltips and plain labels:
-  - Portfolio value: current market value plus cash/manual positions.
-  - Net contributions: external deposits minus withdrawals, excluding buys/sells.
-  - Unrealized gain: open-position P&L from current value minus cost basis.
-  - Realized gain: closed-position P&L from sells only.
-  - TWR: performance return that excludes external cash flows.
-- Add a calculation details drawer or popover for the metric cards.
-- Audit the math and add tests for displayed values.
-- Avoid showing ambiguous secondary percentages without timeframe labels.
-
-User input needed: provide one real or intended transaction sequence if you want exact expected numbers validated against your mental model.
-
-### Unified Timeframe Model
-
-Problem: Overview cards, portfolio charts, gain summaries, exports, and analysis use unclear or inconsistent timeframes.
-
-Acceptance criteria:
-- Add shared timeframe options: `1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `All`, `Custom`.
-- One global dashboard timeframe controls summary cards and charts unless a component explicitly opts out.
-- Labels make clear whether a value is all-time, selected-period, or latest snapshot.
-- Custom date range is supported in UI state first, then API/export later.
-
-Recommendation: Display compact chips for `1D`, `1W`, `1M`, `YTD`, `1Y`, `All`, with a menu for `3M`, `6M`, and custom. Showing every option all the time makes the page busy.
-
-User input needed: none initially.
-
-### Holdings Table Layout Cleanup
-
-Problem: Holdings tabs have uneven spacing, repeated metrics, and inconsistent column widths.
-
-Acceptance criteria:
-- Define stable column templates per table mode.
-- Right-align numeric columns, keep symbols/name columns fixed, and prevent layout jumps.
-- Remove redundant sub-tabs or merge overlapping metrics.
-- Add platform/venue column where relevant.
-- Remove the loose `Kraken`, `Binance`, `IBKR` chips under the table unless they become real filters or summaries.
-
-Recommendation: Reduce holdings tabs to `Position`, `Performance`, `Risk`, and `Details`. Move price/financial/technical values into those views only if they are real and useful.
-
-User input needed: confirm preferred holdings tabs after first cleanup proposal.
+No open P0 items after the first implementation batch. Treat metric correctness, transaction correctness, and backup/export reliability as P0 if regressions appear.
 
 ## P1 - Export, Backup, And Reporting
 
@@ -402,12 +334,7 @@ Reason:
 
 ## Codex Can Do Autonomously
 
-- Add favicon/app icons.
-- Remove or replace portfolio tips.
-- Add overview metric tooltips and methodology drawers.
-- Build shared timeframe selector UI.
 - Build export modal and date-range plumbing.
-- Improve holdings table layout and remove useless platform chips.
 - Add risk readiness panel.
 - Hide pointless/empty distribution tabs.
 - Improve report highlights and layout.
@@ -416,6 +343,14 @@ Reason:
 
 ## Done / Shipped
 
+- First trust/polish implementation batch:
+  - FolioCore favicon/app icon added with no external image dependency.
+  - Placeholder portfolio tips replaced by actionable portfolio checks.
+  - Overview cards now distinguish portfolio value, net contributions, unrealized P&L, realized P&L, and TWR with tooltips and calculation details.
+  - Shared timeframe model added for `1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, and `All`; sparse ranges now show "Need data" instead of fake numbers.
+  - Holdings table reduced to Position, Performance, Risk, and Details with stable column widths and real platform display.
+  - Realized P&L, unique platform tracking, timeframe stats, and portfolio checks have focused tests.
+  - Deployed to production as `dpl_HDmhELnmJMopycFfefJbGDZtn4qx`.
 - Live quote lookup on explicit asset selection.
 - Google/email login.
 - Multiple portfolios basics.

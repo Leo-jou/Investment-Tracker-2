@@ -45,6 +45,13 @@ export type Portfolio = {
   pnlEur: number;
   dayChangePercent: number;
   netContributionsEur: number;
+  netContributionsUsd?: number;
+  cashEur?: number;
+  cashUsd?: number;
+  unrealizedGainEur?: number;
+  unrealizedGainUsd?: number;
+  realizedGainEur?: number;
+  realizedGainUsd?: number;
 };
 
 export type PortfolioOption = {
@@ -64,6 +71,7 @@ export type Asset = {
   externalId: string;
   priceEur: number;
   priceUsd: number;
+  priceCapturedAt?: string;
   change24hPercent: number;
   color: string;
 };
@@ -80,6 +88,7 @@ export type Position = {
   pnlPercent: number;
   allocationPercent: number;
   platform?: string;
+  platforms?: string[];
 };
 
 export type Transaction = {

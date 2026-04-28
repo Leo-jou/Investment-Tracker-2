@@ -8,6 +8,7 @@ import {
   calculateCashUsd,
   calculateExternalCashFlowEur,
   calculateNetContributionsUsd,
+  calculateRealizedGainUsd,
   type PortfolioMathTransaction
 } from "../lib/portfolio/calculations.ts";
 
@@ -79,6 +80,32 @@ test("same-day buy before sell uses created-at ordering for positions", () => {
 
   assert.equal(states.get("asset_btc")?.quantity, 6);
   assert.equal(states.get("asset_btc")?.costBasisUsd, 600);
+});
+
+test("position states track unique buy platforms", () => {
+  const states = buildPositionStates(
+    [
+      tx({ id: "buy-1", type: "BUY", assetId: "asset_btc", quantity: 1, grossAmount: 100, platform: "Kraken" }),
+      tx({ id: "buy-2", type: "BUY", assetId: "asset_btc", quantity: 1, grossAmount: 120, platform: "Binance" }),
+      tx({ id: "buy-3", type: "BUY", assetId: "asset_btc", quantity: 1, grossAmount: 130, platform: "Kraken" })
+    ],
+    rates
+  );
+
+  assert.deepEqual(states.get("asset_btc")?.platforms, ["Kraken", "Binance"]);
+  assert.equal(states.get("asset_btc")?.platform, "Kraken");
+});
+
+test("realized gain uses average cost and sell fees", () => {
+  const realizedGain = calculateRealizedGainUsd(
+    [
+      tx({ id: "buy", type: "BUY", assetId: "asset_btc", quantity: 10, grossAmount: 1000, fees: 10 }),
+      tx({ id: "sell", type: "SELL", assetId: "asset_btc", quantity: 4, grossAmount: 600, fees: 5 })
+    ],
+    rates
+  );
+
+  assert.equal(realizedGain, 191);
 });
 
 test("asset quantity can be recalculated without the edited transaction", () => {

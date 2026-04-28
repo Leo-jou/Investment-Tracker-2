@@ -4,7 +4,6 @@ import { useMemo, useState, type ReactNode } from "react";
 import { MoreHorizontal, Search } from "lucide-react";
 
 import { AssetPill } from "@/components/portfolio/asset-pill";
-import { Badge } from "@/components/ui/badge";
 import { formatMoney, formatPercent, formatQuantity, trendClass } from "@/lib/format";
 import type { Asset, Currency, Position } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -15,7 +14,7 @@ type PositionsTableProps = {
   currency: Currency;
 };
 
-type HoldingView = "Position" | "Price" | "Financials" | "Performance" | "Risk" | "Technicals";
+type HoldingView = "Position" | "Performance" | "Risk" | "Details";
 
 type PositionRow = {
   position: Position;
@@ -28,17 +27,18 @@ type Column = {
   key: string;
   label: string;
   align?: "left" | "right";
+  width: string;
   render: (row: PositionRow) => ReactNode;
 };
 
-const holdingViews: HoldingView[] = [
-  "Position",
-  "Price",
-  "Financials",
-  "Performance",
-  "Risk",
-  "Technicals"
-];
+const holdingViews: HoldingView[] = ["Position", "Performance", "Risk", "Details"];
+
+const viewDescriptions: Record<HoldingView, string> = {
+  Position: "Current holding size, value, allocation, and platform labels.",
+  Performance: "Open-position P&L and latest 24h provider move.",
+  Risk: "Concentration and data-quality notes for current exposure.",
+  Details: "Provider, exchange, native currency, and price metadata."
+};
 
 export function PositionsTable({ positions, assets, currency }: PositionsTableProps) {
   const [activeView, setActiveView] = useState<HoldingView>("Position");
@@ -70,6 +70,7 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
       <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-3xl font-bold">Total holdings</h2>
+          <p className="mt-2 text-sm text-zinc-500">{viewDescriptions[activeView]}</p>
           <div className="mt-8 flex flex-wrap gap-3 text-lg">
             {holdingViews.map((tab) => (
               <button
@@ -110,10 +111,17 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
       </div>
 
       <div className="overflow-x-auto tv-scrollbar">
-        <table className="w-full min-w-[1120px] border-collapse text-sm">
+        <table className="w-full min-w-[1120px] table-fixed border-collapse text-sm">
+          <colgroup>
+            <col className="w-[320px]" />
+            {columns.map((column) => (
+              <col key={column.key} className={column.width} />
+            ))}
+            <col className="w-[48px]" />
+          </colgroup>
           <thead>
             <tr className="border-y border-[#2b2b2f] text-left text-zinc-500">
-              <th className="w-[320px] py-3 font-medium">
+              <th className="py-3 font-medium">
                 <div className="flex items-center gap-4">
                   <Search className="h-6 w-6 text-zinc-200" strokeWidth={1.5} />
                   <span>
@@ -146,7 +154,7 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
                   <td
                     key={column.key}
                     className={cn(
-                      "py-3 text-zinc-300",
+                      "py-3 text-zinc-300 tabular-nums",
                       column.align === "right" ? "text-right" : "text-left"
                     )}
                   >
@@ -163,96 +171,18 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
           </tbody>
         </table>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {[...new Set(positions.map((position) => position.platform).filter(Boolean))].map(
-          (platform) => (
-            <Badge key={platform}>{platform}</Badge>
-          )
-        )}
-      </div>
     </section>
   );
 }
 
 function getColumns(activeView: HoldingView, currency: Currency, fx: number): Column[] {
-  if (activeView === "Price") {
-    return [
-      {
-        key: "last-price",
-        label: "Last price",
-        align: "right",
-        render: ({ asset }) => formatMoney(asset.priceEur * fx, currency)
-      },
-      {
-        key: "avg-price",
-        label: "Avg price",
-        align: "right",
-        render: ({ position }) => formatMoney(position.averageCostEur * fx, currency)
-      },
-      {
-        key: "quantity",
-        label: "Qty",
-        align: "right",
-        render: ({ position }) => formatQuantity(position.quantity)
-      },
-      {
-        key: "market-value",
-        label: "Market value",
-        align: "right",
-        render: ({ position }) => formatMoney(position.marketValueEur * fx, currency)
-      },
-      {
-        key: "day-change",
-        label: "24h",
-        align: "right",
-        render: ({ asset }) => (
-          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
-        )
-      }
-    ];
-  }
-
-  if (activeView === "Financials") {
-    return [
-      {
-        key: "market-value",
-        label: "Market value",
-        align: "right",
-        render: ({ position }) => formatMoney(position.marketValueEur * fx, currency)
-      },
-      {
-        key: "invested",
-        label: "Invested",
-        align: "right",
-        render: ({ investedEur }) => formatMoney(investedEur * fx, currency)
-      },
-      {
-        key: "cost-basis",
-        label: "Cost basis",
-        align: "right",
-        render: ({ position }) => formatMoney(position.averageCostEur * position.quantity * fx, currency)
-      },
-      {
-        key: "currency",
-        label: "Currency",
-        align: "right",
-        render: ({ asset }) => asset.currency
-      },
-      {
-        key: "provider",
-        label: "Provider",
-        align: "right",
-        render: ({ asset }) => asset.provider
-      }
-    ];
-  }
-
   if (activeView === "Performance") {
     return [
       {
         key: "unrealized",
-        label: "Unrealized gain",
+        label: "Unrealized P&L",
         align: "right",
+        width: "w-[170px]",
         render: ({ position }) => (
           <span className={trendClass(position.pnlEur)}>
             {formatMoney(position.pnlEur * fx, currency)}
@@ -263,22 +193,25 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
         key: "return",
         label: "Return",
         align: "right",
+        width: "w-[130px]",
         render: ({ position }) => (
           <span className={trendClass(position.pnlPercent)}>{formatPercent(position.pnlPercent)}</span>
         )
       },
       {
         key: "daily-gain",
-        label: "Daily gain",
+        label: "24h gain",
         align: "right",
+        width: "w-[150px]",
         render: ({ dailyGainEur }) => (
           <span className={trendClass(dailyGainEur)}>{formatMoney(dailyGainEur * fx, currency)}</span>
         )
       },
       {
         key: "daily-return",
-        label: "Daily return",
+        label: "24h move",
         align: "right",
+        width: "w-[130px]",
         render: ({ asset }) => (
           <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
         )
@@ -287,6 +220,7 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
         key: "allocation",
         label: "Allocation",
         align: "right",
+        width: "w-[130px]",
         render: ({ position }) => `${position.allocationPercent.toFixed(2)}%`
       }
     ];
@@ -297,69 +231,87 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
       {
         key: "asset-type",
         label: "Type",
+        width: "w-[130px]",
         render: ({ asset }) => asset.type
       },
       {
-        key: "current-move",
-        label: "Current move",
-        align: "right",
-        render: ({ asset }) => (
-          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
-        )
-      },
-      {
-        key: "market-value",
+        key: "exposure",
         label: "Exposure",
         align: "right",
+        width: "w-[170px]",
         render: ({ position }) => formatMoney(position.marketValueEur * fx, currency)
       },
       {
         key: "allocation",
         label: "Concentration",
         align: "right",
+        width: "w-[150px]",
         render: ({ position }) => `${position.allocationPercent.toFixed(2)}%`
+      },
+      {
+        key: "platform",
+        label: "Platform",
+        align: "right",
+        width: "w-[180px]",
+        render: ({ position }) => platformLabel(position)
       },
       {
         key: "risk",
         label: "Risk note",
         align: "right",
+        width: "w-[220px]",
         render: ({ asset, position }) => getRiskNote(asset, position)
       }
     ];
   }
 
-  if (activeView === "Technicals") {
+  if (activeView === "Details") {
     return [
-      {
-        key: "trend",
-        label: "Trend",
-        render: ({ asset }) => (asset.change24hPercent > 0 ? "Up" : asset.change24hPercent < 0 ? "Down" : "Flat")
-      },
-      {
-        key: "change",
-        label: "24h",
-        align: "right",
-        render: ({ asset }) => (
-          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
-        )
-      },
       {
         key: "last-price",
         label: "Last price",
         align: "right",
+        width: "w-[150px]",
         render: ({ asset }) => formatMoney(asset.priceEur * fx, currency)
+      },
+      {
+        key: "avg-price",
+        label: "Avg price",
+        align: "right",
+        width: "w-[150px]",
+        render: ({ position }) => formatMoney(position.averageCostEur * fx, currency)
+      },
+      {
+        key: "currency",
+        label: "Native",
+        align: "right",
+        width: "w-[110px]",
+        render: ({ asset }) => asset.currency
+      },
+      {
+        key: "provider",
+        label: "Provider",
+        align: "right",
+        width: "w-[150px]",
+        render: ({ asset }) => asset.provider
       },
       {
         key: "exchange",
         label: "Exchange",
         align: "right",
+        width: "w-[140px]",
         render: ({ asset }) => asset.exchange ?? "-"
       },
       {
         key: "external-id",
         label: "Provider ID",
         align: "right",
-        render: ({ asset }) => asset.externalId
+        width: "w-[200px]",
+        render: ({ asset }) => (
+          <span className="block truncate" title={asset.externalId}>
+            {asset.externalId}
+          </span>
+        )
       }
     ];
   }
@@ -369,46 +321,42 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
       key: "allocation",
       label: "Allocation",
       align: "right",
+      width: "w-[130px]",
       render: ({ position }) => `${position.allocationPercent.toFixed(2)}%`
     },
     {
       key: "quantity",
       label: "Qty",
       align: "right",
+      width: "w-[120px]",
       render: ({ position }) => formatQuantity(position.quantity)
     },
     {
       key: "avg-price",
       label: "Avg price",
       align: "right",
+      width: "w-[150px]",
       render: ({ position }) => formatMoney(position.averageCostEur * fx, currency)
     },
     {
-      key: "invested",
-      label: "Invested",
+      key: "market-value",
+      label: "Market value",
       align: "right",
-      render: ({ investedEur }) => formatMoney(investedEur * fx, currency)
+      width: "w-[160px]",
+      render: ({ position }) => formatMoney(position.marketValueEur * fx, currency)
     },
     {
-      key: "unrealized",
-      label: "Unrealized gain",
+      key: "platform",
+      label: "Platform",
       align: "right",
-      render: ({ position }) => (
-        <span className={trendClass(position.pnlEur)}>{formatMoney(position.pnlEur * fx, currency)}</span>
-      )
-    },
-    {
-      key: "daily-gain",
-      label: "Daily gain",
-      align: "right",
-      render: ({ dailyGainEur }) => (
-        <span className={trendClass(dailyGainEur)}>{formatMoney(dailyGainEur * fx, currency)}</span>
-      )
+      width: "w-[180px]",
+      render: ({ position }) => platformLabel(position)
     },
     {
       key: "total-gain",
       label: "Total gain",
       align: "right",
+      width: "w-[180px]",
       render: ({ position }) => (
         <span className={trendClass(position.pnlEur)}>
           {formatMoney(position.pnlEur * fx, currency)}
@@ -417,6 +365,17 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
       )
     }
   ];
+}
+
+function platformLabel(position: Position) {
+  const platforms = position.platforms?.length
+    ? position.platforms
+    : position.platform
+      ? [position.platform]
+      : [];
+  if (platforms.length === 0) return <span className="text-zinc-600">Unspecified</span>;
+  if (platforms.length <= 2) return platforms.join(", ");
+  return `${platforms.slice(0, 2).join(", ")} +${platforms.length - 2}`;
 }
 
 function getRiskNote(asset: Asset, position: Position) {

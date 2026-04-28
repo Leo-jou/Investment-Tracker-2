@@ -36,7 +36,8 @@ import {
   calculateAssetQuantity,
   calculateCashUsd,
   calculateExternalCashFlowEur,
-  calculateNetContributionsUsd
+  calculateNetContributionsUsd,
+  calculateRealizedGainUsd
 } from "@/lib/portfolio/calculations";
 
 export type DashboardData = {
@@ -871,6 +872,7 @@ function buildAssetViews(
       externalId: asset.externalId,
       priceEur: convertCurrency(nativePrice, priceCurrency, "EUR", rates),
       priceUsd: convertCurrency(nativePrice, priceCurrency, "USD", rates),
+      priceCapturedAt: latestPrice?.capturedAt.toISOString(),
       change24hPercent: estimateDailyChange(asset.symbol),
       color: asset.color
     };
@@ -955,6 +957,9 @@ function buildPositions(
       if (position.platform) {
         view.platform = position.platform;
       }
+      if (position.platforms && position.platforms.length > 0) {
+        view.platforms = position.platforms;
+      }
 
       return view;
     })
@@ -984,6 +989,10 @@ function buildPortfolioView(
   const valueEur = convertCurrency(valueUsd, "USD", "EUR", rates);
   const netContributionsUsd = calculateNetContributionsUsd(dbTransactions, rates);
   const pnlUsd = valueUsd - netContributionsUsd;
+  const unrealizedGainEur = positions.reduce((sum, position) => sum + position.pnlEur, 0);
+  const unrealizedGainUsd = convertCurrency(unrealizedGainEur, "EUR", "USD", rates);
+  const realizedGainUsd = calculateRealizedGainUsd(dbTransactions, rates);
+  const realizedGainEur = convertCurrency(realizedGainUsd, "USD", "EUR", rates);
   const latestSnapshot = snapshots.at(-1);
 
   return {
@@ -996,7 +1005,14 @@ function buildPortfolioView(
     twr: latestSnapshot?.twr ?? estimateReturn(valueUsd, netContributionsUsd),
     pnlEur: convertCurrency(pnlUsd, "USD", "EUR", rates),
     dayChangePercent: 0.74,
-    netContributionsEur: convertCurrency(netContributionsUsd, "USD", "EUR", rates)
+    netContributionsEur: convertCurrency(netContributionsUsd, "USD", "EUR", rates),
+    netContributionsUsd,
+    cashEur: convertCurrency(cashUsd, "USD", "EUR", rates),
+    cashUsd,
+    unrealizedGainEur,
+    unrealizedGainUsd,
+    realizedGainEur,
+    realizedGainUsd
   };
 }
 

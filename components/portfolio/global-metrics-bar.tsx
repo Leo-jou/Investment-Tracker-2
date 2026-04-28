@@ -1,15 +1,33 @@
 import { PortfolioSummaryCard } from "@/components/portfolio/portfolio-summary-card";
 import { formatMoney } from "@/lib/format";
+import type { TimeframeStats } from "@/lib/portfolio/timeframes";
 import type { Currency, Portfolio } from "@/lib/types";
 
 type GlobalMetricsBarProps = {
   portfolio: Portfolio;
   currency: Currency;
+  timeframeStats: TimeframeStats;
 };
 
-export function GlobalMetricsBar({ portfolio, currency }: GlobalMetricsBarProps) {
+export function GlobalMetricsBar({ portfolio, currency, timeframeStats }: GlobalMetricsBarProps) {
   const value = currency === "EUR" ? portfolio.valueEur : portfolio.valueUsd;
-  const pnl = currency === "EUR" ? portfolio.pnlEur : portfolio.pnlEur * 1.077;
+  const fallbackEurUsd =
+    portfolio.valueEur > 0 && portfolio.valueUsd > 0 ? portfolio.valueUsd / portfolio.valueEur : 1.077;
+  const convertFromEur = (amount: number) => (currency === "EUR" ? amount : amount * fallbackEurUsd);
+  const netContributions =
+    currency === "EUR"
+      ? portfolio.netContributionsEur
+      : (portfolio.netContributionsUsd ?? convertFromEur(portfolio.netContributionsEur));
+  const unrealizedGain =
+    currency === "EUR"
+      ? (portfolio.unrealizedGainEur ?? portfolio.pnlEur)
+      : (portfolio.unrealizedGainUsd ?? convertFromEur(portfolio.pnlEur));
+  const realizedGain =
+    currency === "EUR"
+      ? (portfolio.realizedGainEur ?? 0)
+      : (portfolio.realizedGainUsd ?? convertFromEur(portfolio.realizedGainEur ?? 0));
+  const periodValueChange = timeframeStats.valueChange;
+  const periodTwr = timeframeStats.twr ?? (timeframeStats.timeframe === "ALL" ? portfolio.twr : null);
 
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -17,34 +35,57 @@ export function GlobalMetricsBar({ portfolio, currency }: GlobalMetricsBarProps)
         label="Portfolio value"
         value={value}
         currency={currency}
-        detail={`Net contributions ${formatMoney(
-          currency === "EUR" ? portfolio.netContributionsEur : portfolio.netContributionsEur * 1.077,
-          currency
-        )}`}
+        detail={`Net contributions ${formatMoney(netContributions, currency)}`}
+        secondaryDetail={
+          periodValueChange === null
+            ? `${timeframeStats.label}: not enough snapshots for a period change`
+            : `${timeframeStats.label} value change ${formatMoney(periodValueChange, currency)}`
+        }
+        tooltip="Current portfolio value includes priced holdings, cash, and manual positions. Net contributions are deposits minus withdrawals; buys and sells are excluded."
+        calculationLines={[
+          "Value = priced holdings + cash + manual positions.",
+          "Net contributions = deposits - withdrawals.",
+          "Trades move cash into holdings and do not count as contributions."
+        ]}
       />
       <PortfolioSummaryCard
-        label="Unrealized gain"
-        value={pnl * 0.82}
+        label="Unrealized P&L"
+        value={unrealizedGain}
         currency={currency}
-        change={portfolio.twr}
-        detail={`Last day ${formatMoney(value * portfolio.dayChangePercent * 0.01, currency)}`}
-        emphasis={pnl >= 0 ? "positive" : "negative"}
+        detail="Open-position gain or loss"
+        tooltip="Unrealized P&L is the current value of open holdings minus their remaining average-cost basis. It does not include gains already locked in by sells."
+        calculationLines={["Unrealized P&L = current open position value - remaining cost basis."]}
+        emphasis={unrealizedGain >= 0 ? "positive" : "negative"}
       />
       <PortfolioSummaryCard
-        label="Realized gain"
-        value={pnl * 0.18}
+        label="Realized P&L"
+        value={realizedGain}
         currency={currency}
-        detail="Realized from sells only"
-        emphasis={pnl >= 0 ? "positive" : "negative"}
+        detail="Closed-position gain or loss from sells"
+        tooltip="Realized P&L uses the same average-cost method as holdings. Sell fees reduce proceeds; buy fees are included in cost basis."
+        calculationLines={[
+          "Realized P&L = net sell proceeds - average cost of sold quantity.",
+          "This is a performance metric, not a tax calculation."
+        ]}
+        emphasis={realizedGain >= 0 ? "positive" : "negative"}
       />
       <PortfolioSummaryCard
         label="TWR performance"
-        value={portfolio.twr}
+        value={periodTwr ?? portfolio.twr}
         currency={currency}
         valueKind="percent"
-        change={portfolio.dayChangePercent}
-        detail="Deposits and withdrawals excluded"
-        emphasis={portfolio.twr >= 0 ? "positive" : "negative"}
+        detail={
+          periodTwr === null
+            ? `${timeframeStats.label}: needs at least two snapshots`
+            : `${timeframeStats.label} cash-flow-neutral return`
+        }
+        tooltip="Time-weighted return measures investment performance while excluding external deposits and withdrawals. It is the primary performance metric."
+        calculationLines={[
+          "TWR compounds snapshot-to-snapshot returns.",
+          "External cash flows are removed from the return calculation.",
+          "Sparse timeframes show a data-quality message instead of a fake value."
+        ]}
+        emphasis={(periodTwr ?? portfolio.twr) >= 0 ? "positive" : "negative"}
       />
     </div>
   );

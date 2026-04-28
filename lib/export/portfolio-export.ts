@@ -16,8 +16,15 @@ export function buildPortfolioExport(data: DashboardData) {
       valueUsd: round(data.portfolio.valueUsd),
       valueEur: round(data.portfolio.valueEur),
       twrPercent: round(data.portfolio.twr),
-      pnlEur: round(data.portfolio.pnlEur),
-      netContributionsEur: round(data.portfolio.netContributionsEur)
+      totalPnlEur: round(data.portfolio.pnlEur),
+      netContributionsEur: round(data.portfolio.netContributionsEur),
+      netContributionsUsd: round(data.portfolio.netContributionsUsd ?? 0),
+      cashEur: round(data.portfolio.cashEur ?? 0),
+      cashUsd: round(data.portfolio.cashUsd ?? 0),
+      unrealizedGainEur: round(data.portfolio.unrealizedGainEur ?? 0),
+      unrealizedGainUsd: round(data.portfolio.unrealizedGainUsd ?? 0),
+      realizedGainEur: round(data.portfolio.realizedGainEur ?? 0),
+      realizedGainUsd: round(data.portfolio.realizedGainUsd ?? 0)
     },
     positions: data.positions.map((position) => {
       const asset = assetById.get(position.assetId);

@@ -22,7 +22,10 @@ export function buildPortfolioDigest(
       data.portfolio.valueEur,
       "EUR"
     )}).`,
-    `TWR: ${formatPercent(data.portfolio.twr)}. P&L: ${formatMoney(data.portfolio.pnlEur, "EUR")}.`,
+    `TWR: ${formatPercent(data.portfolio.twr)}. Unrealized P&L: ${formatMoney(
+      data.portfolio.unrealizedGainEur ?? 0,
+      "EUR"
+    )}. Realized P&L: ${formatMoney(data.portfolio.realizedGainEur ?? 0, "EUR")}.`,
     `Net contributions: ${formatMoney(data.portfolio.netContributionsEur, "EUR")}.`,
     latestSnapshot
       ? `Latest snapshot: ${latestSnapshot.date}, value ${formatMoney(latestSnapshot.valueUsd, "USD")}.`
@@ -157,7 +160,16 @@ function renderDigestHtml(
       <section class="grid">
         ${metricCard("Value", formatMoney(data.portfolio.valueUsd, "USD"))}
         ${metricCard("TWR", formatPercent(data.portfolio.twr))}
-        ${metricCard("P&L", formatMoney(data.portfolio.pnlEur, "EUR"), data.portfolio.pnlEur)}
+        ${metricCard(
+          "Unrealized P&L",
+          formatMoney(data.portfolio.unrealizedGainEur ?? 0, "EUR"),
+          data.portfolio.unrealizedGainEur ?? 0
+        )}
+        ${metricCard(
+          "Realized P&L",
+          formatMoney(data.portfolio.realizedGainEur ?? 0, "EUR"),
+          data.portfolio.realizedGainEur ?? 0
+        )}
         ${metricCard("Holdings", String(data.positions.length + data.manualPositions.length))}
       </section>
 
