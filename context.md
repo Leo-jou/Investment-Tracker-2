@@ -38,6 +38,10 @@ The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio 
 
 Production is deployed on Vercel at `https://foliocore.vercel.app`. Current production deployment `dpl_B1xagnJws6Tgh5myheKjjjCqKeVw` includes the export/reporting and demo analytics backfill batch.
 
+Source is backed up in the private GitHub repository `Leo-jou/Investment-Tracker-2`. `main` is the stable source-of-truth branch, `codex/safe-backup-2026-04-30` is a frozen recovery branch for the current beta-ready state, and `codex/openclaw-playground` is the branch reserved for OpenClaw/OpenCL agent experiments.
+
+The OpenClaw playground has a separate Vercel preview deployment at `https://foliocore-77y72sgcb-leopoldjourdain-6225s-projects.vercel.app` (`dpl_4TYXXNkfo6AUGPLYyrot94o25dB5`). Production remains `https://foliocore.vercel.app`; use preview deployments for agent testing instead of promoting experimental work.
+
 CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
 
 The local Vercel CLI is authenticated as `leopoldjourdain-6225`, so future production deploys can use `npx vercel build --prod` followed by `npx vercel deploy --prebuilt --prod --yes`. The Vercel MCP connector still did not list teams during the 2026-04-28 session, so CLI deploy is the reliable path for now.
@@ -66,25 +70,24 @@ Still missing or likely incomplete: DB-backed settings persistence, production c
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 19 files
-- UI components: 17 files
-- API routes: 6 files
+- Other: 23 files
+- UI components: 14 files
+- API routes: 5 files
 - Documentation: 4 files
 - App pages: 3 files
 - Database: 1 file
 - Metrics: 1 file
-- Pricing providers: 1 file
 - Tooling: 1 file
 
 Recent commits:
+- d7745ff 2026-04-30 Ignore macOS metadata files
+- 654b2b9 2026-04-28 Ship export and demo analytics batch
 - f5ad571 2026-04-28 Clarify backlog progress tracking
 - fea08d6 2026-04-28 Ship first portfolio trust polish batch
 - 1545f6f 2026-04-28 Add product backlog
 - 6092036 2026-04-28 Improve portfolio news reports and readiness
 - 142b1dc 2026-04-27 Add trusted news and risk analytics
 - c23ce80 2026-04-27 Add portfolio exports and digest news
-- 7592e04 2026-04-27 Refine portfolio UI controls and settings
-- 0262bd2 2026-04-27 Make quote matrix smoke provider-aware
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -125,7 +128,8 @@ Generated TODO/FIXME scan:
 5. Configure `CRON_SECRET`, `CRON_REFRESH_EMAILS`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled refresh and digest email should actually run.
 6. Add paired transfer support once multiple portfolios are available.
 7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from demo analytics to real calculated output.
-8. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
+8. For OpenClaw experiments, start from `codex/openclaw-playground` and keep `main` plus `codex/safe-backup-2026-04-30` protected as recovery references.
+9. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -136,4 +140,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-28T14:33:42.417Z - Refreshed generated context from 8 recent commits, 53 changed files, and 0 TODO/FIXME items.
+2026-04-30T11:07:41.016Z - Refreshed generated context from 8 recent commits, 52 changed files, and 0 TODO/FIXME items.
