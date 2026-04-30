@@ -32,7 +32,7 @@ This backlog is the working agreement for what to improve next. It separates urg
 - [~] Risk: demo analytics backfill now makes charts/ratios visible for review; a persisted benchmark history pipeline is still not done.
 - [x] Export UX: one modal with format/date/section choices.
 - [x] Portfolio checks: review/acknowledge controls shipped.
-- [ ] Transactions: upload/import, dividends, and fees/taxes.
+- [~] Transactions: generic CSV import is now available; dividends and fees/taxes remain open.
 - [ ] Settings automation: DB-backed preferences and scheduled email exports.
 
 ## Current Product Position
@@ -43,7 +43,7 @@ FolioCore is good enough for a guarded beta with a few trusted users, but not re
 
 1. [x] Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
 2. [x] Improve branded portfolio report preview and highlights.
-3. [ ] Implement dividends, fees/taxes, and import workflows.
+3. [~] Implement dividends, fees/taxes, and import workflows.
 4. [ ] Add DB-backed settings and scheduled email/export preferences.
 5. [ ] Improve news source registry and digest quality.
 6. [ ] Add risk readiness progress and benchmark history for beta.
@@ -181,7 +181,7 @@ User input needed: sender/domain decision for email delivery.
 
 ## P1 - Transactions, Imports, Dividends, Fees
 
-### [ ] Upload Transactions
+### [~] Upload Transactions
 
 Question: Does upload require AI?
 
@@ -196,9 +196,20 @@ Acceptance criteria:
 - Validate unsupported rows and allow partial import.
 - Dry-run import summary before writing to DB.
 
+Shipped:
+- Added a generic CSV import panel on the Transactions page and dashboard Transactions tab.
+- Added automatic header mapping plus manual mapping for date, type, symbol, quantity, total, fees, currency, platform, and notes.
+- Added server-side dry run and import endpoint with duplicate detection, unsupported-row validation, and partial import behavior.
+- Enabled the Upload actions in the Add transaction menu and Transactions table.
+
+Still open:
+- Broker-specific presets for IBKR, Kraken, Coinbase, Binance, and BUX Zero once real sample exports are available.
+- XLSX support if needed.
+- Better batching if very large imports become common.
+
 User input needed:
 - Example CSV exports from the platforms you actually use, with sensitive data removed.
-- Decision: import only CSV first, or also XLSX.
+- Decision later: CSV only, or also XLSX.
 
 ### [ ] Dividends
 
