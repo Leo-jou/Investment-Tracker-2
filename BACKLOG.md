@@ -45,7 +45,7 @@ FolioCore is good enough for a guarded beta with a few trusted users, but not re
 2. [x] Improve branded portfolio report preview and highlights.
 3. [~] Implement dividends, fees/taxes, and import workflows.
 4. [ ] Add DB-backed settings and scheduled email/export preferences.
-5. [ ] Improve news source registry and digest quality.
+5. [~] Improve news source registry and digest quality.
 6. [ ] Add risk readiness progress and benchmark history for beta.
 7. [ ] Continue holdings/distribution polish after real usage feedback.
 8. [ ] Consider AI only where it adds clear leverage: import mapping, news impact summaries, and portfolio Q&A.
@@ -264,7 +264,7 @@ User input needed: production cron env values if not already configured.
 
 ## P1 - News And Digest
 
-### [ ] News Source Registry
+### [~] News Source Registry
 
 Problem: User is flying blind about where headlines come from.
 
@@ -281,6 +281,15 @@ Current source types:
 - CoinDesk/Cointelegraph crypto feeds.
 - Optional SEC EDGAR filings.
 - Optional GDELT broad-news search.
+
+Shipped:
+- Added a code-backed news source registry.
+- Settings now shows deterministic RSS sources, SEC filing status, and optional GDELT status with coverage and trust labels.
+- Reused the same trusted-domain list for the GDELT registry and runtime filtering.
+
+Still open:
+- Add source health: last successful fetch, result count, and error state.
+- Add any official company IR feeds after source-list review.
 
 User input needed: approval for source list and whether to enable GDELT.
 
