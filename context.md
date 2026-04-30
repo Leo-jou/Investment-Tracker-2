@@ -40,7 +40,7 @@ Production is deployed on Vercel at `https://foliocore.vercel.app`. Current prod
 
 Source is backed up in the private GitHub repository `Leo-jou/Investment-Tracker-2`. `main` is the stable source-of-truth branch, `codex/safe-backup-2026-04-30` is a frozen recovery branch for the current beta-ready state, and `codex/openclaw-playground` is the branch reserved for OpenClaw/OpenCL agent experiments.
 
-The OpenClaw playground has a separate Vercel preview deployment at `https://foliocore-3n21ysmgs-leopoldjourdain-6225s-projects.vercel.app` (`dpl_8fZGWoQ4CNznpejCoGmSHyvxUXJ6`). Production remains `https://foliocore.vercel.app`; use preview deployments for agent testing instead of promoting experimental work. The preview deployment is currently behind Vercel Authentication, so external agent/browser testing needs an authenticated Vercel session, an approved share link, or a deliberate preview-protection change. Vercel rejected direct deployments from OpenClaw-authored commits because no Vercel/Git user was associated with the commit author; a no-code local commit by the Vercel-associated user fixed preview deployment without changing app code.
+The OpenClaw playground has a separate Vercel preview deployment at `https://foliocore-6hqbdnwbq-leopoldjourdain-6225s-projects.vercel.app` (`dpl_EtdQTRPamoWTYiQzqPovnyYmBqfG`). Production remains `https://foliocore.vercel.app`; use preview deployments for agent testing instead of promoting experimental work. The preview deployment is currently behind Vercel Authentication, so external agent/browser testing needs an authenticated Vercel session, an approved share link, or a deliberate preview-protection change. Vercel rejected direct deployments from OpenClaw-authored commits because no Vercel/Git user was associated with the commit author; a no-code local commit by the Vercel-associated user fixed preview deployment without changing app code. Preview has a sensitive `AUTH_SECRET`, but no `DATABASE_URL`; the app now falls back to demo data when the database is absent so playground testing cannot mutate production data.
 
 CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
 
@@ -70,15 +70,16 @@ Still missing or likely incomplete: DB-backed settings persistence, production c
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 21 files
-- UI components: 15 files
-- App pages: 4 files
+- Other: 15 files
+- UI components: 8 files
 - API routes: 2 files
-- Database: 1 file
+- App pages: 2 files
+- Database: 2 files
 - Documentation: 1 file
 - Metrics: 1 file
 
 Recent commits:
+- 15be197 2026-04-30 Allow preview dashboard without database
 - 6b06160 2026-04-30 Trigger playground preview deployment
 - 7a28c7f 2026-04-30 Add news source registry settings view
 - 20b59a8 2026-04-30 Add generic CSV transaction import
@@ -86,7 +87,6 @@ Recent commits:
 - d7745ff 2026-04-30 Ignore macOS metadata files
 - 654b2b9 2026-04-28 Ship export and demo analytics batch
 - f5ad571 2026-04-28 Clarify backlog progress tracking
-- fea08d6 2026-04-28 Ship first portfolio trust polish batch
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -140,4 +140,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-30T13:20:31.969Z - Refreshed generated context from 8 recent commits, 45 changed files, and 0 TODO/FIXME items.
+2026-04-30T13:31:02.436Z - Refreshed generated context from 8 recent commits, 31 changed files, and 0 TODO/FIXME items.
