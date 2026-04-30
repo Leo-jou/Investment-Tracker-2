@@ -40,7 +40,7 @@ Production is deployed on Vercel at `https://foliocore.vercel.app`. Current prod
 
 Source is backed up in the private GitHub repository `Leo-jou/Investment-Tracker-2`. `main` is the stable source-of-truth branch, `codex/safe-backup-2026-04-30` is a frozen recovery branch for the current beta-ready state, and `codex/openclaw-playground` is the branch reserved for OpenClaw/OpenCL agent experiments.
 
-The OpenClaw playground has a separate Vercel preview deployment at `https://foliocore-77y72sgcb-leopoldjourdain-6225s-projects.vercel.app` (`dpl_4TYXXNkfo6AUGPLYyrot94o25dB5`). Production remains `https://foliocore.vercel.app`; use preview deployments for agent testing instead of promoting experimental work.
+The OpenClaw playground has a separate Vercel preview deployment at `https://foliocore-77y72sgcb-leopoldjourdain-6225s-projects.vercel.app` (`dpl_4TYXXNkfo6AUGPLYyrot94o25dB5`). Production remains `https://foliocore.vercel.app`; use preview deployments for agent testing instead of promoting experimental work. The preview deployment is currently behind Vercel Authentication, so external agent/browser testing needs an authenticated Vercel session, an approved share link, or a deliberate preview-protection change.
 
 CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
 
