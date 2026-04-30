@@ -15,6 +15,8 @@ test("risk analytics derives Sharpe and Sortino from cash-flow-neutral TWR retur
   });
 
   assert.equal(risk.sampleSize, 3);
+  assert.equal(risk.minimumReadyPeriods, 30);
+  assert.equal(risk.alignedBenchmarkPeriods, 0);
   assert.equal(risk.sharpe.status, "low-sample");
   assert.equal(risk.sortino.status, "low-sample");
   assert.ok(risk.sharpe.value !== null);
@@ -47,6 +49,7 @@ test("risk analytics calculates benchmark-relative beta when data exists", () =>
   });
 
   assert.equal(risk.beta.status, "low-sample");
+  assert.equal(risk.alignedBenchmarkPeriods, 3);
   assert.ok(risk.beta.value !== null);
   assert.ok(risk.beta.value > 0);
 });
@@ -61,6 +64,7 @@ test("risk analytics gates beta readiness on aligned benchmark periods", () => {
   });
 
   assert.equal(risk.sampleSize, 34);
+  assert.equal(risk.alignedBenchmarkPeriods, 2);
   assert.equal(risk.beta.status, "low-sample");
   assert.match(risk.beta.detail, /2 aligned/);
 });

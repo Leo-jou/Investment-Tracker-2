@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -113,9 +114,11 @@ export function TransactionsTable({ transactions, assets, currency }: Transactio
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" disabled title="Import is not implemented yet.">
-            <Upload className="h-5 w-5" />
-            Upload
+          <Button asChild variant="ghost" title="Upload a generic CSV transaction file.">
+            <Link href="#import-transactions">
+              <Upload className="h-5 w-5" />
+              Upload
+            </Link>
           </Button>
           <Button variant="ghost" disabled title="Export is not implemented yet.">
             <Download className="h-5 w-5" />

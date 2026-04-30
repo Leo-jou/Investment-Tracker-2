@@ -19,7 +19,7 @@ const menuGroups = [
     label: "Holdings",
     items: [
       { label: "Add trade...", icon: Plus, href: "/transactions?type=BUY#quick-add" },
-      { label: "Upload transactions...", icon: Upload, href: "/transactions#quick-add", disabled: true },
+      { label: "Upload transactions...", icon: Upload, href: "/transactions#import-transactions" },
       { label: "Add dividends...", icon: ReceiptText, href: "/transactions#quick-add", disabled: true }
     ]
   },
