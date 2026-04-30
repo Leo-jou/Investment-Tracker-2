@@ -32,7 +32,7 @@ This backlog is the working agreement for what to improve next. It separates urg
 - [~] Risk: demo analytics backfill now makes charts/ratios visible for review; a persisted benchmark history pipeline is still not done.
 - [x] Export UX: one modal with format/date/section choices.
 - [x] Portfolio checks: review/acknowledge controls shipped.
-- [~] Transactions: generic CSV import is now available; dividends and fees/taxes remain open.
+- [ ] Transactions: upload/import, dividends, and fees/taxes.
 - [ ] Settings automation: DB-backed preferences and scheduled email exports.
 
 ## Current Product Position
@@ -43,9 +43,9 @@ FolioCore is good enough for a guarded beta with a few trusted users, but not re
 
 1. [x] Replace simple export buttons with an export modal that supports CSV, report JSON, backup JSON, date ranges, and selected sections.
 2. [x] Improve branded portfolio report preview and highlights.
-3. [~] Implement dividends, fees/taxes, and import workflows.
+3. [ ] Implement dividends, fees/taxes, and import workflows.
 4. [ ] Add DB-backed settings and scheduled email/export preferences.
-5. [~] Improve news source registry and digest quality.
+5. [ ] Improve news source registry and digest quality.
 6. [ ] Add risk readiness progress and benchmark history for beta.
 7. [ ] Continue holdings/distribution polish after real usage feedback.
 8. [ ] Consider AI only where it adds clear leverage: import mapping, news impact summaries, and portfolio Q&A.
@@ -181,7 +181,7 @@ User input needed: sender/domain decision for email delivery.
 
 ## P1 - Transactions, Imports, Dividends, Fees
 
-### [~] Upload Transactions
+### [ ] Upload Transactions
 
 Question: Does upload require AI?
 
@@ -196,20 +196,9 @@ Acceptance criteria:
 - Validate unsupported rows and allow partial import.
 - Dry-run import summary before writing to DB.
 
-Shipped:
-- Added a generic CSV import panel on the Transactions page and dashboard Transactions tab.
-- Added automatic header mapping plus manual mapping for date, type, symbol, quantity, total, fees, currency, platform, and notes.
-- Added server-side dry run and import endpoint with duplicate detection, unsupported-row validation, and partial import behavior.
-- Enabled the Upload actions in the Add transaction menu and Transactions table.
-
-Still open:
-- Broker-specific presets for IBKR, Kraken, Coinbase, Binance, and BUX Zero once real sample exports are available.
-- XLSX support if needed.
-- Better batching if very large imports become common.
-
 User input needed:
 - Example CSV exports from the platforms you actually use, with sensitive data removed.
-- Decision later: CSV only, or also XLSX.
+- Decision: import only CSV first, or also XLSX.
 
 ### [ ] Dividends
 
@@ -264,7 +253,7 @@ User input needed: production cron env values if not already configured.
 
 ## P1 - News And Digest
 
-### [~] News Source Registry
+### [ ] News Source Registry
 
 Problem: User is flying blind about where headlines come from.
 
@@ -281,15 +270,6 @@ Current source types:
 - CoinDesk/Cointelegraph crypto feeds.
 - Optional SEC EDGAR filings.
 - Optional GDELT broad-news search.
-
-Shipped:
-- Added a code-backed news source registry.
-- Settings now shows deterministic RSS sources, SEC filing status, and optional GDELT status with coverage and trust labels.
-- Reused the same trusted-domain list for the GDELT registry and runtime filtering.
-
-Still open:
-- Add source health: last successful fetch, result count, and error state.
-- Add any official company IR feeds after source-list review.
 
 User input needed: approval for source list and whether to enable GDELT.
 
@@ -312,7 +292,7 @@ User input needed:
 
 ## P1 - Analytics And Risk
 
-### [x] Explain Risk Readiness
+### [~] Explain Risk Readiness
 
 Problem: Analysis says metrics are not ready but users do not know exactly why or when they will be.
 
@@ -330,7 +310,9 @@ Shipped:
 - Added a deterministic demo analytics overlay when real history is too sparse or irregular.
 - The overlay generates 120 regular daily snapshots and aligned benchmark returns so charts, Sharpe, Sortino, and beta are visible during product review.
 - The Analysis tab labels the overlay clearly and distinguishes `Demo overlay` from real `Portfolio snapshots`.
-- Added a visible Risk readiness panel with progress toward 30 return periods, regular snapshot cadence, and 30 aligned benchmark periods.
+
+Still open:
+- Add a dedicated progress panel for real history requirements once the persisted benchmark pipeline exists.
 
 ### [~] Benchmark History For Beta
 

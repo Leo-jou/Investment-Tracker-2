@@ -101,16 +101,6 @@ export function AnalysisPanels({
           />
         </div>
 
-        <RiskReadinessPanel
-          returnPeriods={risk.sampleSize}
-          alignedBenchmarkPeriods={risk.alignedBenchmarkPeriods}
-          requiredPeriods={risk.minimumReadyPeriods}
-          cadenceStatus={risk.cadence.status}
-          cadenceRange={cadenceRange(risk.cadence)}
-          benchmarkConnected={benchmarkReturns.length > 0}
-          historySource={analyticsHistoryMode === "simulated" ? "Demo overlay" : "Portfolio snapshots"}
-        />
-
         <div className="mt-8 rounded-[8px] border border-[#2b2b2f] bg-black p-4 text-sm text-zinc-500">
           <p className="font-semibold text-zinc-300">Methodology</p>
           <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
@@ -144,101 +134,6 @@ export function AnalysisPanels({
       />
     </div>
   );
-}
-
-function RiskReadinessPanel({
-  returnPeriods,
-  alignedBenchmarkPeriods,
-  requiredPeriods,
-  cadenceStatus,
-  cadenceRange,
-  benchmarkConnected,
-  historySource
-}: {
-  returnPeriods: number;
-  alignedBenchmarkPeriods: number;
-  requiredPeriods: number;
-  cadenceStatus: "regular" | "irregular" | "insufficient";
-  cadenceRange: string;
-  benchmarkConnected: boolean;
-  historySource: string;
-}) {
-  const returnProgress = progressPercent(returnPeriods, requiredPeriods);
-  const benchmarkProgress = progressPercent(alignedBenchmarkPeriods, requiredPeriods);
-  const cadenceReady = cadenceStatus === "regular";
-
-  return (
-    <div className="mt-8 rounded-[8px] border border-[#2b2b2f] bg-[#050505] p-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#f6b342]">Risk readiness</p>
-          <h3 className="mt-2 text-xl font-bold text-zinc-100">What needs to happen before these metrics are production-grade</h3>
-        </div>
-        <p className="text-sm text-zinc-500">Source: {historySource}</p>
-      </div>
-
-      <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <ReadinessItem
-          label="Sharpe / Sortino history"
-          value={`${Math.min(returnPeriods, requiredPeriods)} / ${requiredPeriods} periods`}
-          detail="Needs at least 30 regular portfolio return periods."
-          progress={returnProgress}
-          ready={returnPeriods >= requiredPeriods && cadenceReady}
-        />
-        <ReadinessItem
-          label="Snapshot cadence"
-          value={cadenceReady ? "Regular" : cadenceLabel(cadenceStatus)}
-          detail={`Current gaps: ${cadenceRange}. Mixed daily/monthly history is withheld.`}
-          progress={cadenceReady ? 100 : 35}
-          ready={cadenceReady}
-        />
-        <ReadinessItem
-          label="Beta benchmark alignment"
-          value={benchmarkConnected ? `${Math.min(alignedBenchmarkPeriods, requiredPeriods)} / ${requiredPeriods} aligned` : "Not connected"}
-          detail="Needs stored benchmark returns aligned to portfolio dates."
-          progress={benchmarkConnected ? benchmarkProgress : 0}
-          ready={alignedBenchmarkPeriods >= requiredPeriods}
-        />
-      </div>
-    </div>
-  );
-}
-
-function ReadinessItem({
-  label,
-  value,
-  detail,
-  progress,
-  ready
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  progress: number;
-  ready: boolean;
-}) {
-  return (
-    <div className="rounded-[7px] border border-[#202024] bg-black p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-zinc-200">{label}</p>
-          <p className="mt-1 text-2xl font-bold text-zinc-50">{value}</p>
-        </div>
-        <span className={`rounded-[5px] px-2 py-1 text-xs font-bold uppercase ${ready ? "bg-emerald-500/10 text-emerald-300" : "bg-[#2c2c2f] text-zinc-300"}`}>
-          {ready ? "Ready" : "Building"}
-        </span>
-      </div>
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#202024]">
-        <div className="h-full rounded-full bg-[#f6b342]" style={{ width: `${progress}%` }} />
-      </div>
-      <p className="mt-3 text-sm leading-5 text-zinc-500">{detail}</p>
-    </div>
-  );
-}
-
-function progressPercent(current: number, target: number) {
-  if (target <= 0) return 0;
-  return Math.min(100, Math.max(0, (current / target) * 100));
 }
 
 function ProfitabilityMetric({
