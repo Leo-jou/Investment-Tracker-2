@@ -3,6 +3,10 @@ import { drizzle } from "drizzle-orm/neon-http";
 
 import * as schema from "@/lib/db/schema";
 
+export function isDbConfigured() {
+  return Boolean(process.env.DATABASE_URL);
+}
+
 export function getDb() {
   const connectionString = process.env.DATABASE_URL;
 

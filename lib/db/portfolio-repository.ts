@@ -8,7 +8,7 @@ import {
   type AnalyticsHistoryMode
 } from "@/lib/data/demo-history";
 import { demoAssets, demoTransactions } from "@/lib/data/demo-seed";
-import { getDb } from "@/lib/db/client";
+import { getDb, isDbConfigured } from "@/lib/db/client";
 import {
   assets,
   fxSnapshots,
@@ -45,6 +45,7 @@ import {
   calculateNetContributionsUsd,
   calculateRealizedGainUsd
 } from "@/lib/portfolio/calculations";
+import * as mockData from "@/lib/mock-data";
 
 export type DashboardData = {
   portfolio: Portfolio;
@@ -89,6 +90,15 @@ export type FxSnapshotInput = {
 const bootstrapTimestamp = new Date("2026-04-27T00:00:00.000Z");
 
 export async function ensureUserWorkspace(email: string) {
+  if (!isDbConfigured()) {
+    const normalizedEmail = normalizeEmail(email);
+    return {
+      id: `preview_${normalizedEmail}`,
+      email: normalizedEmail,
+      name: normalizedEmail.split("@")[0] || "Owner"
+    };
+  }
+
   const db = getDb();
   const normalizedEmail = normalizeEmail(email);
 
@@ -220,6 +230,10 @@ export async function getDashboardDataForEmail(
   email: string,
   portfolioId?: string
 ): Promise<DashboardData> {
+  if (!isDbConfigured()) {
+    return buildMockDashboardData(portfolioId);
+  }
+
   const user = await ensureUserWorkspace(email);
   const db = getDb();
   const portfolio = await getPortfolioForUser(user.id, portfolioId);
@@ -279,6 +293,41 @@ export async function getDashboardDataForEmail(
     analyticsHistoryMode: analyticsHistory.mode,
     analyticsHistoryNotice: analyticsHistory.notice,
     apiStatuses: buildApiStatuses()
+  };
+}
+
+function buildMockDashboardData(portfolioId?: string): DashboardData {
+  const portfolio =
+    (portfolioId ? mockData.portfolios.find((item) => item.id === portfolioId) : undefined) ??
+    mockData.portfolios[0];
+  const portfolioOptions = mockData.portfolios.map((item) => ({
+    id: item.id,
+    name: item.name,
+    description: item.description
+  }));
+  const rawSnapshots = mockData.portfolioSnapshots;
+  const analyticsHistory = buildAnalyticsHistory({
+    snapshots: rawSnapshots,
+    currentValueUsd: portfolio.valueUsd,
+    currentValueEur: portfolio.valueEur
+  });
+
+  return {
+    portfolio,
+    portfolios: portfolioOptions,
+    assets: mockData.assets,
+    positions: mockData.getPositionsForPortfolio(portfolio.id),
+    transactions: mockData.getTransactionsForPortfolio(portfolio.id),
+    manualPositions: mockData.getManualPositionsForPortfolio(portfolio.id),
+    allocations: mockData.allocationByAsset,
+    snapshots: rawSnapshots,
+    analyticsSnapshots: analyticsHistory.snapshots,
+    benchmarkReturns: analyticsHistory.benchmarkReturns,
+    analyticsHistoryMode: analyticsHistory.mode,
+    analyticsHistoryNotice:
+      analyticsHistory.notice ??
+      "Preview is running without DATABASE_URL, so demo data is shown and edits are not persisted.",
+    apiStatuses: mockData.apiStatuses
   };
 }
 
