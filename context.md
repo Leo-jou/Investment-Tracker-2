@@ -56,7 +56,7 @@ The dashboard now exposes one authenticated export modal backed by `/api/export`
 
 `/api/cron/refresh` is configured through Vercel Cron for daily price/FX refresh and portfolio snapshot writes at 07:00 UTC. It fails closed unless `CRON_SECRET` and `CRON_REFRESH_EMAILS` or `DIGEST_EMAIL_RECIPIENTS` are configured, and recipients must be allowlisted.
 
-The Analysis tab calculates risk diagnostics from selected-currency TWR returns. To make the UI reviewable immediately, the dashboard now builds an `analyticsSnapshots` view from real snapshots when they are regular enough, otherwise from a deterministic 120-day simulated history ending at the current date. It also builds aligned demo benchmark returns so Sharpe, Sortino, and beta can render during review. The UI labels simulated history as a demo overlay and labels the benchmark as a demo composite. Raw persisted snapshots remain separate and are still used for restore-oriented backup/export data.
+The Analysis tab calculates risk diagnostics from selected-currency TWR returns. To make the UI reviewable immediately, the dashboard now builds an `analyticsSnapshots` view from real snapshots when they are regular enough, otherwise from a deterministic 120-day simulated history ending at the current date. It also builds aligned demo benchmark returns so Sharpe, Sortino, and beta can render during review. The UI labels simulated history as a demo overlay and labels the benchmark as a demo composite. The Analysis tab now includes a Risk readiness panel showing progress toward 30 regular portfolio return periods, regular cadence, and 30 aligned benchmark periods. Raw persisted snapshots remain separate and are still used for restore-oriented backup/export data.
 
 Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
 
@@ -129,7 +129,8 @@ Generated TODO/FIXME scan:
 6. Add paired transfer support once multiple portfolios are available.
 7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from demo analytics to real calculated output.
 8. For OpenClaw experiments, start from `codex/openclaw-playground` and keep `main` plus `codex/safe-backup-2026-04-30` protected as recovery references.
-9. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
+9. Review the new Risk readiness panel in the Analysis tab and refine copy/thresholds if beta testers find the methodology too dense.
+10. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -140,4 +141,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-30T11:07:41.016Z - Refreshed generated context from 8 recent commits, 52 changed files, and 0 TODO/FIXME items.
+2026-04-30T12:30:55.534Z - Refreshed generated context from 8 recent commits, 52 changed files, and 0 TODO/FIXME items.

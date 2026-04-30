@@ -11,6 +11,8 @@ export type RiskMetricValue = {
 export type RiskAnalytics = {
   returns: number[];
   sampleSize: number;
+  minimumReadyPeriods: number;
+  alignedBenchmarkPeriods: number;
   currency: Currency;
   annualizationFactor: number;
   cadence: {
@@ -39,7 +41,7 @@ type RiskReturnPeriod = {
   periodReturn: number;
 };
 
-const minimumReadyPeriods = 30;
+export const minimumReadyPeriods = 30;
 
 export function calculateRiskAnalytics({
   snapshots,
@@ -68,10 +70,13 @@ export function calculateRiskAnalytics({
       ? calculateDownsideDeviation(returns, riskFreePeriod) * Math.sqrt(annualizationFactor)
       : null;
   const beta = calculateBetaMetric(periods, benchmarkReturns, cadence);
+  const alignedBenchmarkPeriods = countAlignedBenchmarkPeriods(periods, benchmarkReturns);
 
   return {
     returns,
     sampleSize,
+    minimumReadyPeriods,
+    alignedBenchmarkPeriods,
     currency,
     annualizationFactor,
     cadence,
@@ -229,6 +234,14 @@ function calculateBetaMetric(
     status: aligned.length >= minimumReadyPeriods ? "ready" : "low-sample",
     detail: `${aligned.length} aligned benchmark periods.`
   };
+}
+
+function countAlignedBenchmarkPeriods(
+  periods: RiskReturnPeriod[],
+  benchmarkReturns: BenchmarkReturn[]
+) {
+  const benchmarkByDate = new Set(benchmarkReturns.map((entry) => entry.date));
+  return periods.filter((period) => benchmarkByDate.has(period.date)).length;
 }
 
 function buildRiskReturnPeriods(snapshots: PortfolioSnapshot[], currency: Currency) {

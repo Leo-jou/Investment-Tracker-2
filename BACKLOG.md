@@ -292,7 +292,7 @@ User input needed:
 
 ## P1 - Analytics And Risk
 
-### [~] Explain Risk Readiness
+### [x] Explain Risk Readiness
 
 Problem: Analysis says metrics are not ready but users do not know exactly why or when they will be.
 
@@ -310,9 +310,7 @@ Shipped:
 - Added a deterministic demo analytics overlay when real history is too sparse or irregular.
 - The overlay generates 120 regular daily snapshots and aligned benchmark returns so charts, Sharpe, Sortino, and beta are visible during product review.
 - The Analysis tab labels the overlay clearly and distinguishes `Demo overlay` from real `Portfolio snapshots`.
-
-Still open:
-- Add a dedicated progress panel for real history requirements once the persisted benchmark pipeline exists.
+- Added a visible Risk readiness panel with progress toward 30 return periods, regular snapshot cadence, and 30 aligned benchmark periods.
 
 ### [~] Benchmark History For Beta
 
