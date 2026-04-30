@@ -17,16 +17,6 @@ type RssSource = {
   priority: number;
 };
 
-export type NewsSourceRegistryEntry = {
-  id: string;
-  name: string;
-  sourceType: PortfolioNewsItem["sourceType"];
-  coverage: string;
-  trust: "trusted" | "optional" | "disabled";
-  enabled: boolean;
-  detail: string;
-};
-
 type RssEntry = {
   title: string;
   url: string;
@@ -132,55 +122,6 @@ const cikBySymbol: Record<string, string> = {
 };
 
 const secForms = new Set(["8-K", "10-Q", "10-K", "6-K", "20-F", "40-F", "N-CSR", "NPORT-P"]);
-
-const trustedGdeltDomains = new Set([
-  "apnews.com",
-  "bloomberg.com",
-  "cnbc.com",
-  "coindesk.com",
-  "cointelegraph.com",
-  "investing.com",
-  "marketwatch.com",
-  "nasdaq.com",
-  "reuters.com"
-]);
-
-export function getNewsSourceRegistry(): NewsSourceRegistryEntry[] {
-  return [
-    ...rssSources.map((source) => ({
-      id: source.id,
-      name: source.name,
-      sourceType: source.sourceType,
-      coverage: source.assetTypes?.join(", ") ?? "Mixed portfolio",
-      trust: "trusted" as const,
-      enabled: true,
-      detail: "Trusted RSS feed used for deterministic portfolio headline matching."
-    })),
-    {
-      id: "sec-edgar",
-      name: "SEC EDGAR filings",
-      sourceType: "filing",
-      coverage: "US public companies with mapped CIKs",
-      trust: process.env.SEC_USER_AGENT ? "trusted" : "disabled",
-      enabled: Boolean(process.env.SEC_USER_AGENT),
-      detail: process.env.SEC_USER_AGENT
-        ? "Official filing enrichment is enabled."
-        : "Disabled until SEC_USER_AGENT is configured."
-    },
-    {
-      id: "gdelt-broad-news",
-      name: "GDELT broad news",
-      sourceType: "broad-news",
-      coverage: [...trustedGdeltDomains].join(", "),
-      trust: process.env.NEWS_GDELT_ENABLED === "true" ? "optional" : "disabled",
-      enabled: process.env.NEWS_GDELT_ENABLED === "true",
-      detail:
-        process.env.NEWS_GDELT_ENABLED === "true"
-          ? "Optional broad-news search is enabled and restricted to trusted HTTPS domains."
-          : "Opt-in only; disabled by default to avoid sending holding terms to a broad search provider."
-    }
-  ];
-}
 
 export async function getPortfolioNews(data: DashboardData): Promise<PortfolioNewsItem[]> {
   const subjects = getNewsSubjects(data);
@@ -705,9 +646,20 @@ function normalizeHttpsUrl(value?: string) {
 }
 
 function isTrustedGdeltDomain(url: string, reportedDomain?: string) {
+  const trustedDomains = new Set([
+    "apnews.com",
+    "bloomberg.com",
+    "cnbc.com",
+    "coindesk.com",
+    "cointelegraph.com",
+    "investing.com",
+    "marketwatch.com",
+    "nasdaq.com",
+    "reuters.com"
+  ]);
   const urlDomain = normalizeDomain(new URL(url).hostname);
   const sourceDomain = normalizeDomain(reportedDomain);
-  return trustedGdeltDomains.has(urlDomain) || trustedGdeltDomains.has(sourceDomain);
+  return trustedDomains.has(urlDomain) || trustedDomains.has(sourceDomain);
 }
 
 function normalizeDate(value?: string) {

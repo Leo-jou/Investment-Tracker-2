@@ -17,7 +17,6 @@ import { PortfolioValueChart } from "@/components/portfolio/portfolio-value-char
 import { PositionsTable } from "@/components/portfolio/positions-table";
 import { QuickAddTransactionForm } from "@/components/portfolio/quick-add-transaction-form";
 import { TimeframeControl } from "@/components/portfolio/timeframe-control";
-import { TransactionImportPanel } from "@/components/portfolio/transaction-import-panel";
 import { TransactionsTable } from "@/components/portfolio/transactions-table";
 import type { DashboardData } from "@/lib/db/portfolio-repository";
 import { buildPortfolioChecks } from "@/lib/portfolio/checks";
@@ -89,7 +88,6 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
 
       {activeTab === "Transactions" && (
         <div className="space-y-10">
-          <TransactionImportPanel portfolioId={data.portfolio.id} />
           <QuickAddTransactionForm portfolioId={data.portfolio.id} />
           <TransactionsTable
             transactions={data.transactions}

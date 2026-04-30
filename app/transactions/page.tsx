@@ -1,6 +1,5 @@
 import { PageBackLink } from "@/components/layout/page-back-link";
 import { QuickAddTransactionForm } from "@/components/portfolio/quick-add-transaction-form";
-import { TransactionImportPanel } from "@/components/portfolio/transaction-import-panel";
 import { TransactionsTable } from "@/components/portfolio/transactions-table";
 import { requireSessionEmail } from "@/lib/auth/session";
 import { getDashboardDataForEmail } from "@/lib/db/portfolio-repository";
@@ -24,7 +23,6 @@ export default async function TransactionsPage({
           valuations.
         </p>
       </div>
-      <TransactionImportPanel portfolioId={data.portfolio.id} />
       <QuickAddTransactionForm portfolioId={data.portfolio.id} initialType={params.type} />
       <TransactionsTable transactions={data.transactions} assets={data.assets} currency="USD" />
     </div>

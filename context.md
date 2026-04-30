@@ -50,13 +50,13 @@ Quick-add transaction UX now uses type-specific fields for BUY, SELL, DEPOSIT, W
 
 The first trust/polish implementation batch added the FolioCore app icon, replaced placeholder portfolio tips with actionable portfolio checks, clarified overview metrics, added a shared timeframe selector for dashboard summaries/charts, and simplified holdings to Position, Performance, Risk, and Details views with stable column widths and real platform display. Portfolio checks can now be marked reviewed locally; reviewed checks reappear if their underlying detail changes. Portfolio distribution supports assets, asset types, and currency modes without donut labels, avoiding the previous 100x percentage display issue.
 
-The dashboard now exposes one authenticated export modal backed by `/api/export`. Users can choose CSV, report JSON, or backup JSON; non-backup exports support all-time, 1D, 1W, 1M, 6M, YTD, and custom date ranges plus section selection. Backup JSON is restore-oriented and intentionally ignores filters so it always includes the full real dataset. Transactions now include a generic CSV import flow on the Transactions page and dashboard Transactions tab, backed by `/api/transactions/import`; users can upload a CSV, map columns, dry-run validation, see duplicate/unsupported-row warnings, and import valid rows while duplicate/invalid rows are skipped. Broker-specific presets remain deferred until real sample exports are available. `/api/news` builds portfolio-aware headlines from trusted RSS sources, Yahoo/Nasdaq symbol feeds, limited crypto tag feeds, and optional SEC EDGAR filing enrichment. GDELT broad-news search is disabled unless `NEWS_GDELT_ENABLED=true`, HTTPS-only, and restricted to trusted domains. Local Google/search fallback rows have been removed. The News UI is labeled as matched headlines and shows coverage chips per holding so missing source coverage is visible. Settings now includes a code-backed News source registry that lists trusted RSS sources, SEC filing status, and optional GDELT status with coverage/trust labels; source health metrics are still future work.
+The dashboard now exposes one authenticated export modal backed by `/api/export`. Users can choose CSV, report JSON, or backup JSON; non-backup exports support all-time, 1D, 1W, 1M, 6M, YTD, and custom date ranges plus section selection. Backup JSON is restore-oriented and intentionally ignores filters so it always includes the full real dataset. `/api/news` builds portfolio-aware headlines from trusted RSS sources, Yahoo/Nasdaq symbol feeds, limited crypto tag feeds, and optional SEC EDGAR filing enrichment. GDELT broad-news search is disabled unless `NEWS_GDELT_ENABLED=true`, HTTPS-only, and restricted to trusted domains. Local Google/search fallback rows have been removed. The News UI is labeled as matched headlines and shows coverage chips per holding so missing source coverage is visible.
 
 `/api/digest` returns a branded portfolio report preview in JSON/text/html with metrics, structured highlight cards, allocation bars, top positions, recent transactions, and matched headlines. Highlight cards currently cover portfolio value, largest winner, largest drag, concentration, and data quality. It can send to the signed-in email when `RESEND_API_KEY` and `EMAIL_FROM` are configured. Report links use an absolute base URL when available so emailed reports can link back to authenticated CSV/backup downloads. `/api/cron/digest` is configured through Vercel Cron for weekly delivery on Monday at 08:00 UTC, but fails closed unless `CRON_SECRET`, `DIGEST_EMAIL_RECIPIENTS`, and email delivery variables are configured. Cron recipients are masked in responses and must also be in `APP_ALLOWED_EMAILS`.
 
 `/api/cron/refresh` is configured through Vercel Cron for daily price/FX refresh and portfolio snapshot writes at 07:00 UTC. It fails closed unless `CRON_SECRET` and `CRON_REFRESH_EMAILS` or `DIGEST_EMAIL_RECIPIENTS` are configured, and recipients must be allowlisted.
 
-The Analysis tab calculates risk diagnostics from selected-currency TWR returns. To make the UI reviewable immediately, the dashboard now builds an `analyticsSnapshots` view from real snapshots when they are regular enough, otherwise from a deterministic 120-day simulated history ending at the current date. It also builds aligned demo benchmark returns so Sharpe, Sortino, and beta can render during review. The UI labels simulated history as a demo overlay and labels the benchmark as a demo composite. The Analysis tab now includes a Risk readiness panel showing progress toward 30 regular portfolio return periods, regular cadence, and 30 aligned benchmark periods. Raw persisted snapshots remain separate and are still used for restore-oriented backup/export data.
+The Analysis tab calculates risk diagnostics from selected-currency TWR returns. To make the UI reviewable immediately, the dashboard now builds an `analyticsSnapshots` view from real snapshots when they are regular enough, otherwise from a deterministic 120-day simulated history ending at the current date. It also builds aligned demo benchmark returns so Sharpe, Sortino, and beta can render during review. The UI labels simulated history as a demo overlay and labels the benchmark as a demo composite. Raw persisted snapshots remain separate and are still used for restore-oriented backup/export data.
 
 Settings preferences are browser-persisted for now: default currency, manual-refresh snapshot toggle, backup email, and daily export toggle. The snapshot toggle is sent to `/api/prices/refresh` so manual refresh can skip portfolio snapshot writes. DB-backed user settings are deferred until a safe migration path or valid local Neon migration credentials are available.
 
@@ -66,27 +66,28 @@ Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a gua
 
 `BACKLOG.md` captures the roadmap with inline status labels. Export modal and branded report highlight improvements are marked shipped. Risk/readiness and benchmark history remain partial because the current ratios use a demo analytics overlay and demo composite benchmark rather than persisted real benchmark snapshots.
 
-Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, persisted benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, broker-specific import presets/sample-format handling, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, persisted benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, import flows, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - Other: 23 files
-- UI components: 17 files
+- UI components: 14 files
 - API routes: 5 files
 - Documentation: 4 files
 - App pages: 3 files
 - Database: 1 file
 - Metrics: 1 file
+- Tooling: 1 file
 
 Recent commits:
-- 20b59a8 2026-04-30 Add generic CSV transaction import
-- caa3c82 2026-04-30 Add risk readiness progress panel
 - d7745ff 2026-04-30 Ignore macOS metadata files
 - 654b2b9 2026-04-28 Ship export and demo analytics batch
 - f5ad571 2026-04-28 Clarify backlog progress tracking
 - fea08d6 2026-04-28 Ship first portfolio trust polish batch
 - 1545f6f 2026-04-28 Add product backlog
 - 6092036 2026-04-28 Improve portfolio news reports and readiness
+- 142b1dc 2026-04-27 Add trusted news and risk analytics
+- c23ce80 2026-04-27 Add portfolio exports and digest news
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -128,8 +129,7 @@ Generated TODO/FIXME scan:
 6. Add paired transfer support once multiple portfolios are available.
 7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from demo analytics to real calculated output.
 8. For OpenClaw experiments, start from `codex/openclaw-playground` and keep `main` plus `codex/safe-backup-2026-04-30` protected as recovery references.
-9. Review the new Risk readiness panel in the Analysis tab and refine copy/thresholds if beta testers find the methodology too dense.
-10. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
+9. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -140,4 +140,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-30T12:50:29.188Z - Refreshed generated context from 8 recent commits, 54 changed files, and 0 TODO/FIXME items.
+2026-04-30T11:07:41.016Z - Refreshed generated context from 8 recent commits, 52 changed files, and 0 TODO/FIXME items.

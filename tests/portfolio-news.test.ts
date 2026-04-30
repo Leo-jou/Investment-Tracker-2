@@ -2,32 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { DashboardData } from "../lib/db/portfolio-repository.ts";
-import { getNewsSourceRegistry, getPortfolioNews } from "../lib/news/portfolio-news.ts";
-
-test("news source registry exposes trusted and opt-in sources", () => {
-  const originalGdelt = process.env.NEWS_GDELT_ENABLED;
-  const originalSecUserAgent = process.env.SEC_USER_AGENT;
-
-  try {
-    delete process.env.NEWS_GDELT_ENABLED;
-    delete process.env.SEC_USER_AGENT;
-    const disabledSources = getNewsSourceRegistry();
-
-    assert.ok(disabledSources.some((source) => source.id === "coindesk" && source.enabled));
-    assert.ok(disabledSources.some((source) => source.id === "gdelt-broad-news" && !source.enabled));
-    assert.ok(disabledSources.some((source) => source.id === "sec-edgar" && !source.enabled));
-
-    process.env.NEWS_GDELT_ENABLED = "true";
-    process.env.SEC_USER_AGENT = "folio-test contact@example.com";
-    const enabledSources = getNewsSourceRegistry();
-
-    assert.ok(enabledSources.some((source) => source.id === "gdelt-broad-news" && source.enabled));
-    assert.ok(enabledSources.some((source) => source.id === "sec-edgar" && source.enabled));
-  } finally {
-    restoreEnv("NEWS_GDELT_ENABLED", originalGdelt);
-    restoreEnv("SEC_USER_AGENT", originalSecUserAgent);
-  }
-});
+import { getPortfolioNews } from "../lib/news/portfolio-news.ts";
 
 test("portfolio news does not call GDELT unless explicitly enabled", async () => {
   const originalFetch = globalThis.fetch;
