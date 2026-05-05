@@ -236,6 +236,22 @@ Dobby reviewed `aed8a3e` / `d38ccf4` for the price freshness visibility slice:
 
 Next recommendation: take the math/tooltip consistency slice. Prefer either using raw persisted snapshots for overview/timeframe cards or clearly labeling simulated analytics history wherever it appears outside Analysis. Also tighten SELL validation by historical as-of-date availability if it fits the same small batch.
 
+
+## Dobby Review — 2026-05-05T15:18:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle. Cycle 9 is accepted.
+
+Dobby reviewed `80a6656` / `0668237` (`Validate sells by transaction date`):
+
+- `npm test` passed: 69/69.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in guarded skip mode.
+- `npm run context:check` passed.
+- SELL validation now uses occurred date, created-at, then id ordering to check quantity available at the sell date, including same-day ordering and edit exclusion.
+
+Next recommendation: take simulated-history labeling outside Analysis. Overview/timeframe UI should not let generated analytics history look like persisted real performance history.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.
@@ -379,6 +395,14 @@ Cycle 2 partial result:
 
 - Fixed quick-add's hardcoded default date.
 - Removed the fake/estimated 24h movement values from user-visible tables and mover panels.
+
+Cycle 9 result:
+
+- SELL create/edit validation now checks asset quantity available at the sell date using transaction ordering by occurred date, created-at, then id.
+- Backdated sells can no longer pass merely because later BUY rows make current holdings sufficient.
+- Edited SELL rows exclude the existing transaction from availability calculation while preserving original created-at ordering.
+- CSV import commits inherit the same guard through `createTransactionForEmail`.
+- Added focused tests for backdated oversell availability and same-day created-at ordering.
 
 Cycle 9 partial result:
 

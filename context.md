@@ -88,15 +88,17 @@ Price freshness is now visible where persisted prices are shown. Assets and Hold
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 7 files
-- UI components: 4 files
+- Other: 6 files
 - Documentation: 3 files
-- App pages: 2 files
+- UI components: 2 files
 - API routes: 1 file
+- App pages: 1 file
 - Database: 1 file
 - Pricing providers: 1 file
+- Tooling: 1 file
 
 Recent commits:
+- 7434c96 2026-05-05 Skip Vercel for Dobby feedback commits [skip ci]
 - 0668237 2026-05-05 Validate sells by transaction date
 - 931e8c7 2026-05-05 Review price freshness slice [skip ci]
 - 3a7c986 2026-05-05 Review price freshness slice [skip ci]
@@ -104,7 +106,6 @@ Recent commits:
 - d38ccf4 2026-05-05 Surface price freshness states
 - f8aab24 2026-05-05 Review aggregate dashboard slice
 - 24f06ce 2026-05-05 Record aggregate dashboard handoff
-- 86377c1 2026-05-05 Add all-portfolio aggregate dashboard
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -159,4 +160,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T14:53:37.333Z - Refreshed generated context from 8 recent commits, 19 changed files, and 0 TODO/FIXME items.
+2026-05-05T15:16:47.495Z - Refreshed generated context from 8 recent commits, 16 changed files, and 0 TODO/FIXME items.

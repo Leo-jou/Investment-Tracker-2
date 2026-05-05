@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T14:51:26Z — Cycle 9 historical SELL validation slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing the remaining math/tooltip consistency work.
+`DOBBY_HANDOFF_READY` — 2026-05-05T15:18:00Z — Cycle 9 historical SELL validation slice accepted. Codex should continue with the next narrow MVP reliability batch: simulated-history labeling outside Analysis and remaining tooltip/formula clarity. Keep avoiding AI/news/tax/fees polish until reliability is ready.
 
 ## Codex Automation Mode
 
@@ -45,14 +45,9 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Cycle 9: historical SELL validation.
-- SELL create/edit validation now calculates available quantity at the sell date using the same transaction ordering as portfolio position math: occurred date, then created-at, then id.
-- Backdated sells can no longer pass merely because later BUY rows make the current holding sufficient.
-- Edited SELL rows exclude the existing transaction from the availability calculation while preserving its original created-at ordering.
-- CSV import commits inherit the same guard through `createTransactionForEmail`.
-- Focused tests cover backdated oversell availability and same-day created-at ordering.
-- Gates run by Codex: `npm test` passed 69/69, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
-- Still open after this slice: simulated-history labeling outside Analysis, historical snapshot recomputation semantics for backdated entries, and any remaining tooltip/formula mismatches.
+- None. Dobby accepted Cycle 9 and handed the next reliability batch back to Codex.
+- Next preferred task: simulated-history labeling outside Analysis. Anywhere Overview/timeframe cards/charts use generated/simulated analytics history instead of persisted snapshots must be clearly labeled or fall back to raw persisted data.
+- After that, continue remaining tooltip/formula clarity for portfolio value, net contributions, realized/unrealized P&L, TWR, and chart ranges.
 
 ## Dobby Findings
 
@@ -390,6 +385,44 @@ Recommended next Codex batch:
 3. Keep the batch small; if both are too broad, start with the simulated-history labeling because it is visible trust risk.
 
 No blocker found in this batch; continue with a small P0 reliability cycle.
+
+
+### 2026-05-05T15:18:00Z — Dobby review of Cycle 9 historical SELL validation batch
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed Codex tip `80a6656` (`Record sell validation handoff`) including implementation commit `0668237` (`Validate sells by transaction date`). Dobby's later Vercel-ignore commit `7434c96` is unrelated deployment-noise config.
+
+Verdict: accept this slice. Backdated SELL validation now checks availability as of the sell's transaction date instead of current holdings only.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 69/69.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+- `npm run context:check` passed.
+
+Code review notes:
+
+- Good direction: portfolio math now has a shared `sortTransactionsForPositioning` helper using occurred date, created-at, then id ordering.
+- `calculateAssetQuantityBeforeTransaction` computes availability before the candidate sell in that same order, which addresses the original backdated oversell risk.
+- Create and edit SELL flows call `assertSellQuantityAvailable`; edit excludes the existing transaction and preserves its original `createdAt` ordering.
+- CSV import commits inherit the same guard through `createTransactionForEmail`.
+- Focused tests cover later-BUY backdated oversell prevention and same-day created-at ordering.
+
+Remaining risks / follow-up:
+
+- Real Neon/Vercel mutation smoke is still not executed; it needs a safe DB target and allowlisted smoke user.
+- Full browser click-through QA still needs a usable deployed preview URL or allowed local browser target.
+- Historical snapshot recomputation remains today's-snapshot-only; backdated entries still do not rebuild historical snapshots. Keep this visible/understood.
+- Simulated-history labeling outside Analysis remains P0 before Leo trusts overview/timeframe chart values.
+
+Recommended next Codex batch:
+
+1. Label or avoid simulated analytics history anywhere outside Analysis where Overview/timeframe UI could be mistaken for persisted historical performance. Prefer raw persisted snapshots for overview cards/charts when possible; otherwise show an explicit simulated/generated-history notice.
+2. Add/adjust tests for sparse/no persisted snapshot behavior and labels.
+3. Then continue tooltip/formula clarity for portfolio value, net contributions, realized/unrealized P&L, TWR, and chart range semantics.
 
 ## Leo Review Notes
 
