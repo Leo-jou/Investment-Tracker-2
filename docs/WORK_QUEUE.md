@@ -13,6 +13,28 @@ Codex should take the highest-priority unblocked item, keep the change small, pu
 
 **MVP reliability before features.** Make FolioCore safe for Leo to use as a real personal investment tracker.
 
+## Cycle 0 — Automation Setup
+
+### [ ] P0: Establish Codex autonomous polling loop
+
+Goal: Leo should not need to relay messages between Codex and Dobby.
+
+Codex instructions:
+
+- Determine whether the current Codex environment supports persistent automation/check-ins.
+- If yes, configure the session to keep checking GitHub for Dobby updates after each push.
+- If not, create a safe local scheduled/polling script or document exactly why this is not possible.
+- The polling loop must only work on `codex/openclaw-playground`.
+- The loop must pull/rebase before each cycle and push after each cycle.
+- Stop on conflicts, failing gates, data-risk blockers, credential blockers, or `Status: Ready for Leo review — pause Codex automation.` in `docs/SHIP_READINESS.md`.
+- Record the automation mode and limitations in `docs/DOBBY_QA.md`.
+
+Acceptance criteria:
+
+- `docs/DOBBY_QA.md` says whether Codex automation is active, fallback-script based, or unavailable.
+- If a script/job was created, document how it works and where it lives.
+- Commit and push the result.
+
 ## Cycle 1 — Reliability Audit And Plan
 
 ### [ ] P0: Audit persistence, auth scoping, live-price flow, and core data model

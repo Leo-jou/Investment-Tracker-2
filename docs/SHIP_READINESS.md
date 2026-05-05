@@ -48,6 +48,10 @@ This checklist is for deciding when Leo can safely start entering real transacti
 - [ ] Settings do not imply inactive features are active.
 - [ ] Main flows avoid catastrophic mobile overflow.
 
+## Deployment Requirement
+
+Before asking Leo for final MVP review, the current branch must be deployed to a usable Vercel environment where Leo can log in and test real flows. If deployment is blocked by Vercel auth, env vars, database credentials, or preview protection, mark this file blocked and explain exactly what is needed.
+
 ## Ready For Leo Review Criteria
 
 Mark ready only when:

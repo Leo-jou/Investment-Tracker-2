@@ -23,6 +23,43 @@ Codex must read these at the start of every automation cycle, in this order:
 
 If these files conflict with code, inspect the code and update the relevant doc in the same cycle.
 
+## Autonomous Mode
+
+Goal: Leo should not be the messenger between Codex and Dobby. Communication happens through GitHub and the docs in this repository.
+
+Codex should run in one of these modes, depending on what the local Codex environment supports:
+
+1. **Preferred: persistent Codex automation/session**
+   - Keep the session alive.
+   - After pushing a cycle, wait/check periodically for Dobby feedback committed to `docs/DOBBY_QA.md` or `docs/WORK_QUEUE.md`.
+   - Suggested interval: every 10-20 minutes, with backoff if nothing changes.
+   - When Dobby feedback appears, pull/rebase, read the source-of-truth files again, and start the next unblocked task.
+
+2. **Fallback: local scheduled loop created by Codex on Leo's machine**
+   - If Codex can create local automation, create a safe local script/job that periodically runs the sync/read/act/push cycle.
+   - The job must only operate on `codex/openclaw-playground`.
+   - It must stop on merge conflicts, failing gates, credential blockers, migration-risk blockers, or when ship readiness says to pause.
+   - It must not commit secrets or local env files.
+
+3. **Last resort: manual Codex resume**
+   - If neither persistent session nor local automation is available, Codex should clearly say so in `docs/DOBBY_QA.md` and stop.
+
+Codex-side polling condition:
+
+- After pushing its own commit, Codex records the commit hash in `docs/DOBBY_QA.md`.
+- Codex then waits until the remote branch advances with a commit that updates Dobby feedback/task docs, or until a configured time budget expires.
+- When feedback arrives, Codex pulls/rebases and continues with the highest-priority unblocked task from `docs/WORK_QUEUE.md`.
+
+Dobby-side polling condition:
+
+- Dobby monitors the remote branch for Codex commits.
+- When Codex pushes, Dobby pulls/reviews/tests, updates feedback/task docs, commits, and pushes.
+
+Time budget:
+
+- Initial autonomous reliability sprint target: 24 hours.
+- At or before 24 hours, Dobby should update Leo with either: ready-for-review deployment, current blocker, or remaining time needed.
+
 ## Operating Loop
 
 Each Codex cycle should be small and shippable.
