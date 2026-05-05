@@ -13,6 +13,17 @@ if printf '%s' "$subject" | grep -qiE '\[(skip ci|ci skip|skip vercel)\]'; then
   exit 0
 fi
 
+# The Codex/Dobby sprint branch can receive many small coordination and QA
+# commits. Preview deployments from that branch were producing noisy Vercel
+# failure emails for Leo, so keep it quiet by default. If we deliberately need
+# a Vercel preview for a specific commit, include [deploy preview] or
+# [vercel deploy] in the commit subject.
+branch="${VERCEL_GIT_COMMIT_REF:-}"
+if [ "$branch" = "codex/openclaw-playground" ] && ! printf '%s' "$subject" | grep -qiE '\[(deploy preview|vercel deploy)\]'; then
+  echo "Skipping Vercel deployment for noisy Codex/Dobby sprint branch $branch. Add [deploy preview] to deploy intentionally."
+  exit 0
+fi
+
 # Dobby review commits only update generated coordination docs/context. They are
 # needed by Codex, but they should not create preview deployments or email noise.
 files="$(git diff --name-only HEAD^ HEAD 2>/dev/null || git show --pretty= --name-only HEAD)"
