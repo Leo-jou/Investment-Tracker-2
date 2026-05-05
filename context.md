@@ -6,6 +6,9 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 
 ## Product Decisions
 
+- Current MVP priority from Leo: reliability before polish/features. The app should be safe for real personal use: Neon-backed persistence, account/user scoping, multiple portfolios plus aggregate view, live/stale price clarity, correct portfolio math/tooltips/charts, CSV/backup export, and no data-loss risk. Scheduled emails, AI/news commentary, taxes/fees, and final UI beauty are explicitly later.
+- Dobby/Codex option-one coordination is documented in `docs/DOBBY_CODEX_COORDINATION.md`, with current scope in `docs/MVP_RELIABILITY_SCOPE.md`, task handoff in `docs/WORK_QUEUE.md`, QA feedback in `docs/DOBBY_QA.md`, and release checklist in `docs/SHIP_READINESS.md`. Codex should push every cycle so Dobby can review through GitHub.
+
 - Manual transaction entry is the primary workflow for the MVP.
 - Broker and wallet sync are out of scope for the initial version.
 - USD is the default display currency, with an EUR toggle backed by FX snapshots.
@@ -140,4 +143,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-30T13:31:02.436Z - Refreshed generated context from 8 recent commits, 31 changed files, and 0 TODO/FIXME items.
+2026-05-05T09:35:49.883Z - Refreshed generated context from 8 recent commits, 31 changed files, and 0 TODO/FIXME items.
