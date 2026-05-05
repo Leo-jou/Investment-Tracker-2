@@ -49,6 +49,13 @@ import {
   calculateRealizedGainUsd
 } from "@/lib/portfolio/calculations";
 import { filterAssetsByReferencedTransactions } from "@/lib/portfolio/asset-scope";
+import {
+  ALL_PORTFOLIOS_ID,
+  allPortfoliosOption,
+  buildAllPortfoliosSnapshotSeries,
+  isAllPortfoliosId,
+  withAllPortfoliosOption
+} from "@/lib/portfolio/aggregate";
 import * as mockData from "@/lib/mock-data";
 
 export type DashboardData = {
@@ -150,9 +157,77 @@ export async function getDashboardDataForEmail(
 
   const user = await ensureUserWorkspace(email);
   const db = getDb();
+  const portfolioOptions = await listPortfolioOptionsForUser(user.id);
+
+  if (isAllPortfoliosId(portfolioId)) {
+    const portfolioIds = portfolioOptions.map((portfolio) => portfolio.id);
+    const [dbAssets, dbTransactions, dbManualPositions, dbSnapshots, rates] = await Promise.all([
+      db.select().from(assets).where(eq(assets.isActive, true)),
+      db
+        .select()
+        .from(transactions)
+        .where(inArray(transactions.portfolioId, portfolioIds))
+        .orderBy(desc(transactions.occurredOn), desc(transactions.createdAt)),
+      db.select().from(manualPositions).where(inArray(manualPositions.portfolioId, portfolioIds)),
+      db
+        .select()
+        .from(portfolioSnapshots)
+        .where(inArray(portfolioSnapshots.portfolioId, portfolioIds))
+        .orderBy(portfolioSnapshots.snapshotDate),
+      getLatestFxRates()
+    ]);
+
+    const scopedAssets = filterAssetsByReferencedTransactions(dbAssets, dbTransactions);
+    const latestPrices = await getLatestPrices();
+    const assetViews = buildAssetViews(scopedAssets, latestPrices, rates);
+    const transactionViews = buildTransactionViews(dbTransactions, scopedAssets);
+    const manualViews = buildManualPositionViews(dbManualPositions, rates);
+    const positions = buildPositions(
+      dbTransactions,
+      scopedAssets,
+      latestPrices,
+      rates,
+      ALL_PORTFOLIOS_ID
+    );
+    const rawSnapshots = buildAllPortfoliosSnapshotSeries(buildSnapshotViews(dbSnapshots));
+    const portfolioView = buildPortfolioView(
+      ALL_PORTFOLIOS_ID,
+      allPortfoliosOption.name,
+      `${portfolioOptions.length} portfolio${portfolioOptions.length === 1 ? "" : "s"} combined`,
+      positions,
+      dbTransactions,
+      manualViews,
+      rawSnapshots,
+      rates
+    );
+    const analyticsHistory = buildAnalyticsHistory({
+      snapshots: rawSnapshots,
+      currentValueUsd: portfolioView.valueUsd,
+      currentValueEur: portfolioView.valueEur
+    });
+    const allocations = buildAllocations(positions, manualViews, scopedAssets);
+
+    return {
+      persistenceMode: "persistent",
+      portfolio: portfolioView,
+      portfolios: withAllPortfoliosOption(portfolioOptions),
+      assets: assetViews,
+      positions,
+      transactions: transactionViews,
+      manualPositions: manualViews,
+      allocations,
+      snapshots: rawSnapshots,
+      analyticsSnapshots: analyticsHistory.snapshots,
+      benchmarkReturns: analyticsHistory.benchmarkReturns,
+      analyticsHistoryMode: analyticsHistory.mode,
+      analyticsHistoryNotice: analyticsHistory.notice,
+      apiStatuses: buildApiStatuses()
+    };
+  }
+
   const portfolio = await getPortfolioForUser(user.id, portfolioId);
 
-  const [dbAssets, dbTransactions, dbManualPositions, dbSnapshots, portfolioOptions, rates] =
+  const [dbAssets, dbTransactions, dbManualPositions, dbSnapshots, rates] =
     await Promise.all([
     db.select().from(assets).where(eq(assets.isActive, true)),
     db
@@ -166,7 +241,6 @@ export async function getDashboardDataForEmail(
       .from(portfolioSnapshots)
       .where(eq(portfolioSnapshots.portfolioId, portfolio.id))
       .orderBy(portfolioSnapshots.snapshotDate),
-    listPortfolioOptionsForUser(user.id),
     getLatestFxRates()
   ]);
 
@@ -197,7 +271,7 @@ export async function getDashboardDataForEmail(
   return {
     persistenceMode: "persistent",
     portfolio: portfolioView,
-    portfolios: portfolioOptions,
+    portfolios: withAllPortfoliosOption(portfolioOptions),
     assets: assetViews,
     positions,
     transactions: transactionViews,
@@ -213,20 +287,25 @@ export async function getDashboardDataForEmail(
 }
 
 function buildMockDashboardData(portfolioId?: string): DashboardData {
+  const isAggregate = isAllPortfoliosId(portfolioId);
   const portfolio =
+    (isAggregate ? buildMockAllPortfoliosView() : undefined) ??
     (portfolioId ? mockData.portfolios.find((item) => item.id === portfolioId) : undefined) ??
     mockData.portfolios[0];
-  const portfolioOptions = mockData.portfolios.map((item) => ({
-    id: item.id,
-    name: item.name,
-    description: item.description
-  }));
+  const portfolioOptions = withAllPortfoliosOption(
+    mockData.portfolios.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description
+    }))
+  );
   const rawSnapshots = mockData.portfolioSnapshots;
   const analyticsHistory = buildAnalyticsHistory({
     snapshots: rawSnapshots,
     currentValueUsd: portfolio.valueUsd,
     currentValueEur: portfolio.valueEur
   });
+  const mockScopeId = isAggregate ? "portfolio_global" : portfolio.id;
 
   return {
     persistenceMode: "demo",
@@ -234,9 +313,9 @@ function buildMockDashboardData(portfolioId?: string): DashboardData {
     portfolio,
     portfolios: portfolioOptions,
     assets: mockData.assets,
-    positions: mockData.getPositionsForPortfolio(portfolio.id),
-    transactions: mockData.getTransactionsForPortfolio(portfolio.id),
-    manualPositions: mockData.getManualPositionsForPortfolio(portfolio.id),
+    positions: mockData.getPositionsForPortfolio(mockScopeId),
+    transactions: mockData.getTransactionsForPortfolio(mockScopeId),
+    manualPositions: mockData.getManualPositionsForPortfolio(mockScopeId),
     allocations: mockData.allocationByAsset,
     snapshots: rawSnapshots,
     analyticsSnapshots: analyticsHistory.snapshots,
@@ -246,6 +325,46 @@ function buildMockDashboardData(portfolioId?: string): DashboardData {
       analyticsHistory.notice ??
       "Preview is running without DATABASE_URL, so demo data is shown and edits are not persisted.",
     apiStatuses: mockData.apiStatuses
+  };
+}
+
+function buildMockAllPortfoliosView(): Portfolio {
+  const positions = mockData.getPositionsForPortfolio("portfolio_global");
+  const manualViews = mockData.getManualPositionsForPortfolio("portfolio_global");
+  const valueEur =
+    positions.reduce((sum, position) => sum + position.marketValueEur, 0) +
+    manualViews.reduce((sum, position) => sum + position.valueEur, 0);
+  const valueUsd =
+    positions.reduce((sum, position) => sum + position.marketValueUsd, 0) +
+    manualViews.reduce((sum, position) => sum + position.valueUsd, 0);
+  const netContributionsEur = mockData.portfolios.reduce(
+    (sum, portfolio) => sum + portfolio.netContributionsEur,
+    0
+  );
+  const netContributionsUsd = netContributionsEur * 1.077;
+  const unrealizedGainEur = positions.reduce((sum, position) => sum + position.pnlEur, 0);
+  const unrealizedGainUsd = unrealizedGainEur * 1.077;
+  const realizedGainEur = 0;
+  const realizedGainUsd = 0;
+
+  return {
+    id: ALL_PORTFOLIOS_ID,
+    name: allPortfoliosOption.name,
+    description: allPortfoliosOption.description,
+    baseCurrency: "USD",
+    valueEur,
+    valueUsd,
+    twr: mockData.portfolioSnapshots.at(-1)?.twr ?? 0,
+    pnlEur: valueEur - netContributionsEur,
+    dayChangePercent: 0,
+    netContributionsEur,
+    netContributionsUsd,
+    cashEur: 0,
+    cashUsd: 0,
+    unrealizedGainEur,
+    unrealizedGainUsd,
+    realizedGainEur,
+    realizedGainUsd
   };
 }
 

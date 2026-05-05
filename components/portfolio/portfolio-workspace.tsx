@@ -21,6 +21,7 @@ import { TimeframeControl } from "@/components/portfolio/timeframe-control";
 import { TransactionImportPanel } from "@/components/portfolio/transaction-import-panel";
 import { TransactionsTable } from "@/components/portfolio/transactions-table";
 import type { DashboardData } from "@/lib/db/portfolio-repository";
+import { ALL_PORTFOLIOS_ID } from "@/lib/portfolio/aggregate";
 import { buildPortfolioChecks } from "@/lib/portfolio/checks";
 import { calculateTimeframeStats, type TimeframeKey } from "@/lib/portfolio/timeframes";
 import type { Currency } from "@/lib/types";
@@ -30,7 +31,12 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
   const [activeTab, setActiveTab] = useState<PortfolioTab>("Overview");
   const [timeframe, setTimeframe] = useState<TimeframeKey>("ALL");
   const analyticsSnapshots = data.analyticsSnapshots;
-  const disabledReason = data.persistenceMode === "demo" ? data.persistenceNotice : undefined;
+  const isAggregate = data.portfolio.id === ALL_PORTFOLIOS_ID;
+  const persistenceDisabledReason =
+    data.persistenceMode === "demo" ? data.persistenceNotice : undefined;
+  const writeDisabledReason =
+    persistenceDisabledReason ??
+    (isAggregate ? "Choose a specific portfolio before adding transactions or manual positions." : undefined);
   const newsHoldings = buildNewsHoldings(data);
   const timeframeStats = calculateTimeframeStats(analyticsSnapshots, timeframe, currency);
   const portfolioChecks = buildPortfolioChecks({
@@ -58,7 +64,9 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
         portfolios={data.portfolios}
         currency={currency}
         timeframeStats={timeframeStats}
-        disabledReason={disabledReason}
+        disabledReason={persistenceDisabledReason}
+        writeDisabledReason={writeDisabledReason}
+        isAggregate={isAggregate}
       />
 
       <PortfolioChecksPanel checks={portfolioChecks} />
@@ -87,18 +95,21 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
           <ManualPositionsCard
             positions={data.manualPositions}
             currency={currency}
-            portfolioId={data.portfolio.id}
-            disabledReason={disabledReason}
+            portfolioId={isAggregate ? undefined : data.portfolio.id}
+            disabledReason={writeDisabledReason}
           />
         </div>
       )}
 
       {activeTab === "Transactions" && (
         <div className="space-y-10">
-          <TransactionImportPanel portfolioId={data.portfolio.id} disabledReason={disabledReason} />
+          <TransactionImportPanel
+            portfolioId={isAggregate ? undefined : data.portfolio.id}
+            disabledReason={writeDisabledReason}
+          />
           <QuickAddTransactionForm
-            portfolioId={data.portfolio.id}
-            disabledReason={disabledReason}
+            portfolioId={isAggregate ? undefined : data.portfolio.id}
+            disabledReason={writeDisabledReason}
           />
           <TransactionsTable
             transactions={data.transactions}

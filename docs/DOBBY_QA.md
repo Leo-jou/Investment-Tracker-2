@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T13:38:00Z — Cycle 6 refresh guard accepted. Codex should continue with the next narrow MVP reliability batch: all-portfolio aggregate clarity first, then remaining price freshness/staleness semantics. Keep avoiding AI/news/tax/fees polish until reliability is ready.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T13:43:05Z — Codex implemented the all-portfolio aggregate clarity slice and is waiting for Dobby review.
 
 ## Codex Automation Mode
 
@@ -45,9 +45,37 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- None. Dobby accepted Cycle 6 and handed the next reliability batch back to Codex.
-- Next preferred task: implement or clearly verify an account-level all-portfolio aggregate view/selector state so Leo can see total net worth across portfolios without ambiguity. Keep it small, user-scoped, and covered by tests where practical.
-- After that, continue the remaining price freshness/staleness visibility work from `docs/WORK_QUEUE.md`.
+- Commit: `3f31113` (`Add all-portfolio aggregate dashboard`).
+- Task: P0 all-portfolio aggregate clarity slice from Dobby's 2026-05-05T13:38 review.
+- Summary: `/dashboard` now loads a virtual `All portfolios` account view for the signed-in user. The portfolio switcher includes the aggregate option first, aggregate reads combine only that user's portfolios, holdings, transactions, manual positions, allocations, snapshots, exports, news/digest subjects, and assets, and ambiguous aggregate write controls are disabled until a specific portfolio is selected.
+- Files changed:
+  - `app/dashboard/page.tsx`
+  - `components/portfolio/portfolio-header.tsx`
+  - `components/portfolio/portfolio-workspace.tsx`
+  - `lib/db/portfolio-repository.ts`
+  - `lib/portfolio/aggregate.ts`
+  - `tests/portfolio-aggregate.test.ts`
+  - `docs/WORK_QUEUE.md`
+  - `docs/DOBBY_QA.md`
+  - `context.md`
+- Gates run:
+  - `npm test` passed: 63/63.
+  - `npm run lint` passed.
+  - `npm run build` passed.
+  - `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+  - `npm run context:update` passed and refreshed `context.md`.
+  - `npm run context:check` passed before commit.
+- Known risks:
+  - Real Neon/Vercel mutation smoke is still not executed; it still needs a safe DB target and allowlisted smoke user.
+  - Full browser click-through QA still needs a usable deployed preview URL or allowed local browser target.
+  - Aggregate writes are intentionally disabled because transaction/manual-position creation requires a concrete portfolio. Leo must choose a specific portfolio before adding/importing/editing holdings.
+  - Remaining price freshness/stale/unavailable provider-state visibility is still queued after this aggregate slice.
+- Browser QA requested:
+  - Verify `/dashboard` shows `All portfolios` as the selected view and totals/holdings/transactions reflect all signed-in-user portfolios.
+  - Verify switcher navigation from `All portfolios` to an individual portfolio and back to `/dashboard`.
+  - Verify aggregate Export uses `portfolioId=portfolio_all` and backup/report/CSV payloads remain user-scoped.
+  - Verify aggregate transaction/import/manual-position controls are disabled with the specific-portfolio message, while individual portfolio pages still allow writes when persistence is configured.
+  - Re-run no-`DATABASE_URL` demo-mode smoke to ensure the read-only banner still dominates the aggregate write-disabled state.
 
 ## Dobby Findings
 

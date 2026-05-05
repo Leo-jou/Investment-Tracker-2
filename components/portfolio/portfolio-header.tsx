@@ -11,6 +11,7 @@ import { GlobalMetricsBar } from "@/components/portfolio/global-metrics-bar";
 import { PriceRefreshButton } from "@/components/portfolio/price-refresh-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ALL_PORTFOLIOS_ID } from "@/lib/portfolio/aggregate";
 import type { TimeframeStats } from "@/lib/portfolio/timeframes";
 import type { Currency, Portfolio, PortfolioOption } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,8 @@ type PortfolioHeaderProps = {
   currency: Currency;
   timeframeStats: TimeframeStats;
   disabledReason?: string;
+  writeDisabledReason?: string;
+  isAggregate?: boolean;
 };
 
 export function PortfolioHeader({
@@ -28,7 +31,9 @@ export function PortfolioHeader({
   portfolios,
   currency,
   timeframeStats,
-  disabledReason
+  disabledReason,
+  writeDisabledReason,
+  isAggregate = false
 }: PortfolioHeaderProps) {
   const router = useRouter();
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
@@ -73,6 +78,10 @@ export function PortfolioHeader({
 
   async function handleDescriptionSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isAggregate) {
+      setError("Choose a specific portfolio before editing its description.");
+      return;
+    }
     if (disabledReason) {
       setError(disabledReason);
       return;
@@ -119,7 +128,7 @@ export function PortfolioHeader({
                   {portfolios.map((option) => (
                     <Link
                       key={option.id}
-                      href={`/portfolios/${option.id}`}
+                      href={option.id === ALL_PORTFOLIOS_ID ? "/dashboard" : `/portfolios/${option.id}`}
                       className={cn(
                         "block rounded-[6px] px-3 py-2 text-sm text-zinc-300 hover:bg-[#17171a]",
                         option.id === portfolio.id && "bg-[#1a1a1d] text-white"
@@ -165,7 +174,9 @@ export function PortfolioHeader({
               </Button>
             </form>
           )}
-          {isEditingDescription ? (
+          {isAggregate ? (
+            <p className="mt-4 max-w-2xl text-lg text-zinc-500">{portfolio.description}</p>
+          ) : isEditingDescription ? (
             <form onSubmit={handleDescriptionSubmit} className="mt-4 flex max-w-2xl gap-2">
               <Input
                 name="description"
@@ -212,7 +223,7 @@ export function PortfolioHeader({
         </div>
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start">
           <PriceRefreshButton disabledReason={disabledReason} />
-          <AddTransactionMenu disabledReason={disabledReason} />
+          <AddTransactionMenu disabledReason={writeDisabledReason ?? disabledReason} />
         </div>
       </div>
 

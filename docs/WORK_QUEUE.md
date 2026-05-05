@@ -292,7 +292,7 @@ Still open:
 - Surface `priceCapturedAt`, provider freshness, stale/unavailable states, and refresh failures more completely across holdings/assets/quick-add.
 - Add provider-backed 24h change data before re-enabling movers or holding 24h movement columns.
 
-### [ ] P0: Verify all-portfolio aggregate view
+### [x] P0: Verify all-portfolio aggregate view
 
 If missing, implement a simple aggregate view or clear selector state that lets Leo understand total net worth across portfolios.
 
@@ -300,6 +300,15 @@ Audit notes:
 - `/dashboard` and standalone transactions/manual-position pages default to the first portfolio.
 - `/portfolios/[id]` supports individual portfolio views.
 - No account-level aggregate portfolio option is present in the switcher, exports, charts, or backup.
+
+Cycle 7 result:
+
+- `/dashboard` now loads a virtual `All portfolios` account-level view scoped to the signed-in user's portfolios.
+- The portfolio switcher includes `All portfolios` first and links it back to `/dashboard`; individual portfolios still live at `/portfolios/[id]`.
+- Aggregate dashboard data combines the signed-in user's transactions, manual positions, holdings, allocations, assets, exports, news/digest subjects, and snapshots without touching other users or unrelated global assets.
+- Aggregate snapshot history is summed by date and recomputes aggregate TWR from the combined value/cash-flow series.
+- Ambiguous write controls in the aggregate view are disabled with a clear "choose a specific portfolio" message; portfolio-specific write flows remain available on individual portfolio pages.
+- Added focused tests for the aggregate option and summed snapshot/TWR behavior.
 
 ### [~] P0: Math and tooltip consistency pass
 

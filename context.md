@@ -82,6 +82,8 @@ Mutation-capable DB/API smoke coverage now exists as `npm run smoke:mutations`. 
 
 First-run real DB workspaces are now empty by default: `ensureUserWorkspace` creates only a blank `Personal` portfolio for new users and no longer seeds demo assets, transactions, manual positions, price snapshots, or simulated snapshots. Existing user data is not deleted or migrated. Empty real portfolios no longer receive simulated analytics history; charts show an empty-history state until real entries/snapshots exist. When `DATABASE_URL` is absent, dashboard/transactions/manual/assets views show a read-only demo-mode warning and disable portfolio, transaction, import, manual-position, asset-search, and price-refresh write controls.
 
+The main `/dashboard` route now represents a virtual `All portfolios` account-level view (`portfolio_all`) instead of silently defaulting to the first portfolio. Aggregate reads combine only the signed-in user's portfolios, positions, transactions, manual positions, scoped assets, allocations, exports, news/digest subjects, and snapshots; aggregate write controls are disabled until a concrete portfolio is selected.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - UI components: 11 files
@@ -93,6 +95,7 @@ Generated refresh summary:
 - Pricing providers: 1 file
 
 Recent commits:
+- ce50c5b 2026-05-05 Review refresh guard cycle
 - 2ca810f 2026-05-05 Record refresh guard handoff
 - bd33a29 2026-05-05 Fail closed demo price refresh
 - 2320627 2026-05-05 Document Codex context rebase recovery
@@ -100,7 +103,6 @@ Recent commits:
 - b390f96 2026-05-05 Unblock Codex refresh guard task
 - 8f16795 2026-05-05 Block demo refresh false positive
 - 9032523 2026-05-05 Harden first-run demo safety
-- f0cfca9 2026-05-05 Request Vercel preview URL
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -155,4 +157,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T13:31:21.217Z - Refreshed generated context from 8 recent commits, 29 changed files, and 0 TODO/FIXME items.
+2026-05-05T13:48:27.455Z - Refreshed generated context from 8 recent commits, 29 changed files, and 0 TODO/FIXME items.
