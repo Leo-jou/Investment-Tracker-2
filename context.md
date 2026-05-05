@@ -78,16 +78,19 @@ The first post-audit P0 implementation batch fixed quick-add's hardcoded date, s
 
 The next P0 asset-scoping batch limited selected-portfolio `data.assets` to assets referenced by that portfolio's transactions, limited `/assets` to assets referenced by the signed-in account's portfolios, and made CSV import known-symbol checks use that account-scoped asset list instead of all global active assets. This also scopes backup/export asset payloads because export builders consume `DashboardData.assets`.
 
+Mutation-capable DB/API smoke coverage now exists as `npm run smoke:mutations`. It is opt-in and skips unless `SMOKE_MUTATIONS=1` is set; when enabled with `DATABASE_URL` and an allowlisted smoke email, it exercises login, portfolio create, transaction create/edit/delete, CSV import known/unknown symbol validation, `/assets` account scoping, backup export scoping, and direct cleanup of temporary DB fixtures. `/api/transactions` POST returns the created transaction id to make cleanup reliable.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Documentation: 4 files
 - Other: 4 files
 - UI components: 4 files
+- Documentation: 3 files
 - API routes: 1 file
 - App pages: 1 file
 - Database: 1 file
 
 Recent commits:
+- 26baa4f 2026-05-05 Accept asset scoping batch
 - 461aa29 2026-05-05 Scope visible assets to account data
 - d026bfa 2026-05-05 Review price semantics batch
 - 643602f 2026-05-05 Harden real-data price semantics
@@ -95,7 +98,6 @@ Recent commits:
 - 1cec323 2026-05-05 Establish Dobby polling loop
 - dd9b968 2026-05-05 Record Dobby audit commit
 - 5c56462 2026-05-05 Audit MVP reliability risks
-- 63d1f7f 2026-05-05 Add Codex Dobby handoff signals
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -130,7 +132,7 @@ Generated TODO/FIXME scan:
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
-2. Fix the remaining P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with mutation-capable smoke tests, first-run demo data behavior, and a clear all-portfolio aggregate view.
+2. Fix the remaining P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with running the guarded mutation smoke against a safe target, first-run demo data behavior, and a clear all-portfolio aggregate view.
 3. Finish quote/price semantics before real data entry: show `priceCapturedAt`, provider freshness, stale/unavailable/manual/mock states, and refresh failures across holdings/assets/quick-add.
 4. Align charts/tooltips with real persisted data by avoiding unlabeled simulated analytics history outside the Analysis tab.
 5. Add historical-date-aware SELL validation.
@@ -150,4 +152,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T11:05:13.239Z - Refreshed generated context from 8 recent commits, 15 changed files, and 0 TODO/FIXME items.
+2026-05-05T11:10:32.927Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.

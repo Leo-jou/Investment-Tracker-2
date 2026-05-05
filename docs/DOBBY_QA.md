@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T10:50:41Z — Codex pushed the P0 user/account asset-scoping slice and is waiting for Dobby review.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T11:10:57Z — Codex pushed the mutation-capable smoke coverage slice and is waiting for Dobby review.
 
 ## Codex Automation Mode
 
@@ -44,34 +44,32 @@ MVP reliability:
 ## Pending Dobby Review
 
 - Commit: final pushed branch tip for this handoff.
-- Task: P0 user/account asset-scoping slice from Dobby's 2026-05-05T10:32 review.
-- Summary: Scoped dashboard `data.assets` to assets referenced by the selected portfolio's transactions, scoped `/assets` to assets referenced by portfolios owned by the signed-in account, and changed CSV import known-symbol validation to use the account-scoped asset list instead of unrelated global assets.
+- Task: P0 mutation-capable DB/API smoke coverage from Dobby's 2026-05-05T11:05 review.
+- Summary: Added an opt-in guarded mutation smoke script for real DB/API flows. The script logs in through `/api/auth/login`, creates a temporary portfolio through `/api/portfolios`, creates/edits/deletes a provider-backed BUY through transaction APIs, seeds another-account asset fixtures directly in the DB, checks `/assets` and backup export scoping, verifies CSV import known/unknown symbol behavior, and cleans up temporary portfolio/transactions/assets. Transaction POST now returns the created transaction id so smoke cleanup can be precise.
 - Files changed:
-  - `app/api/transactions/import/route.ts`
+  - `app/api/transactions/route.ts`
   - `lib/db/portfolio-repository.ts`
-  - `lib/portfolio/asset-scope.ts`
-  - `tests/asset-scope.test.ts`
+  - `scripts/smoke-mutations.ts`
+  - `package.json`
   - `docs/WORK_QUEUE.md`
   - `docs/DOBBY_QA.md`
   - `context.md`
 - Gates run:
   - `npm test` passed: 58/58.
   - `npm run lint` passed.
+  - `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
   - `npm run build` passed.
   - `npm run context:update` passed and refreshed `context.md`.
   - `npm run context:check` passed.
 - Known risks:
   - No all-portfolio aggregate view exists yet; dashboard and standalone transaction/manual-position pages default to the first portfolio unless a specific portfolio route is used.
   - First-run Neon workspace bootstrap still inserts demo transactions, snapshots, and one manual position, which is risky for real personal-data onboarding unless clearly resettable or disabled.
-  - CSV import known-symbol checks are account-scoped, but unknown new tickers still need to be selected through provider-backed quick-add/search before import.
-  - Existing historical `mock` provider assets are labeled/blocked for new BUYs but are not migrated or deleted.
+  - The new mutation smoke is intentionally opt-in and requires `SMOKE_MUTATIONS=1`, `DATABASE_URL`, and an allowlisted `SMOKE_MUTATION_EMAIL` or `SMOKE_EMAIL`; it was not run against a real DB in this local cycle.
   - Overview chart/timeframe metrics use `analyticsSnapshots`, which may be simulated history, without the same visible labeling shown in Analysis.
   - SELL validation checks current total holding quantity, not historical as-of-date availability.
-  - Mutation/user-scope API coverage is missing; current production smoke is mostly read-only.
 - Browser QA requested:
-  - Verify `/assets` no longer shows unrelated global assets from other accounts/portfolios.
-  - Verify backup JSON and report JSON include only assets tied to the selected portfolio's transactions.
-  - Verify CSV import still accepts account-known symbols while rejecting unknown symbols.
+  - Run `SMOKE_MUTATIONS=1 SMOKE_MUTATION_EMAIL=<allowlisted test email> DATABASE_URL=<same target DB> npm run smoke:mutations` against a safe target environment.
+  - Verify the script cleans up its temporary portfolio, transactions, test assets, and other-account fixture.
   - Check whether the remaining portfolio switcher still needs an `All portfolios` option before Leo enters real data.
 
 ## Dobby Findings

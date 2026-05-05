@@ -526,20 +526,38 @@ export async function createTransactionForEmail(email: string, input: FormData |
 
   await persistSubmittedQuote(asset, parsed.assetQuote);
 
-  await db.insert(transactions).values({
-    portfolioId: portfolio.id,
-    assetId: asset?.id,
-    type: parsed.type,
-    occurredOn: parsed.occurredOn,
-    quantity: parsed.quantity,
-    grossAmount: parsed.grossAmount,
-    currency: parsed.currency,
-    fees: parsed.fees,
-    platform: parsed.platform,
-    note: parsed.note
-  });
+  const [transaction] = await db
+    .insert(transactions)
+    .values({
+      portfolioId: portfolio.id,
+      assetId: asset?.id,
+      type: parsed.type,
+      occurredOn: parsed.occurredOn,
+      quantity: parsed.quantity,
+      grossAmount: parsed.grossAmount,
+      currency: parsed.currency,
+      fees: parsed.fees,
+      platform: parsed.platform,
+      note: parsed.note
+    })
+    .returning();
 
   await upsertCurrentPortfolioSnapshot(portfolio.id);
+
+  return {
+    id: transaction.id,
+    portfolioId: transaction.portfolioId,
+    type: transaction.type,
+    assetId: transaction.assetId ?? undefined,
+    assetSymbol: asset?.symbol,
+    date: transaction.occurredOn,
+    quantity: transaction.quantity ?? undefined,
+    grossAmount: transaction.grossAmount,
+    currency: transaction.currency,
+    fees: transaction.fees,
+    platform: transaction.platform ?? undefined,
+    note: transaction.note ?? undefined
+  } satisfies Transaction;
 }
 
 export async function updateTransactionForEmail(

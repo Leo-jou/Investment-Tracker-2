@@ -16,8 +16,8 @@ export async function POST(request: Request) {
   try {
     const email = await requireSessionEmail();
     const formData = await request.formData();
-    await createTransactionForEmail(email, formData);
-    return NextResponse.json({ ok: true });
+    const transaction = await createTransactionForEmail(email, formData);
+    return NextResponse.json({ ok: true, transaction });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not create transaction." },

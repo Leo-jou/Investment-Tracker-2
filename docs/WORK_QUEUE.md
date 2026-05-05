@@ -138,7 +138,7 @@ Next recommendation: add mutation-capable DB/API smoke tests for create/edit/del
 
 These are placeholders until Cycle 1 confirms the real state.
 
-### [ ] P0: Add mutation-capable DB/API smoke tests for real user data flows and scoping
+### [~] P0: Add mutation-capable DB/API smoke tests for real user data flows and scoping
 
 Target flows:
 
@@ -154,6 +154,26 @@ Target flows:
 Audit notes:
 - Current `scripts/smoke-production.ts` is mostly read-only, except optional price refresh.
 - Unit tests cover portfolio math, export generation, provider normalization, and CSV import parsing, but not the API create/edit/delete scoping paths against a real DB.
+
+Cycle 4 partial result:
+
+- Added `npm run smoke:mutations`, an opt-in guarded DB/API mutation smoke script.
+- The script skips safely unless `SMOKE_MUTATIONS=1` is set.
+- When enabled with `DATABASE_URL` and an allowlisted `SMOKE_MUTATION_EMAIL` or `SMOKE_EMAIL`, it exercises:
+  - `/api/auth/login`;
+  - `/api/portfolios` temporary portfolio creation;
+  - `/api/transactions` provider-backed BUY creation;
+  - `/api/transactions/[id]` edit and delete;
+  - `/api/transactions/import` known/unknown symbol validation;
+  - `/assets` account-scoping with another-account fixture;
+  - `/api/export?format=backup-json` selected-portfolio asset scoping.
+- The smoke script uses direct DB cleanup for its temporary portfolio, transactions, unique test assets, and another-account fixture.
+- Transaction POST now returns the created transaction id, enabling precise smoke cleanup without scraping UI state.
+
+Still open:
+
+- Run the mutation smoke against a safe Vercel/Neon target with a real allowlisted test account and verify cleanup.
+- Add or run browser/UI QA once Chrome/Chromium access is available.
 
 ### [~] P0: Confirm all core data is Neon-backed and user-scoped
 
