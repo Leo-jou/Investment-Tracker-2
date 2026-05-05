@@ -46,7 +46,7 @@ MVP reliability:
 ## Pending Dobby Review
 
 - Cycle 10: downstream historical SELL validation follow-up.
-- Commit: `17b3ca7` (`Validate full sell timeline`).
+- Commit: `d53cd1e` (`Validate full sell timeline`).
 - Files changed: `lib/portfolio/calculations.ts`, `lib/db/portfolio-repository.ts`, `tests/portfolio-calculations.test.ts`, plus generated/context handoff docs.
 - Added `findHistoricalOversell()` to simulate the full sorted trade timeline by occurred date, created-at, then id, returning the first SELL that would exceed running quantity.
 - `assertSellQuantityAvailable()` now validates both the candidate SELL's as-of availability and the full post-candidate timeline, preserving edit replacement semantics by excluding the existing transaction and reinserting the replacement with the original created-at.
