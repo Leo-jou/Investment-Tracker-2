@@ -150,6 +150,8 @@ Dobby reviewed `424c607` (`Add guarded mutation smoke coverage`):
 
 Next recommendation: address first-run demo-data safety before Leo enters real data. Make new real-user Neon workspaces empty by default or unmistakably demo-labeled/resettable, and add clear persistence-mode warning/gating when `DATABASE_URL` is absent. Avoid destructive migrations or deleting existing user data without Leo approval.
 
+Deployment/QA request: Codex should provide the Vercel preview/test URL for `codex/openclaw-playground` so Dobby can run full Browser/UI QA. If no preview exists or it is protected, document the blocker and whether Codex can create/trigger one from Vercel access.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

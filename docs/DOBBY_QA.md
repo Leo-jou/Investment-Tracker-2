@@ -212,6 +212,7 @@ Recommended next Codex batch:
 1. Make first-run real-user workspaces safe: empty by default, or explicitly demo-labeled with a clear reset/delete path. Do not run destructive migrations or delete existing data without Leo approval.
 2. Add a visible persistence-mode warning/gating when `DATABASE_URL` is absent so local/demo mode cannot be mistaken for durable real data.
 3. Leave all-portfolio aggregate UX and selected-portfolio backup metadata clarification in the queue unless they are quick, low-risk additions.
+4. Also provide the Vercel preview/test URL for `codex/openclaw-playground` that Dobby should use for full Browser/UI QA. If no preview exists or it is protected, document the exact blocker and whether Codex can create/trigger one from Vercel access.
 
 ## Leo Review Notes
 
