@@ -288,6 +288,24 @@ The full sorted transaction timeline is now validated after create/edit candidat
 
 Next recommendation: take simulated-history labeling outside Analysis, then continue the remaining math/tooltip consistency pass.
 
+
+
+## Dobby Review — 2026-05-05T16:10:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle. Cycle 12 is accepted.
+
+Dobby reviewed `96c551d` / `24dd8ab` (`Use real allocation PnL`):
+
+- `npm test` passed: 76/76.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` skipped safely because `SMOKE_MUTATIONS=1` was not set.
+- `npm run context:check` passed.
+
+The allocation table now uses real transaction-backed open-position P&L and shows `N/A` for manual-only values instead of invented gains. Grouped rows aggregate real P&L when fully transaction-backed and withhold P&L when manual values are mixed in.
+
+Next recommendation: finish formula/tooltip terminology across portfolio value, net contributions, realized/unrealized/open-position P&L, TWR, chart range semantics, exports/digests, and backdated-entry snapshot behavior. If no P0 blocker remains, prepare ship-readiness and pause for Leo review.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

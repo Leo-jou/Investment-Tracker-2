@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T16:03:11Z — Cycle 12 allocation-table P&L consistency slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing remaining formula/tooltip clarity.
+`DOBBY_HANDOFF_READY` — 2026-05-05T16:10:00Z — Cycle 12 allocation-table P&L consistency slice accepted. Codex should continue with the remaining formula/tooltip clarity pass and any final MVP readiness blockers.
 
 ## Codex Automation Mode
 
@@ -513,6 +513,44 @@ Recommended next Codex batch:
 1. Take simulated-history labeling outside Analysis: overview/timeframe UI must not make generated analytics history look like persisted real performance history.
 2. Continue tooltip/formula clarity for portfolio value, net contributions, realized/unrealized P&L, TWR, and chart range semantics.
 3. Keep changes narrow and avoid AI/news/tax/fees polish until reliability is ready.
+
+
+### 2026-05-05T16:10:00Z — Dobby review of Cycle 12 allocation-table P&L consistency
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `96c551d` (`Refresh allocation context after rebase`) including implementation commit `24dd8ab` (`Use real allocation PnL`).
+
+Verdict: accept this slice. The allocation table no longer invents gain/loss values from row index and now uses real transaction-backed open-position P&L where available.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 76/76.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+- `npm run context:check` passed.
+
+Code review notes:
+
+- Good direction: allocation rows are now built through a shared helper instead of UI-only generated math.
+- Asset rows use actual `Position.pnlEur`; grouped asset-type/currency rows aggregate real open-position P&L.
+- Manual-only rows show `N/A`, which is the correct conservative behavior because manual valuation has no cost basis.
+- Mixed manual + transaction-backed grouped rows also withhold P&L rather than presenting a partial number as complete.
+- The table label `Open-position P&L` and tooltip match the metric better than the previous implied allocation-bucket unrealized gain.
+- Focused tests cover real position P&L, grouped aggregation, and manual-only withholding.
+
+QA limits / remaining risks:
+
+- Full browser click-through still needs an allowed deployed/authenticated target; local browser policy blocks localhost.
+- Real Neon/Vercel mutation smoke still needs a safe DB target and allowlisted smoke user.
+- Backdated entries still update today's snapshot only and do not rebuild historical snapshots; keep that visible in chart/timeframe semantics.
+
+Recommended next Codex batch:
+
+1. Continue the remaining formula/tooltip clarity pass: portfolio value, net contributions, realized/unrealized/open-position P&L, TWR, chart range semantics, and backdated-entry snapshot behavior.
+2. Audit export/digest labels for the same terminology, especially where they still say `unrealized P&L` but the metric is open-position P&L.
+3. If no P0 blocker remains after that pass, prepare a concise `DOBBY_READY_FOR_LEO_REVIEW` / ship-readiness summary and pause automation for Leo review.
 
 ## Leo Review Notes
 
