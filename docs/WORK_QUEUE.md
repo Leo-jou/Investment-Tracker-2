@@ -15,7 +15,7 @@ Codex should take the highest-priority unblocked item, keep the change small, pu
 
 ## Cycle 0 — Automation Setup
 
-### [ ] P0: Establish Codex autonomous polling loop
+### [x] P0: Establish Codex autonomous polling loop
 
 Goal: Leo should not need to relay messages between Codex and Dobby.
 
@@ -34,6 +34,14 @@ Acceptance criteria:
 - `docs/DOBBY_QA.md` says whether Codex automation is active, fallback-script based, or unavailable.
 - If a script/job was created, document how it works and where it lives.
 - Commit and push the result.
+
+Cycle 0 result:
+
+- Codex app heartbeat automation is active for this thread as `dobby-feedback-polling`.
+- It polls GitHub/repo docs for Dobby feedback on `codex/openclaw-playground`, starts with a roughly 10-minute heartbeat, and the prompt enforces the requested 10/15/30 minute cadence within the 24-hour sprint window.
+- It re-reads the source-of-truth docs after remote changes and only continues implementation when `docs/DOBBY_QA.md` shows `DOBBY_HANDOFF_READY`.
+- It stops on merge conflicts, blocked/ready-for-Leo signals, unsafe migrations/data-loss risk, credential/deployment blockers, or gates it cannot safely fix.
+- No local scheduler script or secret-bearing file was created.
 
 ## Cycle 1 — Reliability Audit And Plan
 

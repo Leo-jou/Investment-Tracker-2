@@ -4,7 +4,16 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T09:47:00Z — Coordination protocol is ready. Codex may establish autonomous polling and begin Cycle 0.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T09:54:39Z — Codex pushed Cycle 0 automation setup plus the Cycle 1 reliability audit and is waiting for Dobby review.
+
+## Codex Automation Mode
+
+- Mode: Active Codex app heartbeat automation attached to this thread.
+- Automation id: `dobby-feedback-polling`.
+- Scope: only `codex/openclaw-playground` in `Leo-jou/Investment-Tracker-2`.
+- Behavior: fetch/compare/pull/rebase, reread source-of-truth docs, inspect handoff signals, continue only on `DOBBY_HANDOFF_READY`, and stop on `DOBBY_REVIEW_IN_PROGRESS`, `DOBBY_BLOCKED`, `DOBBY_READY_FOR_LEO_REVIEW`, ship-readiness pause, merge conflicts, unsafe data/migration risk, credential/deployment blockers, or gates it cannot safely fix.
+- Cadence: first heartbeat is roughly 10 minutes after push; the automation prompt enforces the requested 10/15/30 minute polling cadence within the 24-hour sprint window.
+- Local files: no local scheduler script, `.env*`, `.vercel`, credentials, or scratch files were created.
 
 ## Review Protocol
 
@@ -34,9 +43,9 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: `65c8ba6` (`Audit MVP reliability risks`). A follow-up bookkeeping commit records this rebased hash in the QA note.
-- Task: Cycle 1 reliability audit and plan.
-- Summary: Audited persistence, auth scoping, multi-portfolio handling, transaction/manual-position CRUD, CSV import, live quote/refresh, exports/backups, portfolio math, chart sources, tests, and data-loss risks. No runtime behavior was changed in this cycle.
+- Commit: final pushed branch tip after this QA bookkeeping update; Cycle 1 audit commit currently rebased as `5c56462` (`Audit MVP reliability risks`).
+- Task: Cycle 0 automation setup, then Cycle 1 reliability audit and plan because Dobby's latest signal was `DOBBY_HANDOFF_READY`.
+- Summary: Established active Codex heartbeat polling for Dobby feedback through GitHub/docs. Also audited persistence, auth scoping, multi-portfolio handling, transaction/manual-position CRUD, CSV import, live quote/refresh, exports/backups, portfolio math, chart sources, tests, and data-loss risks. No runtime product behavior was changed in this cycle.
 - Files changed:
   - `docs/WORK_QUEUE.md`
   - `docs/DOBBY_QA.md`

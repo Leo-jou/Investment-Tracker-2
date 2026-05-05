@@ -8,6 +8,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 
 - Current MVP priority from Leo: reliability before polish/features. The app should be safe for real personal use: Neon-backed persistence, account/user scoping, multiple portfolios plus aggregate view, live/stale price clarity, correct portfolio math/tooltips/charts, CSV/backup export, and no data-loss risk. Scheduled emails, AI/news commentary, taxes/fees, and final UI beauty are explicitly later.
 - Dobby/Codex option-one coordination is documented in `docs/DOBBY_CODEX_COORDINATION.md`, with current scope in `docs/MVP_RELIABILITY_SCOPE.md`, task handoff in `docs/WORK_QUEUE.md`, QA feedback in `docs/DOBBY_QA.md`, and release checklist in `docs/SHIP_READINESS.md`. Codex should push every cycle so Dobby can review through GitHub.
+- Codex-side autonomous polling is active through the Codex app heartbeat automation `dobby-feedback-polling`. It checks GitHub/docs for Dobby handoff signals on `codex/openclaw-playground`, continues only on `DOBBY_HANDOFF_READY`, and stops on review/blocker/ready-for-Leo signals or unsafe conflicts/gates.
 
 - Manual transaction entry is the primary workflow for the MVP.
 - Broker and wallet sync are out of scope for the initial version.
@@ -75,23 +76,20 @@ Cycle 1 reliability audit on `codex/openclaw-playground` found the next MVP bloc
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 7 files
 - Documentation: 6 files
-- UI components: 5 files
-- App pages: 2 files
+- Other: 3 files
 - Database: 2 files
-- API routes: 1 file
-- Metrics: 1 file
+- App pages: 1 file
 
 Recent commits:
+- dd9b968 2026-05-05 Record Dobby audit commit
+- 5c56462 2026-05-05 Audit MVP reliability risks
+- 63d1f7f 2026-05-05 Add Codex Dobby handoff signals
 - bb71c24 2026-05-05 Clarify autonomous Codex Dobby loop
 - ede12e0 2026-05-05 Add Dobby Codex coordination docs
 - 15be197 2026-04-30 Allow preview dashboard without database
 - 6b06160 2026-04-30 Trigger playground preview deployment
 - 7a28c7f 2026-04-30 Add news source registry settings view
-- 20b59a8 2026-04-30 Add generic CSV transaction import
-- caa3c82 2026-04-30 Add risk readiness progress panel
-- d7745ff 2026-04-30 Ignore macOS metadata files
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -146,4 +144,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T09:47:48.357Z - Refreshed generated context from 8 recent commits, 24 changed files, and 0 TODO/FIXME items.
+2026-05-05T09:53:05.211Z - Refreshed generated context from 8 recent commits, 12 changed files, and 0 TODO/FIXME items.
