@@ -98,6 +98,7 @@ Generated refresh summary:
 - Tooling: 1 file
 
 Recent commits:
+- a2ae7a5 2026-05-05 Review sell validation slice [skip ci]
 - 7434c96 2026-05-05 Skip Vercel for Dobby feedback commits [skip ci]
 - 0668237 2026-05-05 Validate sells by transaction date
 - 931e8c7 2026-05-05 Review price freshness slice [skip ci]
@@ -105,7 +106,6 @@ Recent commits:
 - aed8a3e 2026-05-05 Record price freshness handoff
 - d38ccf4 2026-05-05 Surface price freshness states
 - f8aab24 2026-05-05 Review aggregate dashboard slice
-- 24f06ce 2026-05-05 Record aggregate dashboard handoff
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -160,4 +160,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T15:16:47.495Z - Refreshed generated context from 8 recent commits, 16 changed files, and 0 TODO/FIXME items.
+2026-05-05T15:20:02.362Z - Refreshed generated context from 8 recent commits, 16 changed files, and 0 TODO/FIXME items.

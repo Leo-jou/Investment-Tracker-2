@@ -252,6 +252,24 @@ Dobby reviewed `80a6656` / `0668237` (`Validate sells by transaction date`):
 
 Next recommendation: take simulated-history labeling outside Analysis. Overview/timeframe UI should not let generated analytics history look like persisted real performance history.
 
+
+
+## Dobby Review — 2026-05-05T15:20:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle. Cycle 9 is not accepted yet.
+
+Dobby reviewed `7434c96` / `0668237` for historical SELL validation:
+
+- `npm test` passed: 69/69.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` skipped safely because `SMOKE_MUTATIONS=1` was not set.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+
+Blocking gap to fix next: current SELL validation checks availability immediately before the candidate SELL, but does not verify that a newly inserted/edited backdated SELL does not invalidate later existing SELLs. Example: BUY 10 on Jan 1, existing SELL 10 on Mar 1, then add SELL 10 on Feb 1. The Feb candidate passes, but the Mar SELL becomes historically impossible.
+
+Next recommendation: add full sorted transaction timeline validation after applying the create/edit candidate, reject any SELL that would make running quantity negative, preserve edit replacement semantics, and add focused tests for downstream oversell plus CSV import batch behavior.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T15:18:00Z — Cycle 9 historical SELL validation slice accepted. Codex should continue with the next narrow MVP reliability batch: simulated-history labeling outside Analysis and remaining tooltip/formula clarity. Keep avoiding AI/news/tax/fees polish until reliability is ready.
+`DOBBY_HANDOFF_READY` — 2026-05-05T15:20:00Z — Cycle 9 historical SELL validation is not accepted yet. Codex should fix downstream historical oversell validation as the next narrow implementation cycle, then push back for Dobby QA.
 
 ## Codex Automation Mode
 
@@ -423,6 +423,52 @@ Recommended next Codex batch:
 1. Label or avoid simulated analytics history anywhere outside Analysis where Overview/timeframe UI could be mistaken for persisted historical performance. Prefer raw persisted snapshots for overview cards/charts when possible; otherwise show an explicit simulated/generated-history notice.
 2. Add/adjust tests for sparse/no persisted snapshot behavior and labels.
 3. Then continue tooltip/formula clarity for portfolio value, net contributions, realized/unrealized P&L, TWR, and chart range semantics.
+
+
+### 2026-05-05T15:20:00Z — Dobby review of Cycle 9 historical SELL validation
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `7434c96` (`Skip Vercel for Dobby feedback commits [skip ci]`) including implementation commit `0668237` (`Validate sells by transaction date`).
+
+Verdict: not accepted yet. Good direction, but a historical correctness gap remains and must be fixed before Leo enters real transaction history.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 69/69.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed before this feedback commit.
+
+What looks good:
+
+- Candidate backdated SELLs no longer borrow from later BUYs when validating that candidate row.
+- Same-day ordering by `occurredOn`, then `createdAt`, then `id` is shared with position math.
+- Edit validation excludes the existing transaction id while preserving replacement semantics.
+- CSV import commit rows go through `createTransactionForEmail()`, so they inherit the same per-row validation.
+- Vercel ignore config is conservative: Dobby docs/context-only feedback commits can skip deployments, while app/config path changes still deploy unless explicitly `[skip ci]`.
+
+Blocking correctness gap:
+
+- `assertSellQuantityAvailable()` checks only quantity available immediately before the candidate SELL.
+- It does not verify that inserting or editing a backdated SELL does not make later existing SELLs impossible.
+- Example: Jan 1 BUY 10, Mar 1 SELL 10 exists, then add Feb 1 SELL 10. Current validation allows the Feb SELL because 10 are available on Feb 1, but the later Mar SELL is now historically oversold.
+- `buildPositionStates()` clamps oversells to zero, so final position state can hide the impossible timeline instead of surfacing it.
+
+Required next Codex task:
+
+1. Add a validation helper that simulates the full sorted transaction timeline after applying the create/edit candidate and rejects any SELL whose requested quantity exceeds running quantity at that point.
+2. Use the same transaction ordering as position math.
+3. Preserve edit exclusion/current-transaction replacement semantics.
+4. Add focused tests for:
+   - backdated SELL that passes candidate as-of availability but invalidates a later SELL;
+   - editing an existing SELL earlier or larger so it invalidates later SELLs;
+   - CSV import batch behavior where sequential rows would create a downstream historical oversell;
+   - ideally a pure helper test proving no asset holding goes negative at any point in sorted history.
+5. Refresh `context.md`, rerun gates, and push back for Dobby QA.
+
+Do not treat this as a stop signal. This is Codex-actionable and should be the next narrow implementation cycle.
 
 ## Leo Review Notes
 
