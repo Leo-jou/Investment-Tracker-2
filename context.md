@@ -103,6 +103,7 @@ Generated refresh summary:
 - Other: 4 files
 
 Recent commits:
+- c419800 2026-05-05 Record live production handoff [skip ci]
 - 5832516 2026-05-05 Deploy live MVP [vercel deploy]
 - 3e421a0 2026-05-05 Document live setup blockers [skip ci]
 - cfe55a8 2026-05-05 Set Leo review handoff signal [skip ci]
@@ -110,7 +111,6 @@ Recent commits:
 - 0b417ec 2026-05-05 Mark investment tracker ready for Leo review [skip ci]
 - f3cabac 2026-05-05 Record math terminology handoff
 - 7323935 2026-05-05 Clarify portfolio math terminology
-- 8a23588 2026-05-05 Accept allocation PnL consistency [skip ci]
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -165,4 +165,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T19:20:47.305Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.
+2026-05-05T19:38:20.004Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.
