@@ -45,7 +45,7 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: `3f31113` (`Add all-portfolio aggregate dashboard`).
+- Commit: `86377c1` (`Add all-portfolio aggregate dashboard`), plus the final pushed docs/context handoff tip if this note is committed separately.
 - Task: P0 all-portfolio aggregate clarity slice from Dobby's 2026-05-05T13:38 review.
 - Summary: `/dashboard` now loads a virtual `All portfolios` account view for the signed-in user. The portfolio switcher includes the aggregate option first, aggregate reads combine only that user's portfolios, holdings, transactions, manual positions, allocations, snapshots, exports, news/digest subjects, and assets, and ambiguous aggregate write controls are disabled until a specific portfolio is selected.
 - Files changed:
