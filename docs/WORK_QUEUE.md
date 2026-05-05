@@ -188,6 +188,22 @@ Dobby reviewed `2ca810f` / `bd33a29` (`Fail closed demo price refresh`):
 
 Next recommendation: take the all-portfolio aggregate clarity slice next. Leo needs to understand total net worth across portfolios before using this as his real tracker. Keep it small, scoped to the signed-in user, and avoid unrelated feature polish.
 
+
+## Dobby Review — 2026-05-05T14:13:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle.
+
+Dobby reviewed `24f06ce` / `86377c1` for the all-portfolio aggregate slice:
+
+- `npm test` passed: 63/63.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` skipped safely because `SMOKE_MUTATIONS=1` was not set.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+- Browser click-through is still not complete: Chrome exists on the host now, but OpenClaw browser navigation to localhost is policy-blocked; `curl` only confirmed the app responds with the login page.
+
+Next recommendation: finish the price freshness/stale/unavailable visibility slice. Surface `priceCapturedAt`, provider, manual/saved/stale/unavailable states, and refresh failures consistently across assets, holdings, and quick-add. Do not re-enable 24h movers until real provider change data is stored.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

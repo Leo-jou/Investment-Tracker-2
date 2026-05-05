@@ -86,23 +86,23 @@ The main `/dashboard` route now represents a virtual `All portfolios` account-le
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- UI components: 11 files
-- Other: 7 files
-- App pages: 3 files
+- Other: 4 files
 - Documentation: 3 files
-- API routes: 2 files
 - Database: 2 files
+- UI components: 2 files
+- API routes: 1 file
+- App pages: 1 file
 - Pricing providers: 1 file
 
 Recent commits:
+- 24f06ce 2026-05-05 Record aggregate dashboard handoff
+- 86377c1 2026-05-05 Add all-portfolio aggregate dashboard
 - ce50c5b 2026-05-05 Review refresh guard cycle
 - 2ca810f 2026-05-05 Record refresh guard handoff
 - bd33a29 2026-05-05 Fail closed demo price refresh
 - 2320627 2026-05-05 Document Codex context rebase recovery
 - a3146f8 2026-05-05 Add Codex anti-stall escalation rule
 - b390f96 2026-05-05 Unblock Codex refresh guard task
-- 8f16795 2026-05-05 Block demo refresh false positive
-- 9032523 2026-05-05 Harden first-run demo safety
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -157,4 +157,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T13:48:27.455Z - Refreshed generated context from 8 recent commits, 29 changed files, and 0 TODO/FIXME items.
+2026-05-05T14:10:21.073Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.

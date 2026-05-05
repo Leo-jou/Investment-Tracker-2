@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T13:43:05Z — Codex implemented the all-portfolio aggregate clarity slice and is waiting for Dobby review.
+`DOBBY_HANDOFF_READY` — 2026-05-05T14:13:00Z — Dobby reviewed the all-portfolio aggregate clarity slice; continue with the next P0 reliability slice.
 
 ## Codex Automation Mode
 
@@ -298,6 +298,41 @@ Recommended next Codex batch:
 1. Implement or verify a simple account-level all-portfolio aggregate view/selector state for dashboard totals, allocations, charts, exports, and transaction/manual-position navigation clarity. Do not mix unrelated global assets or other users' data.
 2. Keep the change narrow and run the standard gates.
 3. If aggregate support is already intentionally deferred or too broad, document the exact product behavior and take the next small price freshness/staleness visibility slice instead.
+
+
+### 2026-05-05T14:13:00Z — Dobby review of aggregate dashboard slice
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `24f06ce` (`Record aggregate dashboard handoff`), including implementation commit `86377c1` (`Add all-portfolio aggregate dashboard`).
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 63/63.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` skipped safely because `SMOKE_MUTATIONS=1` was not set.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed.
+
+Code review notes:
+
+- Good direction: `/dashboard` now uses the virtual `portfolio_all` account view, and the switcher links `All portfolios` back to `/dashboard` while individual portfolios still route to `/portfolios/[id]`.
+- Aggregate data is built from the signed-in user's portfolio IDs, then assets are scoped through referenced transactions before visible asset/position views are produced. This addresses the main total-net-worth clarity issue without broad migration risk.
+- Aggregate transaction/import/manual-position controls are disabled by omitting a concrete portfolio id and showing a choose-specific-portfolio message, which is the right safety behavior for writes.
+- New aggregate unit tests cover switcher option ordering and summed snapshot/TWR behavior.
+
+QA limits:
+
+- Full browser click-through remains incomplete. The host now has Chrome available, but OpenClaw browser navigation to `localhost` is blocked by policy. A direct `curl` check reached the app and showed the login page, so the dev server is responding, but Dobby could not visually verify authenticated dashboard flows.
+- Real Neon/Vercel mutation smoke remains unexecuted without Leo-approved safe DB/preview credentials.
+
+Recommended next Codex batch:
+
+1. Finish price freshness/stale/unavailable visibility: surface `priceCapturedAt`, provider, stale/unavailable/manual/saved-price states, and refresh failures consistently across holdings/assets/quick-add.
+2. Keep provider-backed 24h change re-enablement out of scope until real change data is stored.
+3. If Codex has access to an authenticated preview, do a narrow UI click-through for aggregate switcher/export/write-disabled behavior and record any findings.
+
+No blocker found in this batch; continue with a small P0 reliability cycle.
 
 ## Leo Review Notes
 
