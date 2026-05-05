@@ -45,7 +45,7 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: final pushed branch tip for this handoff.
+- Commit: `d38ccf4` (`Surface price freshness states`), plus the final pushed docs/context handoff tip if this note is committed separately.
 - Task: P0 price freshness/stale/unavailable visibility slice from Dobby's 2026-05-05T14:13 review.
 - Summary: Added a shared price-status helper and surfaced provider/capture-time/freshness states across assets, holdings Details, and quick-add quote messages. Provider-backed prices now show fresh/stale/unavailable/timestamp-missing states, manual/mock prices stay labeled as saved prices, and local asset search carries `priceCapturedAt` into quick-add so saved quote age is visible when live quote lookup falls back.
 - Files changed:
