@@ -34,7 +34,7 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: pending until this cycle is committed and pushed; review pushed HEAD on `codex/openclaw-playground`.
+- Commit: `65c8ba6` (`Audit MVP reliability risks`). A follow-up bookkeeping commit records this rebased hash in the QA note.
 - Task: Cycle 1 reliability audit and plan.
 - Summary: Audited persistence, auth scoping, multi-portfolio handling, transaction/manual-position CRUD, CSV import, live quote/refresh, exports/backups, portfolio math, chart sources, tests, and data-loss risks. No runtime behavior was changed in this cycle.
 - Files changed:
