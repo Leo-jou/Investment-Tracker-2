@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T14:24:33Z — Codex implemented the price freshness/stale/unavailable visibility slice and is waiting for Dobby review.
+`DOBBY_HANDOFF_READY` — 2026-05-05T14:50:00Z — Cycle 8 price freshness visibility slice accepted. Codex should continue with the next narrow MVP reliability batch: math/tooltip consistency, starting with historical SELL validation and simulated-history labeling outside Analysis. Keep avoiding AI/news/tax/fees polish until reliability is ready.
 
 ## Codex Automation Mode
 
@@ -45,38 +45,9 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: `d38ccf4` (`Surface price freshness states`), plus the final pushed docs/context handoff tip if this note is committed separately.
-- Task: P0 price freshness/stale/unavailable visibility slice from Dobby's 2026-05-05T14:13 review.
-- Summary: Added a shared price-status helper and surfaced provider/capture-time/freshness states across assets, holdings Details, and quick-add quote messages. Provider-backed prices now show fresh/stale/unavailable/timestamp-missing states, manual/mock prices stay labeled as saved prices, and local asset search carries `priceCapturedAt` into quick-add so saved quote age is visible when live quote lookup falls back.
-- Files changed:
-  - `app/api/assets/search/route.ts`
-  - `app/assets/page.tsx`
-  - `components/portfolio/positions-table.tsx`
-  - `components/portfolio/quick-add-transaction-form.tsx`
-  - `lib/portfolio/price-status.ts`
-  - `lib/pricing/live-quote.ts`
-  - `lib/types.ts`
-  - `tests/price-status.test.ts`
-  - `docs/WORK_QUEUE.md`
-  - `docs/DOBBY_QA.md`
-  - `context.md`
-- Gates run:
-  - `npm test` passed: 67/67.
-  - `npm run lint` passed.
-  - `npm run build` passed.
-  - `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
-  - `npm run context:update` passed and refreshed `context.md`.
-  - `npm run context:check` passed before commit.
-- Known risks:
-  - Real Neon/Vercel mutation smoke is still not executed; it still needs a safe DB target and allowlisted smoke user.
-  - Full browser click-through QA still needs a usable deployed preview URL or allowed local browser target.
-  - Manual refresh failure messaging still needs browser/HTTP QA in a real provider/API failure state; this slice focuses on persisted quote freshness and quick-add fallback visibility.
-  - 24h movers and holding 24h movement remain intentionally disabled until real provider-backed change data is stored.
-- Browser QA requested:
-  - Verify `/assets` shows provider names, last quote timestamps, unavailable prices, and fresh/stale/saved/unavailable status badges.
-  - Verify Holdings > Details shows last price, last quote, provider, and price status without reintroducing fake 24h movement.
-  - Verify quick-add provider search/selection says whether it is using a live quote, saved quote, or unavailable quote, and still blocks unknown/mock-priced BUY flows as before.
-  - Recheck read-only no-`DATABASE_URL` mode so asset search and write controls remain disabled with the persistence warning.
+- None. Dobby accepted Cycle 8 and handed the next reliability batch back to Codex.
+- Next preferred task: math/tooltip consistency. Start with historical SELL validation so backdated sells cannot pass based only on current holdings, then tighten simulated-history labeling anywhere outside Analysis where generated history/timeframe values still appear.
+- Keep changes narrow, user-scoped, and covered by tests where practical.
 
 ## Dobby Findings
 
@@ -334,6 +305,50 @@ Recommended next Codex batch:
 3. If Codex has access to an authenticated preview, do a narrow UI click-through for aggregate switcher/export/write-disabled behavior and record any findings.
 
 No blocker found in this batch; continue with a small P0 reliability cycle.
+
+
+### 2026-05-05T14:50:00Z — Dobby review of Cycle 8 price freshness visibility batch
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `aed8a3e` (`Record price freshness handoff`) including implementation commit `d38ccf4` (`Surface price freshness states`).
+
+Verdict: accept this slice. Price freshness/stale/saved/unavailable states are now substantially more visible in the core asset and holding surfaces, and quick-add fallback messaging is clearer.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 67/67.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed.
+
+HTTP-render / demo-mode QA run by Dobby with `DATABASE_URL` unset:
+
+- `/assets` returned 200 with `Read-only demo mode`, provider column, `Price status`, and visible `Saved price` labeling.
+- `/dashboard` and `/portfolios/portfolio_core` returned 200 with `Read-only demo mode`, `All portfolios` switcher option, and provider/details text present.
+- `/api/assets/search?q=btc` still returned search results including saved local BTC data; UI search remains disabled in read-only demo mode.
+
+Code review notes:
+
+- Good direction: `getAssetPriceStatus` centralizes fresh/stale/saved/unavailable status semantics, with focused tests.
+- `/assets` now shows provider, external id/exchange, last saved quote timestamp, and status label/detail instead of just a price.
+- Holdings Details now shows last price, last quote, native currency, provider, exchange/provider id, and status.
+- Quick-add quote messaging distinguishes live quotes, saved quotes, and unavailable quote fallbacks; local asset search now carries `priceCapturedAt` into quick-add.
+- 24h movement remains hidden as `Not connected`, which is correct until real provider-backed change data exists.
+
+Remaining risks / follow-up:
+
+- Real Neon/Vercel mutation smoke is still not executed; it needs a safe DB target and allowlisted smoke user.
+- Full browser click-through QA still needs a usable deployed preview URL or allowed local browser target.
+- Manual refresh failure messaging still needs a real provider/API failure QA pass.
+- Math/tooltip consistency remains P0, especially historical SELL validation and simulated-history labeling outside Analysis.
+
+Recommended next Codex batch:
+
+1. Tighten SELL validation so a backdated sell cannot pass merely because current total holdings are sufficient; validate quantity as of the sell date with same-day ordering.
+2. Add focused tests for historical oversell cases.
+3. If that slice is too risky, first label/avoid simulated analytics history wherever overview/timeframe UI could be mistaken for persisted history.
 
 ## Leo Review Notes
 

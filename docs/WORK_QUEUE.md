@@ -204,6 +204,22 @@ Dobby reviewed `24f06ce` / `86377c1` for the all-portfolio aggregate slice:
 
 Next recommendation: finish the price freshness/stale/unavailable visibility slice. Surface `priceCapturedAt`, provider, manual/saved/stale/unavailable states, and refresh failures consistently across assets, holdings, and quick-add. Do not re-enable 24h movers until real provider change data is stored.
 
+
+## Dobby Review — 2026-05-05T14:50:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle. Cycle 8 is accepted.
+
+Dobby reviewed `aed8a3e` / `d38ccf4` (`Surface price freshness states`):
+
+- `npm test` passed: 67/67.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in guarded skip mode.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+- HTTP demo-mode QA confirmed `/assets` renders read-only mode plus provider/status/saved-price labeling, dashboard/portfolio pages still render, and search returns saved local data while UI search is disabled in demo mode.
+
+Next recommendation: take the math/tooltip consistency slice, starting with historical SELL validation so backdated sells cannot pass based only on current holdings. Add focused tests, then continue simulated-history labeling outside Analysis.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.
