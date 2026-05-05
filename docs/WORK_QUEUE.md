@@ -270,6 +270,24 @@ Blocking gap to fix next: current SELL validation checks availability immediatel
 
 Next recommendation: add full sorted transaction timeline validation after applying the create/edit candidate, reject any SELL that would make running quantity negative, preserve edit replacement semantics, and add focused tests for downstream oversell plus CSV import batch behavior.
 
+
+
+## Dobby Review — 2026-05-05T15:36:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle. Cycle 10 is accepted.
+
+Dobby reviewed `04d9b5c` / `d53cd1e` (`Validate full sell timeline`):
+
+- `npm test` passed: 73/73.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` skipped safely because `SMOKE_MUTATIONS=1` was not set.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+
+The full sorted transaction timeline is now validated after create/edit candidates, so a backdated SELL cannot make later SELL rows historically impossible. The focused tests cover downstream oversell, edit replacement semantics, sequential CSV-style rows, and valid covered timelines.
+
+Next recommendation: take simulated-history labeling outside Analysis, then continue the remaining math/tooltip consistency pass.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

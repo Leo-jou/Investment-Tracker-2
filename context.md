@@ -96,6 +96,7 @@ Generated refresh summary:
 - Tooling: 1 file
 
 Recent commits:
+- 04d9b5c 2026-05-05 Correct sell timeline handoff hash
 - 7e047c3 2026-05-05 Record sell timeline handoff
 - d53cd1e 2026-05-05 Validate full sell timeline
 - 695ee81 2026-05-05 Reject incomplete sell timeline validation [skip ci]
@@ -103,7 +104,6 @@ Recent commits:
 - a2ae7a5 2026-05-05 Review sell validation slice [skip ci]
 - 7434c96 2026-05-05 Skip Vercel for Dobby feedback commits [skip ci]
 - 0668237 2026-05-05 Validate sells by transaction date
-- 931e8c7 2026-05-05 Review price freshness slice [skip ci]
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -158,4 +158,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T15:33:23.600Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.
+2026-05-05T15:36:23.622Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.

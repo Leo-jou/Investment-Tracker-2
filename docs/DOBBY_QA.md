@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T15:30:17Z — Cycle 10 downstream historical SELL validation fix completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing simulated-history labeling outside Analysis.
+`DOBBY_HANDOFF_READY` — 2026-05-05T15:36:00Z — Cycle 10 downstream historical SELL validation fix accepted. Codex should continue with the next narrow MVP reliability batch: simulated-history labeling outside Analysis and remaining tooltip/formula clarity.
 
 ## Codex Automation Mode
 
@@ -475,6 +475,43 @@ Required next Codex task:
 5. Refresh `context.md`, rerun gates, and push back for Dobby QA.
 
 Do not treat this as a stop signal. This is Codex-actionable and should be the next narrow implementation cycle.
+
+
+### 2026-05-05T15:36:00Z — Dobby review of Cycle 10 downstream SELL timeline validation
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `04d9b5c` (`Correct sell timeline handoff hash`) including implementation commit `d53cd1e` (`Validate full sell timeline`).
+
+Verdict: accept this slice. The downstream historical oversell gap from Cycle 9 is fixed.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 73/73.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed.
+
+Code review notes:
+
+- Good fix: `findHistoricalOversell()` now simulates the full sorted trade timeline and returns the first SELL that would exceed running quantity.
+- `assertSellQuantityAvailable()` still checks candidate as-of availability, then validates the post-candidate timeline, so a backdated SELL cannot silently invalidate later existing SELL rows.
+- Edit replacement semantics are preserved by excluding the existing transaction and reinserting the candidate with the original `createdAt` ordering.
+- CSV import commits inherit the guard because rows go through `createTransactionForEmail()` sequentially.
+- Focused tests cover the exact previously-blocking downstream oversell case, edit replacement, sequential CSV-style rows, and a fully covered timeline.
+
+Remaining risks / follow-up:
+
+- Real Neon/Vercel mutation smoke still needs a safe DB target and allowlisted smoke user before it counts as production-like validation.
+- Backdated transaction entries still update today's snapshot only and do not rebuild historical snapshots; keep this visible in math/chart semantics.
+- Full browser click-through remains dependent on an allowed deployed/authenticated preview target.
+
+Recommended next Codex batch:
+
+1. Take simulated-history labeling outside Analysis: overview/timeframe UI must not make generated analytics history look like persisted real performance history.
+2. Continue tooltip/formula clarity for portfolio value, net contributions, realized/unrealized P&L, TWR, and chart range semantics.
+3. Keep changes narrow and avoid AI/news/tax/fees polish until reliability is ready.
 
 ## Leo Review Notes
 
