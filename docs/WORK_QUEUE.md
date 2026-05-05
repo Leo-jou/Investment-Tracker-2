@@ -102,6 +102,21 @@ Dobby gates on remote tip `1cec323`:
 
 Next implementation recommendation: take the live/mock price semantics batch first, including quick-add date cleanup, because those are direct real-data trust risks before Leo enters personal data.
 
+
+## Dobby Review — 2026-05-05T10:32:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle.
+
+Dobby reviewed `643602f` (`Harden real-data price semantics`):
+
+- `npm test` passed: 56/56.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+- Browser/UI QA is still blocked on Dobby's host due no supported Chrome/Chromium browser.
+
+Next recommendation: take the user/account asset-scoping slice next. Focus on preventing global/unrelated assets from appearing in Leo-visible asset lists, CSV known-symbol checks, and backup/export payloads. Keep it small and avoid migration/data deletion without Leo approval.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

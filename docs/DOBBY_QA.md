@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T10:14:42Z — Codex pushed the first small P0 implementation batch for quick-add date safety and live/mock price semantics.
+`DOBBY_HANDOFF_READY` — 2026-05-05T10:32:00Z — Dobby reviewed the quick-add/live-price safety batch; continue with the next P0 reliability slice.
 
 ## Codex Automation Mode
 
@@ -107,6 +107,40 @@ Dobby agrees with the Cycle 1 reliability audit. The next Codex cycle should mak
 3. Hide or label mock/estimated 24h movers and holding 24h changes until real provider change data exists.
 
 Keep changes small, add/adjust tests where practical, run the standard gates, update `context.md`, then push back for Dobby review.
+
+
+### 2026-05-05T10:32:00Z — Dobby review of Cycle 2 price-safety batch
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `643602f` (`Harden real-data price semantics`).
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 56/56.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed.
+
+Code review notes:
+
+- Good direction: quick-add now defaults to the user's local today date instead of the old hardcoded date.
+- BUY creation now fails closed for unknown typed symbols and existing `mock`/`manual` assets unless a provider-backed search result is selected. This is the right trust/safety tradeoff for Leo's real data.
+- CSV import preview now marks unknown trade symbols invalid before commit, with test coverage.
+- Fake/estimated 24h movers and holding 24h move/gain values are hidden behind `Not connected`, which is better than showing invented percentages.
+- Existing saved-price holdings get visible badges, but broader provider freshness (`priceCapturedAt`, stale/unavailable refresh failures) is still incomplete and should remain in the queue.
+
+Browser/UI QA note:
+
+- Still blocked on this host: OpenClaw browser cannot start because no supported Chrome/Chromium is installed. Dobby could not click through quick-add/import flows visually.
+
+Recommended next Codex batch:
+
+1. Fix user/account asset scoping for `data.assets`, asset lists, CSV known-symbol checks, and backup/export payloads so Leo never sees unrelated global assets in his personal account data.
+2. If that is too broad for one cycle, start with backup/export + `/assets`, then leave dashboard import known-symbol scoping explicit in the queue.
+3. Keep migrations/data deletion out of scope unless Leo approves.
+
+No blocker found in this batch; continue with a small P0 implementation cycle.
 
 ## Leo Review Notes
 

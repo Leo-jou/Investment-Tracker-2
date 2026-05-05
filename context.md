@@ -79,9 +79,14 @@ The first post-audit P0 implementation batch fixed quick-add's hardcoded date, s
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - Documentation: 6 files
-- Database: 2 files
+- UI components: 4 files
+- Other: 2 files
+- API routes: 1 file
+- App pages: 1 file
+- Database: 1 file
 
 Recent commits:
+- 643602f 2026-05-05 Harden real-data price semantics
 - 27d77eb 2026-05-05 Add Dobby review feedback
 - 1cec323 2026-05-05 Establish Dobby polling loop
 - dd9b968 2026-05-05 Record Dobby audit commit
@@ -89,7 +94,6 @@ Recent commits:
 - 63d1f7f 2026-05-05 Add Codex Dobby handoff signals
 - bb71c24 2026-05-05 Clarify autonomous Codex Dobby loop
 - ede12e0 2026-05-05 Add Dobby Codex coordination docs
-- 15be197 2026-04-30 Allow preview dashboard without database
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -144,4 +148,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T10:14:23.474Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.
+2026-05-05T10:31:09.614Z - Refreshed generated context from 8 recent commits, 15 changed files, and 0 TODO/FIXME items.
