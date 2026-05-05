@@ -82,14 +82,16 @@ Mutation-capable DB/API smoke coverage now exists as `npm run smoke:mutations`. 
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 4 files
+- Other: 5 files
 - UI components: 4 files
 - Documentation: 3 files
-- API routes: 1 file
+- API routes: 2 files
 - App pages: 1 file
 - Database: 1 file
+- Tooling: 1 file
 
 Recent commits:
+- 424c607 2026-05-05 Add guarded mutation smoke coverage
 - 26baa4f 2026-05-05 Accept asset scoping batch
 - 461aa29 2026-05-05 Scope visible assets to account data
 - d026bfa 2026-05-05 Review price semantics batch
@@ -97,7 +99,6 @@ Recent commits:
 - 27d77eb 2026-05-05 Add Dobby review feedback
 - 1cec323 2026-05-05 Establish Dobby polling loop
 - dd9b968 2026-05-05 Record Dobby audit commit
-- 5c56462 2026-05-05 Audit MVP reliability risks
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -152,4 +153,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T11:10:32.927Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.
+2026-05-05T11:21:32.510Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.

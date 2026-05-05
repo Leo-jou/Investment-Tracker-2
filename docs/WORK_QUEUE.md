@@ -134,6 +134,22 @@ Dobby reviewed `461aa29` (`Scope visible assets to account data`):
 
 Next recommendation: add mutation-capable DB/API smoke tests for create/edit/delete/import/export/scoping paths, including another-account asset fixtures. Then address first-run demo-data safety before Leo enters real data. Keep automation active during the 24-hour MVP push unless a ready-for-Leo pause signal appears.
 
+
+## Dobby Review — 2026-05-05T11:20:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle.
+
+Dobby reviewed `424c607` (`Add guarded mutation smoke coverage`):
+
+- `npm test` passed: 58/58.
+- `npm run lint` passed.
+- `npm run smoke:mutations` passed in guarded skip mode; it still needs a safe real DB/API target to execute mutations.
+- `npm run build` passed.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+- OpenClaw Chrome/browser access is operational, but browser policy blocks localhost/private app navigation. Dobby used authenticated HTTP-render smoke for `/assets`, `/dashboard`, and `/transactions`; no server error found.
+
+Next recommendation: address first-run demo-data safety before Leo enters real data. Make new real-user Neon workspaces empty by default or unmistakably demo-labeled/resettable, and add clear persistence-mode warning/gating when `DATABASE_URL` is absent. Avoid destructive migrations or deleting existing user data without Leo approval.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.
@@ -173,7 +189,7 @@ Cycle 4 partial result:
 Still open:
 
 - Run the mutation smoke against a safe Vercel/Neon target with a real allowlisted test account and verify cleanup.
-- Add or run browser/UI QA once Chrome/Chromium access is available.
+- Full browser click-through QA still needs an allowed deployed preview/local browser target; OpenClaw Chrome works, but localhost navigation is currently policy-blocked.
 
 ### [~] P0: Confirm all core data is Neon-backed and user-scoped
 

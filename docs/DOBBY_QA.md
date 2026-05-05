@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T11:10:57Z — Codex pushed the mutation-capable smoke coverage slice and is waiting for Dobby review.
+`DOBBY_HANDOFF_READY` — 2026-05-05T11:20:00Z — Dobby accepted the guarded mutation smoke coverage slice and handed the next P0 batch back to Codex.
 
 ## Codex Automation Mode
 
@@ -170,6 +170,48 @@ Recommended next Codex batch:
 3. Keep Codex automation active during the 24-hour MVP push. If `docs/SHIP_READINESS.md` later says `Status: Ready for Leo review — pause Codex automation.`, stop polling/implementation until Leo reviews.
 
 Quality bar from Leo: be demanding. Reliability, real-data safety, user scoping, backup/export confidence, and math consistency beat UI polish and deferred AI/news/tax/fees work.
+
+
+### 2026-05-05T11:20:00Z — Dobby review of Cycle 4 mutation-smoke batch
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `424c607` (`Add guarded mutation smoke coverage`).
+
+Verdict: accept this slice. No blocker found in the implementation, but the real mutation smoke still needs a safe deployed/Neon target before it can be counted as executed coverage.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 58/58.
+- `npm run lint` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set in Dobby's local environment.
+- `npm run build` passed.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed.
+
+Browser/UI QA note:
+
+- OpenClaw browser access is now available on this host after Chrome install and durable `browser.noSandbox` config.
+- Browser navigation to local/private `localhost` app URLs is still blocked by OpenClaw browser policy, so Dobby could not click the local dev app with the browser tool.
+- Dobby did an HTTP-render smoke instead: restarted the local Next dev server, logged in through `/api/auth/login`, and fetched authenticated `/assets`, `/dashboard`, and `/transactions` pages successfully. The transaction page rendered the quick-add form with today's date (`2026-05-05`) and the import/table UI without a server error.
+
+Code review notes:
+
+- Good direction: `npm run smoke:mutations` is guarded by `SMOKE_MUTATIONS=1` and fails closed without `DATABASE_URL` or an allowlisted smoke email.
+- Good coverage shape: the script logs in, creates a temporary portfolio, creates/updates/deletes a provider-backed BUY, seeds another-account fixtures directly, checks `/assets`, backup export scoping, CSV known/unknown symbol behavior, and cleanup.
+- Returning the created transaction id from `POST /api/transactions` is a practical API improvement for cleanup and UI callers.
+- Cleanup appears reasonably targeted: transaction ids and temporary portfolio are deleted, the other-account user cascades its portfolio/transaction data, and unique smoke assets/price snapshots are removed through asset cascade.
+
+Remaining risks / follow-up:
+
+- The mutation smoke has not yet been executed against a real safe DB/API target; keep it as pending validation until Leo or deployment config provides a safe `SMOKE_MUTATIONS=1 DATABASE_URL SMOKE_MUTATION_EMAIL` target.
+- Browser/local policy still prevents full click-through QA on localhost despite Chrome being operational. If full browser QA on local branches is required, enable an allowed local target/browser node path or test against a deployed preview URL.
+- First-run Neon workspace bootstrap still inserts demo transactions/manual positions; this is now the highest P0 real-data safety issue before Leo enters personal data.
+
+Recommended next Codex batch:
+
+1. Make first-run real-user workspaces safe: empty by default, or explicitly demo-labeled with a clear reset/delete path. Do not run destructive migrations or delete existing data without Leo approval.
+2. Add a visible persistence-mode warning/gating when `DATABASE_URL` is absent so local/demo mode cannot be mistaken for durable real data.
+3. Leave all-portfolio aggregate UX and selected-portfolio backup metadata clarification in the queue unless they are quick, low-risk additions.
 
 ## Leo Review Notes
 
