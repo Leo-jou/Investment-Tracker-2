@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { formatMoney, trendClass } from "@/lib/format";
+import { buildAllocationRows, type AllocationMode } from "@/lib/portfolio/allocation-rows";
 import type { AllocationSlice, Asset, Currency, ManualPosition, Position } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -15,8 +16,6 @@ type AssetAllocationChartProps = {
   manualPositions?: ManualPosition[];
 };
 
-type AllocationMode = "Assets" | "Asset types" | "Currency" | "Sectors";
-
 export function AssetAllocationChart({
   allocations,
   currency,
@@ -27,13 +26,13 @@ export function AssetAllocationChart({
   const [isMounted, setIsMounted] = useState(false);
   const [mode, setMode] = useState<AllocationMode>("Assets");
   const fx = currency === "EUR" ? 1 : 1.077;
-  const visibleAllocations = getAllocationsForMode(
+  const visibleAllocations = buildAllocationRows({
     mode,
     allocations,
     assets,
     positions,
     manualPositions
-  );
+  });
   const tableLabel =
     mode === "Currency" ? "Currency" : mode === "Asset types" ? "Asset type" : "Asset";
 
@@ -113,12 +112,17 @@ export function AssetAllocationChart({
                 <th className="py-3 font-medium">{tableLabel}</th>
                 <th className="py-3 text-right font-medium">Holding value</th>
                 <th className="py-3 text-right font-medium">Allocation</th>
-                <th className="py-3 text-right font-medium">Unrealized gain</th>
+                <th
+                  className="py-3 text-right font-medium"
+                  title="Only transaction-backed open holdings have calculated P&L; manual values show N/A."
+                >
+                  Open-position P&L
+                </th>
               </tr>
             </thead>
             <tbody>
-              {visibleAllocations.map((slice, index) => {
-                const gain = index % 3 === 0 ? -slice.value * 0.024 : slice.value * 0.018;
+              {visibleAllocations.map((slice) => {
+                const gain = slice.unrealizedGainEur;
                 return (
                   <tr key={slice.label} className="border-b border-[#202024]">
                     <td className="py-4">
@@ -136,8 +140,13 @@ export function AssetAllocationChart({
                     <td className="py-4 text-right text-zinc-300">
                       {slice.percent.toFixed(2)}%
                     </td>
-                    <td className={cn("py-4 text-right", trendClass(gain))}>
-                      {formatMoney(gain * fx, currency)}
+                    <td
+                      className={cn(
+                        "py-4 text-right",
+                        gain === null ? "text-zinc-500" : trendClass(gain)
+                      )}
+                    >
+                      {gain === null ? "N/A" : formatMoney(gain * fx, currency)}
                     </td>
                   </tr>
                 );
@@ -148,58 +157,4 @@ export function AssetAllocationChart({
       </div>
     </section>
   );
-}
-
-function getAllocationsForMode(
-  mode: AllocationMode,
-  allocations: AllocationSlice[],
-  assets: Asset[],
-  positions: Position[],
-  manualPositions: ManualPosition[]
-) {
-  if (mode === "Assets" || mode === "Sectors") return allocations;
-  if (positions.length === 0 && manualPositions.length === 0) return allocations;
-
-  const assetById = new Map(assets.map((asset) => [asset.id, asset]));
-  const grouped = new Map<string, { value: number; color: string }>();
-
-  for (const position of positions) {
-    const asset = assetById.get(position.assetId);
-    const label = mode === "Asset types" ? asset?.type ?? "Unknown" : asset?.currency ?? "USD";
-    addGroupedValue(grouped, label, position.marketValueEur, asset?.color ?? "#3b82f6");
-  }
-
-  for (const position of manualPositions) {
-    const label = mode === "Asset types" ? "Manual" : position.currency;
-    addGroupedValue(grouped, label, position.valueEur, "#14b8a6");
-  }
-
-  const slices = Array.from(grouped.entries()).map(([label, value]) => ({
-    label,
-    value: value.value,
-    percent: 0,
-    color: value.color
-  }));
-  const total = slices.reduce((sum, slice) => sum + slice.value, 0);
-
-  return slices
-    .map((slice) => ({
-      ...slice,
-      percent: total === 0 ? 0 : (slice.value / total) * 100
-    }))
-    .sort((left, right) => right.value - left.value);
-}
-
-function addGroupedValue(
-  grouped: Map<string, { value: number; color: string }>,
-  label: string,
-  value: number,
-  color: string
-) {
-  const current = grouped.get(label);
-  if (current) {
-    current.value += value;
-    return;
-  }
-  grouped.set(label, { value, color });
 }
