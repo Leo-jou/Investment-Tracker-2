@@ -96,12 +96,13 @@ Formula terminology now favors `Open-position P&L` for transaction-backed open h
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- UI components: 8 files
-- Other: 7 files
-- Documentation: 3 files
+- Other: 6 files
+- UI components: 6 files
+- Documentation: 4 files
 - Tooling: 1 file
 
 Recent commits:
+- f3cabac 2026-05-05 Record math terminology handoff
 - 7323935 2026-05-05 Clarify portfolio math terminology
 - 8a23588 2026-05-05 Accept allocation PnL consistency [skip ci]
 - 25b0023 2026-05-05 Refresh allocation PnL context
@@ -109,7 +110,6 @@ Recent commits:
 - 24dd8ab 2026-05-05 Use real allocation PnL
 - b622442 2026-05-05 Quiet Codex branch Vercel previews [skip ci]
 - 139c6ee 2026-05-05 Accept overview persisted-history safety [skip ci]
-- 980e432 2026-05-05 Keep overview on persisted history
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -164,4 +164,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T16:24:53.600Z - Refreshed generated context from 8 recent commits, 19 changed files, and 0 TODO/FIXME items.
+2026-05-05T16:25:16.640Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.
