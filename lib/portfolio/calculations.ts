@@ -21,6 +21,14 @@ export type PositionState = {
   platforms?: string[];
 };
 
+export type HistoricalOversell = {
+  assetId: string;
+  transactionId?: string;
+  occurredOn: string;
+  requestedQuantity: number;
+  availableQuantity: number;
+};
+
 export function sortTransactionsForPositioning<T extends PortfolioMathTransaction>(rows: T[]) {
   return [...rows].sort((left, right) => {
     const dateOrder = left.occurredOn.localeCompare(right.occurredOn);
@@ -123,6 +131,36 @@ export function calculateAssetQuantityBeforeTransaction(
   }
 
   return calculateAssetQuantity(rowsBeforeCandidate, assetId, rates);
+}
+
+export function findHistoricalOversell(
+  rows: PortfolioMathTransaction[]
+): HistoricalOversell | undefined {
+  const quantitiesByAsset = new Map<string, number>();
+
+  for (const row of sortTransactionsForPositioning(rows)) {
+    if (!row.assetId || !row.quantity || !["BUY", "SELL"].includes(row.type)) continue;
+    const currentQuantity = quantitiesByAsset.get(row.assetId) ?? 0;
+
+    if (row.type === "BUY") {
+      quantitiesByAsset.set(row.assetId, currentQuantity + row.quantity);
+      continue;
+    }
+
+    if (row.quantity - currentQuantity > 1e-10) {
+      return {
+        assetId: row.assetId,
+        transactionId: row.id,
+        occurredOn: row.occurredOn,
+        requestedQuantity: row.quantity,
+        availableQuantity: Math.max(0, currentQuantity)
+      };
+    }
+
+    quantitiesByAsset.set(row.assetId, currentQuantity - row.quantity);
+  }
+
+  return undefined;
 }
 
 export function calculateCashUsd(rows: PortfolioMathTransaction[], rates: FxRateMap) {

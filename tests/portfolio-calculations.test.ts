@@ -10,6 +10,7 @@ import {
   calculateExternalCashFlowEur,
   calculateNetContributionsUsd,
   calculateRealizedGainUsd,
+  findHistoricalOversell,
   type PortfolioMathTransaction
 } from "../lib/portfolio/calculations.ts";
 
@@ -189,6 +190,155 @@ test("same-day sell availability follows created-at ordering", () => {
   );
 
   assert.equal(availableAtNoon, 10);
+});
+
+test("historical oversell validation catches later sells invalidated by a backdated sell", () => {
+  const violation = findHistoricalOversell([
+    tx({
+      id: "buy",
+      type: "BUY",
+      assetId: "asset_btc",
+      quantity: 10,
+      grossAmount: 1000,
+      occurredOn: "2026-01-01"
+    }),
+    tx({
+      id: "later-sell",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 10,
+      grossAmount: 1200,
+      occurredOn: "2026-03-01"
+    }),
+    tx({
+      id: "backdated-sell",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 10,
+      grossAmount: 1100,
+      occurredOn: "2026-02-01"
+    })
+  ]);
+
+  assert.equal(violation?.transactionId, "later-sell");
+  assert.equal(violation?.occurredOn, "2026-03-01");
+  assert.equal(violation?.availableQuantity, 0);
+  assert.equal(violation?.requestedQuantity, 10);
+});
+
+test("historical oversell validation preserves edit replacement semantics", () => {
+  const existingRows = [
+    tx({
+      id: "buy",
+      type: "BUY",
+      assetId: "asset_btc",
+      quantity: 10,
+      grossAmount: 1000,
+      occurredOn: "2026-01-01"
+    }),
+    tx({
+      id: "edited-sell",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 4,
+      grossAmount: 500,
+      occurredOn: "2026-03-01",
+      createdAt: "2026-03-01T10:00:00.000Z"
+    }),
+    tx({
+      id: "later-sell",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 6,
+      grossAmount: 700,
+      occurredOn: "2026-04-01"
+    })
+  ];
+
+  const replacement = tx({
+    id: "edited-sell",
+    type: "SELL",
+    assetId: "asset_btc",
+    quantity: 7,
+    grossAmount: 800,
+    occurredOn: "2026-02-01",
+    createdAt: "2026-03-01T10:00:00.000Z"
+  });
+  const timeline = [
+    ...existingRows.filter((row) => row.id !== "edited-sell"),
+    replacement
+  ];
+  const violation = findHistoricalOversell(timeline);
+
+  assert.equal(violation?.transactionId, "later-sell");
+  assert.equal(violation?.availableQuantity, 3);
+});
+
+test("historical oversell validation catches sequential import batches", () => {
+  const existingRows = [
+    tx({
+      id: "buy",
+      type: "BUY",
+      assetId: "asset_btc",
+      quantity: 10,
+      grossAmount: 1000,
+      occurredOn: "2026-01-01"
+    })
+  ];
+  const importRows = [
+    tx({
+      id: "csv-sell-1",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 7,
+      grossAmount: 800,
+      occurredOn: "2026-02-01"
+    }),
+    tx({
+      id: "csv-sell-2",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 5,
+      grossAmount: 600,
+      occurredOn: "2026-03-01"
+    })
+  ];
+  const violation = findHistoricalOversell([...existingRows, ...importRows]);
+
+  assert.equal(violation?.transactionId, "csv-sell-2");
+  assert.equal(violation?.availableQuantity, 3);
+});
+
+test("historical oversell validation accepts fully covered timelines", () => {
+  const violation = findHistoricalOversell([
+    tx({ id: "buy-1", type: "BUY", assetId: "asset_btc", quantity: 8, grossAmount: 800 }),
+    tx({
+      id: "sell-1",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 5,
+      grossAmount: 600,
+      occurredOn: "2026-02-01"
+    }),
+    tx({
+      id: "buy-2",
+      type: "BUY",
+      assetId: "asset_btc",
+      quantity: 4,
+      grossAmount: 500,
+      occurredOn: "2026-03-01"
+    }),
+    tx({
+      id: "sell-2",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 7,
+      grossAmount: 900,
+      occurredOn: "2026-04-01"
+    })
+  ]);
+
+  assert.equal(violation, undefined);
 });
 
 test("oversold position state never goes negative", () => {

@@ -45,6 +45,7 @@ import {
   calculateAssetQuantityBeforeTransaction,
   calculateCashUsd,
   calculateExternalCashFlowEur,
+  findHistoricalOversell,
   calculateNetContributionsUsd,
   calculateRealizedGainUsd
 } from "@/lib/portfolio/calculations";
@@ -816,26 +817,37 @@ async function assertSellQuantityAvailable(
     : rows;
   const createdAt =
     excludeTransactionId && rows.find((row) => row.id === excludeTransactionId)?.createdAt;
+  const candidate = {
+    id: excludeTransactionId ?? "__pending_sell__",
+    assetId,
+    type: "SELL" as const,
+    occurredOn,
+    createdAt: createdAt ?? new Date(),
+    quantity: requestedQuantity,
+    grossAmount: 0,
+    currency: "USD" as const,
+    fees: 0
+  };
   const availableQuantity = calculateAssetQuantityBeforeTransaction(
     relevantRows,
     assetId,
-    {
-      id: excludeTransactionId,
-      assetId,
-      type: "SELL",
-      occurredOn,
-      createdAt: createdAt ?? new Date(),
-      quantity: requestedQuantity,
-      grossAmount: 0,
-      currency: "USD",
-      fees: 0
-    },
+    candidate,
     rates
   );
 
   if (requestedQuantity - availableQuantity > 1e-10) {
     throw new Error(
       `Sell quantity exceeds holding on ${occurredOn}. Available quantity on that date: ${availableQuantity.toFixed(8)}.`
+    );
+  }
+
+  const oversell = findHistoricalOversell([...relevantRows, candidate]);
+
+  if (oversell) {
+    throw new Error(
+      `Sell quantity exceeds holding on ${oversell.occurredOn}. Available quantity on that date: ${oversell.availableQuantity.toFixed(
+        8
+      )}.`
     );
   }
 }
