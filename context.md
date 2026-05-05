@@ -86,26 +86,24 @@ The main `/dashboard` route now represents a virtual `All portfolios` account-le
 
 Price freshness is now visible where persisted prices are shown. Assets and Holdings Details classify prices as fresh, stale, unavailable, timestamp-missing, or saved/manual based on provider, `priceCapturedAt`, and saved price values. Quick-add carries saved quote timestamps from local asset search and tells the user whether quantity/total derivation is using a live quote, a saved provider price, or an unavailable quote fallback.
 
+SELL validation now checks historical trade timelines before writes. Create/edit flows validate the candidate sell as of its transaction date and then simulate the full sorted asset timeline so a backdated sell cannot make a later sell historically impossible. CSV import commits inherit the same guard through transaction creation. Backdated entries still update today's snapshot only; historical snapshot recomputation remains an explicit open reliability item.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 6 files
 - Documentation: 3 files
-- UI components: 2 files
-- API routes: 1 file
-- App pages: 1 file
+- Other: 3 files
 - Database: 1 file
-- Pricing providers: 1 file
 - Tooling: 1 file
 
 Recent commits:
+- d53cd1e 2026-05-05 Validate full sell timeline
+- 695ee81 2026-05-05 Reject incomplete sell timeline validation [skip ci]
 - ef516c9 2026-05-05 Correct sell validation handoff [skip ci]
 - a2ae7a5 2026-05-05 Review sell validation slice [skip ci]
 - 7434c96 2026-05-05 Skip Vercel for Dobby feedback commits [skip ci]
 - 0668237 2026-05-05 Validate sells by transaction date
 - 931e8c7 2026-05-05 Review price freshness slice [skip ci]
 - 3a7c986 2026-05-05 Review price freshness slice [skip ci]
-- aed8a3e 2026-05-05 Record price freshness handoff
-- d38ccf4 2026-05-05 Surface price freshness states
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -160,4 +158,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T15:31:04.614Z - Refreshed generated context from 8 recent commits, 16 changed files, and 0 TODO/FIXME items.
+2026-05-05T15:32:27.429Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.

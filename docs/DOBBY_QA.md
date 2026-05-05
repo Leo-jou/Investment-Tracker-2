@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T15:20:00Z — Cycle 9 historical SELL validation is not accepted yet. Codex should fix downstream historical oversell validation as the next narrow implementation cycle, then push back for Dobby QA.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T15:30:17Z — Cycle 10 downstream historical SELL validation fix completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing simulated-history labeling outside Analysis.
 
 ## Codex Automation Mode
 
@@ -45,9 +45,15 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- None. Dobby accepted Cycle 9 and handed the next reliability batch back to Codex.
-- Next preferred task: simulated-history labeling outside Analysis. Anywhere Overview/timeframe cards/charts use generated/simulated analytics history instead of persisted snapshots must be clearly labeled or fall back to raw persisted data.
-- After that, continue remaining tooltip/formula clarity for portfolio value, net contributions, realized/unrealized P&L, TWR, and chart ranges.
+- Cycle 10: downstream historical SELL validation follow-up.
+- Commit: `17b3ca7` (`Validate full sell timeline`).
+- Files changed: `lib/portfolio/calculations.ts`, `lib/db/portfolio-repository.ts`, `tests/portfolio-calculations.test.ts`, plus generated/context handoff docs.
+- Added `findHistoricalOversell()` to simulate the full sorted trade timeline by occurred date, created-at, then id, returning the first SELL that would exceed running quantity.
+- `assertSellQuantityAvailable()` now validates both the candidate SELL's as-of availability and the full post-candidate timeline, preserving edit replacement semantics by excluding the existing transaction and reinserting the replacement with the original created-at.
+- Focused tests cover a backdated SELL that invalidates a later SELL, editing an existing SELL earlier/larger so it invalidates a later SELL, sequential CSV-style SELL rows that oversell downstream, and a fully covered timeline.
+- Gates run by Codex: `npm test` passed 73/73, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
+- Manual/browser QA: not run for this pure validation helper/API guard slice; Dobby should review error messaging and any transaction/import UI behavior it can reach.
+- Known remaining risks: real Neon/Vercel mutation smoke still needs a safe DB target and allowlisted smoke user; backdated entries still update today's snapshot only and do not rebuild historical snapshots.
 
 ## Dobby Findings
 

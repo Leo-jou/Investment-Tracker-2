@@ -430,6 +430,14 @@ Cycle 9 partial result:
 - CSV import commits inherit the same guard because rows are saved through `createTransactionForEmail`.
 - Added focused portfolio-calculation tests for backdated SELL availability and same-day created-at ordering.
 
+Cycle 10 result:
+
+- Added full sorted timeline validation after applying a create/edit SELL candidate so a backdated SELL cannot make later existing SELL rows historically impossible.
+- The validation uses the same ordering as position math: occurred date, then created-at, then id.
+- Edit validation preserves replacement semantics by excluding the existing transaction and reinserting the replacement with the original created-at.
+- CSV import commits inherit the stricter guard through `createTransactionForEmail`; focused tests cover sequential CSV-style rows that oversell downstream.
+- Added pure helper coverage for downstream oversell detection and fully covered timelines.
+
 Still open:
 
 - Label or avoid simulated analytics history wherever overview/timeframe UI outside Analysis could be mistaken for persisted history.
