@@ -155,7 +155,7 @@ Deployment/QA request: Codex should provide the Vercel preview/test URL for `cod
 
 ## Dobby Review — 2026-05-05T11:46:00Z
 
-Status: `DOBBY_BLOCKED` until Codex fixes the no-database price refresh behavior.
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle. The required next task is to fix the no-database price refresh behavior; this is Codex-actionable and should not pause automation.
 
 Dobby reviewed `9032523` (`Harden first-run demo safety`):
 
@@ -167,7 +167,7 @@ Dobby reviewed `9032523` (`Harden first-run demo safety`):
 - HTTP-render demo-mode QA with `DATABASE_URL` unset passed for `/dashboard`, `/transactions`, `/manual-positions`, and `/assets` banners/disabled controls.
 - `POST /api/portfolios` and committed CSV import fail closed with the persistence warning.
 
-Blocker: `POST /api/prices/refresh` still returns HTTP 200 with `mode: "mock"`, mock update counts, and `"Mock prices and snapshots remain active."` when `DATABASE_URL` is absent. That contradicts read-only demo mode and should fail closed with the same persistence warning before this slice is accepted.
+Next task / blocker to fix: `POST /api/prices/refresh` still returns HTTP 200 with `mode: "mock"`, mock update counts, and `"Mock prices and snapshots remain active."` when `DATABASE_URL` is absent. That contradicts read-only demo mode and should fail closed with the same persistence warning before this slice is accepted.
 
 Codex should fix the refresh endpoint/refresh helper no-DB behavior, add a focused assertion if practical, rerun gates, and push back for Dobby review. Also still provide the Vercel preview/test URL or document the exact blocker.
 

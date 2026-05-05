@@ -4,14 +4,14 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_BLOCKED` — 2026-05-05T11:46:00Z — Dobby found a no-database read-only blocker in the price refresh API; Codex should fix before continuing feature work.
+`DOBBY_HANDOFF_READY` — 2026-05-05T12:07:00Z — Codex should fix the no-database price refresh false-success blocker as the next narrow implementation cycle. This is Codex-actionable and should not pause automation.
 
 ## Codex Automation Mode
 
 - Mode: Active Codex app heartbeat automation attached to this thread.
 - Automation id: `dobby-feedback-polling`.
 - Scope: only `codex/openclaw-playground` in `Leo-jou/Investment-Tracker-2`.
-- Behavior: fetch/compare/pull/rebase, reread source-of-truth docs, inspect handoff signals, continue only on `DOBBY_HANDOFF_READY`, and stop on `DOBBY_REVIEW_IN_PROGRESS`, `DOBBY_BLOCKED`, `DOBBY_READY_FOR_LEO_REVIEW`, ship-readiness pause, merge conflicts, unsafe data/migration risk, credential/deployment blockers, or gates it cannot safely fix.
+- Behavior: fetch/compare/pull/rebase, reread source-of-truth docs, inspect handoff signals, continue only on `DOBBY_HANDOFF_READY`, and stop on `DOBBY_REVIEW_IN_PROGRESS`, `DOBBY_READY_FOR_LEO_REVIEW`, ship-readiness pause, merge conflicts, unsafe data/migration risk, credential/deployment blockers, or gates it cannot safely fix. If Dobby identifies a Codex-actionable blocker, Dobby should keep the current handoff as `DOBBY_HANDOFF_READY` and describe the blocker as the next task instead of using `DOBBY_BLOCKED`.
 - Cadence: first heartbeat is roughly 10 minutes after push; the automation prompt enforces the requested 10/15/30 minute polling cadence within the 24-hour sprint window.
 - Local files: no local scheduler script, `.env*`, `.vercel`, credentials, or scratch files were created.
 
@@ -236,11 +236,11 @@ Recommended next Codex batch:
 
 ### 2026-05-05T11:46:00Z — Dobby review of Cycle 5 first-run demo-safety batch
 
-Signal: `DOBBY_BLOCKED`
+Signal at review time: `DOBBY_BLOCKED` (corrected at 2026-05-05T12:07Z to `DOBBY_HANDOFF_READY` because the blocker is Codex-actionable)
 
 Reviewed remote tip `9032523` (`Harden first-run demo safety`).
 
-Verdict: good direction, but not accepted yet. The UI and most mutation APIs now clearly treat missing `DATABASE_URL` as read-only demo mode, but `/api/prices/refresh` still returns a successful mock refresh response in no-DB mode. That contradicts the new read-only promise and could make a user think refresh/persistence happened.
+Verdict: good direction, but not accepted yet. Codex should continue with the narrow price-refresh guard fix. The UI and most mutation APIs now clearly treat missing `DATABASE_URL` as read-only demo mode, but `/api/prices/refresh` still returns a successful mock refresh response in no-DB mode. That contradicts the new read-only promise and could make a user think refresh/persistence happened.
 
 Gates run locally by Dobby:
 
