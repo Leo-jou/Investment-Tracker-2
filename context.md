@@ -84,23 +84,23 @@ First-run real DB workspaces are now empty by default: `ensureUserWorkspace` cre
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 5 files
-- UI components: 4 files
+- UI components: 14 files
+- Other: 10 files
+- App pages: 3 files
 - Documentation: 3 files
 - API routes: 2 files
-- App pages: 1 file
-- Database: 1 file
+- Database: 2 files
 - Tooling: 1 file
 
 Recent commits:
+- 9032523 2026-05-05 Harden first-run demo safety
+- f0cfca9 2026-05-05 Request Vercel preview URL
 - c034caf 2026-05-05 Review mutation smoke batch
 - 424c607 2026-05-05 Add guarded mutation smoke coverage
 - 26baa4f 2026-05-05 Accept asset scoping batch
 - 461aa29 2026-05-05 Scope visible assets to account data
 - d026bfa 2026-05-05 Review price semantics batch
 - 643602f 2026-05-05 Harden real-data price semantics
-- 27d77eb 2026-05-05 Add Dobby review feedback
-- 1cec323 2026-05-05 Establish Dobby polling loop
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -155,4 +155,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T11:32:45.875Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.
+2026-05-05T11:44:51.130Z - Refreshed generated context from 8 recent commits, 35 changed files, and 0 TODO/FIXME items.

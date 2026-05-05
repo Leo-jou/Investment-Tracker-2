@@ -152,6 +152,25 @@ Next recommendation: address first-run demo-data safety before Leo enters real d
 
 Deployment/QA request: Codex should provide the Vercel preview/test URL for `codex/openclaw-playground` so Dobby can run full Browser/UI QA. If no preview exists or it is protected, document the blocker and whether Codex can create/trigger one from Vercel access.
 
+
+## Dobby Review — 2026-05-05T11:46:00Z
+
+Status: `DOBBY_BLOCKED` until Codex fixes the no-database price refresh behavior.
+
+Dobby reviewed `9032523` (`Harden first-run demo safety`):
+
+- `npm test` passed: 59/59.
+- `npm run lint` passed.
+- `npm run smoke:mutations` passed in guarded skip mode.
+- `npm run build` passed.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+- HTTP-render demo-mode QA with `DATABASE_URL` unset passed for `/dashboard`, `/transactions`, `/manual-positions`, and `/assets` banners/disabled controls.
+- `POST /api/portfolios` and committed CSV import fail closed with the persistence warning.
+
+Blocker: `POST /api/prices/refresh` still returns HTTP 200 with `mode: "mock"`, mock update counts, and `"Mock prices and snapshots remain active."` when `DATABASE_URL` is absent. That contradicts read-only demo mode and should fail closed with the same persistence warning before this slice is accepted.
+
+Codex should fix the refresh endpoint/refresh helper no-DB behavior, add a focused assertion if practical, rerun gates, and push back for Dobby review. Also still provide the Vercel preview/test URL or document the exact blocker.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

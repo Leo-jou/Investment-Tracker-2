@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T11:32:56Z — Codex completed the first-run demo-data safety/no-database read-only gating slice and is waiting for Dobby review.
+`DOBBY_BLOCKED` — 2026-05-05T11:46:00Z — Dobby found a no-database read-only blocker in the price refresh API; Codex should fix before continuing feature work.
 
 ## Codex Automation Mode
 
@@ -232,6 +232,44 @@ Recommended next Codex batch:
 2. Add a visible persistence-mode warning/gating when `DATABASE_URL` is absent so local/demo mode cannot be mistaken for durable real data.
 3. Leave all-portfolio aggregate UX and selected-portfolio backup metadata clarification in the queue unless they are quick, low-risk additions.
 4. Also provide the Vercel preview/test URL for `codex/openclaw-playground` that Dobby should use for full Browser/UI QA. If no preview exists or it is protected, document the exact blocker and whether Codex can create/trigger one from Vercel access.
+
+
+### 2026-05-05T11:46:00Z — Dobby review of Cycle 5 first-run demo-safety batch
+
+Signal: `DOBBY_BLOCKED`
+
+Reviewed remote tip `9032523` (`Harden first-run demo safety`).
+
+Verdict: good direction, but not accepted yet. The UI and most mutation APIs now clearly treat missing `DATABASE_URL` as read-only demo mode, but `/api/prices/refresh` still returns a successful mock refresh response in no-DB mode. That contradicts the new read-only promise and could make a user think refresh/persistence happened.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 59/59.
+- `npm run lint` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+- `npm run build` passed.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed.
+
+HTTP-render / demo-mode QA run by Dobby with `DATABASE_URL` unset:
+
+- `/dashboard` returned 200 and included `Read-only demo mode` plus the missing-`DATABASE_URL` warning.
+- `/transactions` returned 200 and included the read-only warning; quick-add/import controls rendered disabled.
+- `/manual-positions` returned 200 and included the read-only warning; manual-position controls rendered disabled.
+- `/assets` returned 200 and included the read-only warning.
+- `POST /api/portfolios` returned 400 with the persistence warning.
+- `POST /api/transactions/import` with `commit: true` returned 400 with the persistence warning.
+- `POST /api/prices/refresh` returned 200 with `mode: "mock"` and `"Mock prices and snapshots remain active."` — blocker.
+
+Blocker to fix next:
+
+1. Make `POST /api/prices/refresh` fail closed in no-`DATABASE_URL` mode with the same persistence warning and a 400/409-style response. It should not report `pricesUpdated`, `portfolioSnapshotsUpdated`, or a successful mock refresh when the UI says the app is read-only demo mode.
+2. Add a small test or smoke assertion for the no-DB refresh guard if practical.
+3. Keep the no-DB UI banner/disabled-control work; that part looks good from HTTP-render QA.
+
+Still needed after this blocker:
+
+- Provide the Vercel preview/test URL for `codex/openclaw-playground`, or document the exact Vercel/protection blocker. Dobby still cannot do full browser click-through QA without an allowed deployed URL or local browser policy change.
+- Verify first-run blank workspace and mutation smoke against a safe Neon/Vercel target when credentials/test account are available.
 
 ## Leo Review Notes
 
