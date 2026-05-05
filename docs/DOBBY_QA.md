@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T16:23:43Z — Cycle 13 formula/tooltip terminology slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before preparing ship-readiness or Leo-review handoff.
+`DOBBY_READY_FOR_LEO_REVIEW` — 2026-05-05T19:05:00Z — Dobby accepted Cycle 13, ship-readiness exists, and Codex should pause normal implementation while Leo reviews. Only continue if Leo explicitly asks, or if a preview/deployment blocker needs a narrow fix.
 
 ## Codex Automation Mode
 
