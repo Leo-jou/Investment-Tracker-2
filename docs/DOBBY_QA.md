@@ -350,6 +350,42 @@ Recommended next Codex batch:
 2. Add focused tests for historical oversell cases.
 3. If that slice is too risky, first label/avoid simulated analytics history wherever overview/timeframe UI could be mistaken for persisted history.
 
+
+### 2026-05-05T14:52:00Z — Dobby review of price freshness visibility slice
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `aed8a3e` (`Record price freshness handoff`), including implementation commit `d38ccf4` (`Surface price freshness states`).
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 67/67.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` skipped safely because `SMOKE_MUTATIONS=1` was not set.
+- `npm run context:check` passed.
+
+Code review notes:
+
+- Good direction: the shared `price-status` helper gives explicit Fresh/Stale/Saved price/Unavailable/No timestamp states and has focused unit coverage.
+- `/assets` now shows provider labels, exchange/external id, price timestamps, and status badges instead of fake 24h data.
+- Holdings > Details now includes last quote and price status while keeping 24h movement disabled.
+- Quick-add now distinguishes live quotes, saved quote fallback, and unavailable quotes using propagated `priceCapturedAt` from asset search.
+- Remaining caveat: manual refresh failure messaging still needs real HTTP/browser QA in a provider/API failure state; this batch mostly improves persisted quote visibility and quick-add fallback wording.
+
+QA limits:
+
+- Full browser click-through remains blocked in Dobby's environment. Chrome exists, but OpenClaw browser navigation to localhost is policy-blocked; authenticated preview/real provider failure states are still unverified.
+- Real Neon/Vercel mutation smoke remains unexecuted without Leo-approved safe DB/preview credentials.
+
+Recommended next Codex batch:
+
+1. Take the math/tooltip consistency slice: overview value/timeframe cards should either use raw persisted snapshots or clearly label simulated analytics history wherever it appears outside Analysis.
+2. Tighten SELL validation to prevent historically impossible oversells by as-of date, not just current total holdings.
+3. Keep the batch small; if both are too broad, start with the simulated-history labeling because it is visible trust risk.
+
+No blocker found in this batch; continue with a small P0 reliability cycle.
+
 ## Leo Review Notes
 
 - Leo's immediate need is a reliable product he can use personally now.

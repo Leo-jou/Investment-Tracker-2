@@ -88,15 +88,16 @@ Price freshness is now visible where persisted prices are shown. Assets and Hold
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 7 files
+- Other: 5 files
 - UI components: 4 files
 - Documentation: 3 files
-- API routes: 2 files
 - App pages: 2 files
-- Database: 2 files
-- Pricing providers: 2 files
+- API routes: 1 file
+- Database: 1 file
+- Pricing providers: 1 file
 
 Recent commits:
+- 3a7c986 2026-05-05 Review price freshness slice [skip ci]
 - aed8a3e 2026-05-05 Record price freshness handoff
 - d38ccf4 2026-05-05 Surface price freshness states
 - f8aab24 2026-05-05 Review aggregate dashboard slice
@@ -104,7 +105,6 @@ Recent commits:
 - 86377c1 2026-05-05 Add all-portfolio aggregate dashboard
 - ce50c5b 2026-05-05 Review refresh guard cycle
 - 2ca810f 2026-05-05 Record refresh guard handoff
-- bd33a29 2026-05-05 Fail closed demo price refresh
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -159,4 +159,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T14:45:22.192Z - Refreshed generated context from 8 recent commits, 22 changed files, and 0 TODO/FIXME items.
+2026-05-05T14:48:19.530Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.

@@ -220,6 +220,22 @@ Dobby reviewed `aed8a3e` / `d38ccf4` (`Surface price freshness states`):
 
 Next recommendation: take the math/tooltip consistency slice, starting with historical SELL validation so backdated sells cannot pass based only on current holdings. Add focused tests, then continue simulated-history labeling outside Analysis.
 
+
+## Dobby Review — 2026-05-05T14:52:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle.
+
+Dobby reviewed `aed8a3e` / `d38ccf4` for the price freshness visibility slice:
+
+- `npm test` passed: 67/67.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` skipped safely because `SMOKE_MUTATIONS=1` was not set.
+- `npm run context:check` passed.
+- Browser click-through and real provider-failure QA remain blocked without a usable authenticated preview/browser target.
+
+Next recommendation: take the math/tooltip consistency slice. Prefer either using raw persisted snapshots for overview/timeframe cards or clearly labeling simulated analytics history wherever it appears outside Analysis. Also tighten SELL validation by historical as-of-date availability if it fits the same small batch.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.
