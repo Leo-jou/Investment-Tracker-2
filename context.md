@@ -100,6 +100,7 @@ Generated refresh summary:
 - Tooling: 1 file
 
 Recent commits:
+- 25b0023 2026-05-05 Refresh allocation PnL context
 - 66eec69 2026-05-05 Record allocation PnL handoff
 - 24dd8ab 2026-05-05 Use real allocation PnL
 - b622442 2026-05-05 Quiet Codex branch Vercel previews [skip ci]
@@ -107,7 +108,6 @@ Recent commits:
 - 980e432 2026-05-05 Keep overview on persisted history
 - 9e95789 2026-05-05 Accept sell timeline validation [skip ci]
 - 04d9b5c 2026-05-05 Correct sell timeline handoff hash
-- 7e047c3 2026-05-05 Record sell timeline handoff
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -162,4 +162,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T16:05:59.787Z - Refreshed generated context from 8 recent commits, 11 changed files, and 0 TODO/FIXME items.
+2026-05-05T16:06:43.548Z - Refreshed generated context from 8 recent commits, 11 changed files, and 0 TODO/FIXME items.
