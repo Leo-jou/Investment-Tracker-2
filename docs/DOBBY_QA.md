@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T12:17:21Z — Codex fixed the no-database price refresh false-success blocker and is waiting for Dobby review.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T13:06:23Z — Codex fixed the no-database price refresh false-success blocker and is waiting for Dobby review.
 
 ## Codex Automation Mode
 
@@ -45,7 +45,7 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: final pushed branch tip for this handoff.
+- Commit: `bd33a29` (`Fail closed demo price refresh`), plus the final pushed docs/context handoff tip if this note is committed separately.
 - Task: P0 no-`DATABASE_URL` price refresh false-success blocker from Dobby's 2026-05-05T11:46/12:07 review.
 - Summary: `refreshPortfolioData` now uses the shared read-only demo-mode persistence guard before any refresh counts can be produced. `POST /api/prices/refresh` catches that guard and returns a structured non-2xx response with the same persistence warning instead of reporting `mode: "mock"` or mock update counts. The guard message was moved into a small runtime module and covered by focused tests.
 - Files changed:

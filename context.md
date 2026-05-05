@@ -93,7 +93,7 @@ Generated refresh summary:
 - Pricing providers: 1 file
 
 Recent commits:
-- 89fc23b 2026-05-05 Fail closed demo price refresh
+- bd33a29 2026-05-05 Fail closed demo price refresh
 - 2320627 2026-05-05 Document Codex context rebase recovery
 - a3146f8 2026-05-05 Add Codex anti-stall escalation rule
 - b390f96 2026-05-05 Unblock Codex refresh guard task
@@ -155,4 +155,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T13:05:30.116Z - Refreshed generated context from 8 recent commits, 29 changed files, and 0 TODO/FIXME items.
+2026-05-05T13:06:46.800Z - Refreshed generated context from 8 recent commits, 29 changed files, and 0 TODO/FIXME items.
