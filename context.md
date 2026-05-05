@@ -71,6 +71,8 @@ Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a gua
 
 Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, persisted benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, broker-specific import presets/sample-format handling, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
 
+Cycle 1 reliability audit on `codex/openclaw-playground` found the next MVP blockers before Leo enters real data: no all-portfolio aggregate view, asset metadata/backups are not fully user/account scoped because `getDashboardDataForEmail` loads all active assets, first-run Neon workspaces still seed demo transactions/manual positions, typed/imported BUY flows can silently create unrefreshable mock-priced assets, overview charts/timeframe cards can use simulated analytics snapshots without an overview label, daily movers/24h moves are mock or estimated, quick-add still defaults to `2026-04-27`, SELL validation is not historical-date aware, and mutation/user-scope API smoke coverage is missing. `docs/WORK_QUEUE.md` now breaks these into concrete P0 follow-up tasks for Dobby/Codex cycles.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - Other: 7 files
@@ -124,15 +126,16 @@ Generated TODO/FIXME scan:
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
-2. Add mutation-capable end-to-end smoke tests for create/edit/delete transaction and create/edit/delete manual position, preferably against a dedicated smoke-test account.
-3. Run a manual browser Google login smoke test with an allowlisted Google account.
-4. Move settings preferences from browser storage into Neon once migration access is resolved.
-5. Configure `CRON_SECRET`, `CRON_REFRESH_EMAILS`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled refresh and digest email should actually run.
-6. Add paired transfer support once multiple portfolios are available.
-7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from demo analytics to real calculated output.
-8. For OpenClaw experiments, start from `codex/openclaw-playground` and keep `main` plus `codex/safe-backup-2026-04-30` protected as recovery references.
-9. Review the new Risk readiness panel in the Analysis tab and refine copy/thresholds if beta testers find the methodology too dense.
-10. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
+2. Fix the P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with mutation-capable smoke tests, user/account scoping for assets/backups, and a clear all-portfolio aggregate view.
+3. Harden quote/price semantics before real data entry: stop silent mock asset creation, show stale/unavailable/manual/mock states, and hide fake 24h/daily movers until provider-backed.
+4. Align charts/tooltips with real persisted data by avoiding unlabeled simulated analytics history outside the Analysis tab.
+5. Fix quick-add's hardcoded date and add historical-date-aware SELL validation.
+6. Run a manual browser Google login smoke test with an allowlisted Google account.
+7. Move settings preferences from browser storage into Neon once migration access is resolved.
+8. Configure `CRON_SECRET`, `CRON_REFRESH_EMAILS`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled refresh and digest email should actually run.
+9. Add paired transfer support once multiple portfolios are available.
+10. Add benchmark snapshot storage and a composite benchmark provider so beta can move from demo analytics to real calculated output.
+11. For OpenClaw experiments, start from `codex/openclaw-playground` and keep `main` plus `codex/safe-backup-2026-04-30` protected as recovery references.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
