@@ -310,6 +310,23 @@ Next recommendation: finish formula/tooltip terminology across portfolio value, 
 
 These are placeholders until Cycle 1 confirms the real state.
 
+### [blocked] P0: Make a live Vercel target usable for Leo/Codex browser QA
+
+Leo asked Codex to continue past the earlier review pause toward a live personal-use MVP. Codex's live-readiness check found setup blockers, not a narrow app-code blocker.
+
+Current verified state:
+
+- Fresh preview `https://foliocore-8djhy7v8f-leopoldjourdain-6225s-projects.vercel.app` is `READY` from `codex/openclaw-playground`, but it is protected by Vercel authentication and Preview env only has `AUTH_SECRET`.
+- Production `https://foliocore.vercel.app` is `READY` and has production DB/auth/provider env, but it is protected from Codex browser access and still points at `main` commit `f8040007381bbe35a2d7b4bcb7dfe66f485e546c`.
+- Authenticated Vercel CLI curl can reach `/login`; preview shows Google login not configured while production shows Google login configured.
+
+Leo/setup choices needed:
+
+- Configure Preview env with a safe database/auth/provider target, or explicitly choose Production as the live review target.
+- Give Codex an allowed browser target: Leo signs into Vercel in the browser, changes Deployment Protection, or explicitly approves a temporary Vercel auth-bypass share URL.
+- Provide a safe allowlisted smoke-test email and safe database target before `SMOKE_MUTATIONS=1 npm run smoke:mutations`.
+- Explicitly approve production deployment from `codex/openclaw-playground` if the latest reliability code should replace the current `main` production deployment.
+
 ### [~] P0: Add mutation-capable DB/API smoke tests for real user data flows and scoping
 
 Target flows:

@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_READY_FOR_LEO_REVIEW` — 2026-05-05T19:05:00Z — Dobby accepted Cycle 13, ship-readiness exists, and Codex should pause normal implementation while Leo reviews. Only continue if Leo explicitly asks, or if a preview/deployment blocker needs a narrow fix.
+`CODEX_BLOCKED` — 2026-05-05T19:15:00Z — Leo explicitly asked Codex to continue overnight toward live usability. Codex verified Vercel/live-readiness and found setup blockers requiring Leo/Vercel configuration: current preview is built but protected and missing database/auth/provider Preview env, production is protected and still on `main`, and mutation smoke needs a safe allowlisted smoke email plus safe database target. Do not continue implementation until Leo resolves or explicitly approves the setup actions in `docs/SHIP_READINESS.md`.
 
 ## Codex Automation Mode
 
@@ -45,16 +45,14 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Cycle 13: formula/tooltip terminology and snapshot semantics.
-- Commit: implementation `7323935`; docs/context handoff commit is the pushed branch tip.
-- Renamed user-facing unrealized/open holding labels to `Open-position P&L` where the metric is transaction-backed open holdings versus remaining average-cost basis.
-- Digest/report HTML and report export now use persisted snapshot TWR only; if no persisted snapshots exist they show `Need snapshots` / `needs_snapshots` instead of falling back to estimated portfolio return.
-- Report export portfolio and position fields now use `openPositionPnl*` names for review exports while backup JSON still preserves full typed records.
-- Portfolio chart, quick-add, and settings copy now state the current snapshot behavior: backdated entries validate historical holdings, but the app upserts only today's/current-day portfolio snapshot and does not rebuild historical snapshots automatically.
-- Added focused digest/export tests for snapshot TWR withholding and open-position P&L terminology.
-- Gates run by Codex: `npm test` passed 78/78, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
-- Manual/browser QA: not run; Dobby should verify the summary cards, holdings Performance table, chart helper text, digest/report, and CSV/report JSON terminology.
-- Known remaining risks: real Neon/Vercel mutation smoke and full browser click-through remain blocked by safe target/access needs; deployment/preview remains protected/no-DB as documented.
+- Live-readiness/setup check after Leo's overnight continuation request.
+- Verified preview deployment `dpl_ArTeAo3ter5cc6zGf3KSVaydNBrb` is `READY` at `https://foliocore-8djhy7v8f-leopoldjourdain-6225s-projects.vercel.app`, but browser access redirects to Vercel login and Preview env only contains `AUTH_SECRET`.
+- Verified production `https://foliocore.vercel.app` is `READY` at deployment `dpl_AjRB3PZPYT7GXdWHMi2sdNFXrZkF`, but it is protected from Codex browser access and still points at `main` commit `f8040007381bbe35a2d7b4bcb7dfe66f485e546c`.
+- Vercel project env names confirm Production has `DATABASE_URL`, `APP_ALLOWED_EMAILS`, `AUTH_SECRET`, Google auth vars, and provider API keys; Preview is missing the production-like DB/auth/provider set.
+- Authenticated `vercel curl` can reach `/login`: Preview shows Google login not configured; Production shows Google login configured.
+- Real mutation smoke was not run because Codex does not have a safe `DATABASE_URL` + allowlisted smoke email target and should not guess Leo's real account.
+- Gates run by Codex during setup check: `npm test` passed 78/78, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
+- `docs/SHIP_READINESS.md` now says `Status: Blocked for Leo setup` with the exact setup blockers.
 
 ## Dobby Findings
 
