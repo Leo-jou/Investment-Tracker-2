@@ -22,6 +22,7 @@ export function buildPortfolioDigest(
     .sort((left, right) => right.marketValueUsd - left.marketValueUsd)
     .slice(0, 8);
   const latestSnapshot = data.snapshots.at(-1);
+  const twrLabel = latestSnapshot ? formatPercent(latestSnapshot.twr) : "Need snapshots";
   const recentTransactions = data.transactions.slice(0, 8);
   const highlightCards = buildHighlightCards(data);
   const highlights = [
@@ -29,7 +30,7 @@ export function buildPortfolioDigest(
       data.portfolio.valueEur,
       "EUR"
     )}).`,
-    `TWR: ${formatPercent(data.portfolio.twr)}. Unrealized P&L: ${formatMoney(
+    `Snapshot TWR: ${twrLabel}. Open-position P&L: ${formatMoney(
       data.portfolio.unrealizedGainEur ?? 0,
       "EUR"
     )}. Realized P&L: ${formatMoney(data.portfolio.realizedGainEur ?? 0, "EUR")}.`,
@@ -91,6 +92,8 @@ export function buildPortfolioDigest(
 function buildHighlightCards(data: DashboardData): PortfolioDigestHighlight[] {
   const topWinner = [...data.positions].sort((left, right) => right.pnlEur - left.pnlEur)[0];
   const topLoser = [...data.positions].sort((left, right) => left.pnlEur - right.pnlEur)[0];
+  const latestSnapshot = data.snapshots.at(-1);
+  const twrLabel = latestSnapshot ? formatPercent(latestSnapshot.twr) : "Need snapshots";
   const largestAllocation = data.allocations.reduce(
     (largest, item) => (item.percent > largest.percent ? item : largest),
     data.allocations[0] ?? { label: "None", percent: 0, value: 0, color: "#71717a" }
@@ -107,17 +110,17 @@ function buildHighlightCards(data: DashboardData): PortfolioDigestHighlight[] {
     {
       label: "Portfolio value",
       value: formatMoney(data.portfolio.valueUsd, "USD"),
-      detail: `${formatPercent(data.portfolio.twr)} TWR; ${formatMoney(
+      detail: `${twrLabel} snapshot TWR; ${formatMoney(
         data.portfolio.netContributionsUsd ?? data.portfolio.netContributionsEur,
         "USD"
       )} net contributions.`,
-      tone: data.portfolio.twr >= 0 ? "positive" : "negative"
+      tone: latestSnapshot ? (latestSnapshot.twr >= 0 ? "positive" : "negative") : "neutral"
     },
     {
       label: "Largest winner",
       value: positionLabel(data, topWinner),
       detail: topWinner
-        ? `${formatMoney(topWinner.pnlEur, "EUR")} unrealized P&L.`
+        ? `${formatMoney(topWinner.pnlEur, "EUR")} open-position P&L.`
         : "No priced holdings yet.",
       tone: topWinner && topWinner.pnlEur >= 0 ? "positive" : "neutral"
     },
@@ -125,7 +128,7 @@ function buildHighlightCards(data: DashboardData): PortfolioDigestHighlight[] {
       label: "Largest drag",
       value: positionLabel(data, topLoser),
       detail: topLoser
-        ? `${formatMoney(topLoser.pnlEur, "EUR")} unrealized P&L.`
+        ? `${formatMoney(topLoser.pnlEur, "EUR")} open-position P&L.`
         : "No priced holdings yet.",
       tone: topLoser && topLoser.pnlEur < 0 ? "negative" : "neutral"
     },
@@ -159,6 +162,8 @@ function renderDigestHtml(
 ) {
   const assetById = new Map(data.assets.map((asset) => [asset.id, asset]));
   const allocationRows = data.allocations.slice(0, 8);
+  const latestSnapshot = data.snapshots.at(-1);
+  const twrLabel = latestSnapshot ? formatPercent(latestSnapshot.twr) : "Need snapshots";
   const csvHref = absoluteUrl(
     `/api/export?format=csv&portfolioId=${encodeURIComponent(data.portfolio.id)}`,
     options.baseUrl
@@ -229,9 +234,9 @@ function renderDigestHtml(
 
       <section class="grid">
         ${metricCard("Value", formatMoney(data.portfolio.valueUsd, "USD"))}
-        ${metricCard("TWR", formatPercent(data.portfolio.twr))}
+        ${metricCard("Snapshot TWR", twrLabel, latestSnapshot?.twr)}
         ${metricCard(
-          "Unrealized P&L",
+          "Open-position P&L",
           formatMoney(data.portfolio.unrealizedGainEur ?? 0, "EUR"),
           data.portfolio.unrealizedGainEur ?? 0
         )}
@@ -277,7 +282,7 @@ function renderDigestHtml(
       <h2>Top positions</h2>
       <div class="card">
         <table>
-          <thead><tr><th>Asset</th><th class="right">Qty</th><th class="right">Value</th><th class="right">P&L</th><th class="right">Allocation</th></tr></thead>
+          <thead><tr><th>Asset</th><th class="right">Qty</th><th class="right">Value</th><th class="right">Open P&L</th><th class="right">Allocation</th></tr></thead>
           <tbody>
             ${topPositions
               .map((position) => {

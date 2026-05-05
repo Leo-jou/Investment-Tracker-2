@@ -18,7 +18,7 @@ export function GlobalMetricsBar({ portfolio, currency, timeframeStats }: Global
     currency === "EUR"
       ? portfolio.netContributionsEur
       : (portfolio.netContributionsUsd ?? convertFromEur(portfolio.netContributionsEur));
-  const unrealizedGain =
+  const openPositionPnl =
     currency === "EUR"
       ? (portfolio.unrealizedGainEur ?? portfolio.pnlEur)
       : (portfolio.unrealizedGainUsd ?? convertFromEur(portfolio.pnlEur));
@@ -49,13 +49,16 @@ export function GlobalMetricsBar({ portfolio, currency, timeframeStats }: Global
         ]}
       />
       <PortfolioSummaryCard
-        label="Unrealized P&L"
-        value={unrealizedGain}
+        label="Open-position P&L"
+        value={openPositionPnl}
         currency={currency}
-        detail="Open-position gain or loss"
-        tooltip="Unrealized P&L is the current value of open holdings minus their remaining average-cost basis. It does not include gains already locked in by sells."
-        calculationLines={["Unrealized P&L = current open position value - remaining cost basis."]}
-        emphasis={unrealizedGain >= 0 ? "positive" : "negative"}
+        detail="Current holdings vs cost basis"
+        tooltip="Open-position P&L is the current value of transaction-backed open holdings minus their remaining average-cost basis. Manual positions are included in portfolio value, but not this metric because they have no cost basis."
+        calculationLines={[
+          "Open-position P&L = current open holding value - remaining average-cost basis.",
+          "Closed gains from sells are shown separately as realized P&L."
+        ]}
+        emphasis={openPositionPnl >= 0 ? "positive" : "negative"}
       />
       <PortfolioSummaryCard
         label="Realized P&L"

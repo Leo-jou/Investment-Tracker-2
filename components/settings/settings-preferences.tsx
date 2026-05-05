@@ -86,7 +86,7 @@ export function SettingsPreferences({
 
         <PreferenceSwitch
           title="Daily snapshots"
-          detail="Applied to manual price refresh requests. Automated refresh is admin-configured separately."
+          detail="Applied to manual price refresh requests. Refresh records today's snapshot; historical backfills are not automatic."
           enabled={preferences.dailySnapshotsEnabled}
           onChange={(enabled) => savePreferences({ dailySnapshotsEnabled: enabled })}
         />

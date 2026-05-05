@@ -12,13 +12,29 @@ test("portfolio digest includes metrics, positions, transactions, and news", () 
 
   assert.match(digest.subject, /Personal/);
   assert.match(digest.text, /Portfolio value/);
+  assert.match(digest.text, /open-position P&L/i);
   assert.match(digest.text, /BTC/);
   assert.match(digest.text, /Bitcoin liquidity improves/);
   assert.match(digest.html, /Bitcoin liquidity improves/);
+  assert.match(digest.html, /Open-position P&amp;L/);
   assert.match(digest.html, /https:\/\/foliocore\.example\/api\/export\?format=backup-json/);
   assert.ok(digest.highlightCards.length >= 5);
   assert.ok(digest.highlightCards.some((card) => card.label === "Data quality"));
   assert.equal(digest.news.length, 1);
+});
+
+test("portfolio digest withholds estimated TWR without persisted snapshots", () => {
+  const digest = buildPortfolioDigest({
+    ...mockDashboardData,
+    portfolio: { ...mockDashboardData.portfolio, twr: 99 },
+    snapshots: [],
+    analyticsSnapshots: []
+  });
+
+  assert.match(digest.text, /Need snapshots/);
+  assert.match(digest.html, /Need snapshots/);
+  assert.doesNotMatch(digest.text, /\+99\.00%/);
+  assert.doesNotMatch(digest.html, /\+99\.00%/);
 });
 
 const mockNews: PortfolioNewsItem[] = [

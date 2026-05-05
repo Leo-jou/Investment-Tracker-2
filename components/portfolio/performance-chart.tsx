@@ -61,8 +61,8 @@ export function PerformanceChart({
           <h2 className="text-3xl font-bold">Portfolio change</h2>
           <p className="mt-2 text-sm text-zinc-500">
             {mode === "value"
-              ? "Absolute portfolio value, including deposits, withdrawals, cash, and manual positions."
-              : "Time-weighted return, excluding external deposits and withdrawals."}
+              ? "Persisted snapshot value, including holdings, cash, and manual positions. Backdated entries update today's snapshot, not a historical backfill."
+              : "Snapshot-based time-weighted return, excluding external deposits and withdrawals."}
           </p>
         </div>
         <SegmentedControl
@@ -80,7 +80,7 @@ export function PerformanceChart({
           <div className="flex h-full w-full items-center justify-center rounded-[8px] border border-dashed border-[#2b2b2f] bg-[#050505] px-6 text-center">
             <p className="max-w-sm text-sm leading-6 text-zinc-500">
               No portfolio history yet. Add real entries or refresh snapshots before this chart
-              populates.
+              populates. Backdated entries are validated, but historical snapshots are not rebuilt.
             </p>
           </div>
         ) : isMounted ? (

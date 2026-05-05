@@ -48,6 +48,7 @@ export function buildPortfolioExport(data: DashboardData, options: PortfolioExpo
   const sections = normalizeSections(options.sections);
   const filteredTransactions = filterDatedRows(data.transactions, options);
   const filteredSnapshots = filterDatedRows(data.snapshots, options);
+  const latestSnapshot = data.snapshots.at(-1);
 
   const exported: PortfolioExportPayload = {
     generatedAt,
@@ -66,14 +67,15 @@ export function buildPortfolioExport(data: DashboardData, options: PortfolioExpo
       baseCurrency: data.portfolio.baseCurrency,
       valueUsd: round(data.portfolio.valueUsd),
       valueEur: round(data.portfolio.valueEur),
-      twrPercent: round(data.portfolio.twr),
+      snapshotTwrPercent: roundOptional(latestSnapshot?.twr),
+      twrSource: latestSnapshot ? "portfolio_snapshot" : "needs_snapshots",
       totalPnlEur: round(data.portfolio.pnlEur),
       netContributionsEur: round(data.portfolio.netContributionsEur),
       netContributionsUsd: round(data.portfolio.netContributionsUsd ?? 0),
       cashEur: round(data.portfolio.cashEur ?? 0),
       cashUsd: round(data.portfolio.cashUsd ?? 0),
-      unrealizedGainEur: round(data.portfolio.unrealizedGainEur ?? 0),
-      unrealizedGainUsd: round(data.portfolio.unrealizedGainUsd ?? 0),
+      openPositionPnlEur: round(data.portfolio.unrealizedGainEur ?? 0),
+      openPositionPnlUsd: round(data.portfolio.unrealizedGainUsd ?? 0),
       realizedGainEur: round(data.portfolio.realizedGainEur ?? 0),
       realizedGainUsd: round(data.portfolio.realizedGainUsd ?? 0)
     };
@@ -93,8 +95,8 @@ export function buildPortfolioExport(data: DashboardData, options: PortfolioExpo
         marketValueUsd: round(position.marketValueUsd),
         marketValueEur: round(position.marketValueEur),
         averageCostEur: round(position.averageCostEur),
-        pnlEur: round(position.pnlEur),
-        pnlPercent: round(position.pnlPercent),
+        openPositionPnlEur: round(position.pnlEur),
+        openPositionPnlPercent: round(position.pnlPercent),
         platform: position.platform ?? ""
       };
     });
@@ -234,6 +236,10 @@ function sanitizeStringCell(value: string) {
 
 function round(value: number, digits = 4) {
   return Number(value.toFixed(digits));
+}
+
+function roundOptional(value: number | null | undefined, digits = 4) {
+  return typeof value === "number" && Number.isFinite(value) ? round(value, digits) : null;
 }
 
 function normalizeSections(sections?: ExportSection[]) {

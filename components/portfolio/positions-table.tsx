@@ -182,7 +182,7 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
     return [
       {
         key: "unrealized",
-        label: "Unrealized P&L",
+        label: "Open-position P&L",
         align: "right",
         width: "w-[170px]",
         render: ({ position }) => (

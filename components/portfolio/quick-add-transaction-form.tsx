@@ -369,6 +369,10 @@ export function QuickAddTransactionForm({
           <ArrowDownLeft className="h-3 w-3 text-[#ff4d64]" />
           Deposits and withdrawals are cash flows, not gains.
         </span>
+        <span>
+          Backdated entries validate holdings history, but only the current-day portfolio snapshot is
+          updated.
+        </span>
       </div>
     </form>
   );

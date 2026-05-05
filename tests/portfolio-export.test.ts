@@ -17,9 +17,27 @@ test("portfolio export includes core sections", () => {
   assert.ok(exported.snapshots);
 
   assert.equal(exported.portfolio.name, "Personal");
+  assert.equal(exported.portfolio.snapshotTwrPercent, 4.2);
+  assert.equal(exported.portfolio.twrSource, "portfolio_snapshot");
+  assert.equal(exported.portfolio.openPositionPnlEur, 800);
+  assert.equal("unrealizedGainEur" in exported.portfolio, false);
   assert.equal(exported.positions[0].symbol, "BTC");
+  assert.equal(exported.positions[0].openPositionPnlEur, 800);
   assert.equal(exported.transactions[0].type, "BUY");
   assert.equal(exported.snapshots[0].twrPercent, 4.2);
+});
+
+test("portfolio report export withholds estimated TWR without persisted snapshots", () => {
+  const exported = buildPortfolioExport({
+    ...mockDashboardData,
+    portfolio: { ...mockDashboardData.portfolio, twr: 99 },
+    snapshots: []
+  });
+
+  assert.ok(exported.portfolio);
+  assert.equal(exported.portfolio.snapshotTwrPercent, null);
+  assert.equal(exported.portfolio.twrSource, "needs_snapshots");
+  assert.equal("twrPercent" in exported.portfolio, false);
 });
 
 test("CSV export escapes notes and sectioned portfolio data", () => {
@@ -85,7 +103,11 @@ const mockDashboardData: DashboardData = {
     twr: 4.2,
     pnlEur: 800,
     dayChangePercent: 0.5,
-    netContributionsEur: 8200
+    netContributionsEur: 8200,
+    unrealizedGainEur: 800,
+    unrealizedGainUsd: 880,
+    realizedGainEur: 120,
+    realizedGainUsd: 132
   },
   portfolios: [{ id: "portfolio-1", name: "Personal", description: "Core" }],
   assets: [
