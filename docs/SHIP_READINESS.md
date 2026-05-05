@@ -1,69 +1,42 @@
-# Ship Readiness
+# Ship Readiness — Investment Tracker
 
-Verdict: **Not ready for Leo real-data use until P0 reliability checks pass.**
+Updated: 2026-05-05
 
-This checklist is for deciding when Leo can safely start entering real transaction history.
+## Dobby Verdict
 
-## P0 Data Safety
+Ready for Leo review as a personal-use MVP reliability slice.
 
-- [ ] Authenticated user data is scoped correctly.
-- [ ] Core data persists in Neon, not only local/browser/mock state.
-- [ ] Portfolio create/edit/delete behavior is safe or deliberately limited.
-- [ ] Transaction create/edit/delete behavior is safe and tested/smoke-tested.
-- [ ] Backup JSON export works and contains full recovery data.
-- [ ] CSV export works for human-readable review.
-- [ ] No known destructive migration risk remains unresolved.
+This does **not** mean production/public launch ready. It means the core personal-use paths are now much safer for Leo to review with real-ish data, with known limitations clearly documented.
 
-## P0 Core Product
+## Gates
 
-- [ ] Account/login flow works in target environment.
-- [ ] Multiple portfolios can be created and reviewed.
-- [ ] Aggregate all-portfolio view exists or the current portfolio selector behavior is clear and acceptable.
-- [ ] BUY/SELL/DEPOSIT/WITHDRAW/manual flows are understandable.
-- [ ] Holdings derive correctly from transactions/manual positions.
+Latest Dobby run:
 
-## P0 Live Prices
+- `npm test` — pass, 78/78.
+- `npm run lint` — pass.
+- `npm run build` — pass.
+- `npm run context:check` — pass.
+- `npm run smoke:mutations` — safe skip mode; real DB/API mutation smoke still requires `SMOKE_MUTATIONS=1`, a safe database target, and an allowlisted smoke user.
 
-- [ ] Dashboard prices refresh or clearly show stale/unavailable state.
-- [ ] Asset/ticker search provides provider-backed metadata/quotes where available.
-- [ ] Mock/manual/saved prices are clearly labeled.
-- [ ] Refresh failure states are visible and safe.
+## Accepted Reliability Slices
 
-## P0 Math Confidence
+- SELL validation rejects historical oversells, including downstream oversells caused by backdated or edited SELLs.
+- Overview/timeframe UI uses persisted portfolio snapshots only; simulated analytics history stays isolated to Analysis/demo-labeled surfaces.
+- Allocation table P&L uses transaction-backed open-position P&L and withholds manual-only/mixed incomplete values.
+- Formula/terminology pass clarifies portfolio value, net contributions, open-position P&L, realized P&L, TWR, chart range semantics, digest/report terminology, and export field names.
+- Digest/report/export no longer fall back to estimated portfolio return when persisted snapshots are missing; they show `Need snapshots` / `needs_snapshots`.
 
-- [ ] Portfolio value formula is tested/documented.
-- [ ] Cost basis and realized/unrealized P&L are tested/documented.
-- [ ] Net contributions/cash flows are separated from gains.
-- [ ] TWR behavior is tested/documented.
-- [ ] Risk metrics show only when statistically meaningful or are clearly labeled demo/insufficient-data.
-- [ ] Tooltips match implemented formulas.
-- [ ] Charts and cards share timeframe semantics.
+## Known Limitations
 
-## P1 Usability
+- Real Neon/Vercel mutation smoke has not been run from this environment.
+- Full browser click-through still needs an allowed deployed/authenticated preview target.
+- Backdated entries validate historical holdings but do not rebuild historical snapshots automatically; current behavior upserts today/current-day snapshot.
+- UI can still be polished, but Leo explicitly prioritized trustworthy numbers and safe data handling over visual perfection.
 
-- [ ] Dashboard usable on desktop.
-- [ ] Transactions flow usable on desktop.
-- [ ] Portfolio/holdings views usable on desktop.
-- [ ] Analysis view does not imply fake precision.
-- [ ] Settings do not imply inactive features are active.
-- [ ] Main flows avoid catastrophic mobile overflow.
+## Recommended Leo Review
 
-## Deployment Requirement
-
-Before asking Leo for final MVP review, the current branch must be deployed to a usable Vercel environment where Leo can log in and test real flows. If deployment is blocked by Vercel auth, env vars, database credentials, or preview protection, mark this file blocked and explain exactly what is needed.
-
-## Ready For Leo Review Criteria
-
-Mark ready only when:
-
-- all P0 boxes are checked or explicitly accepted by Leo;
-- tests/build/lint pass;
-- Dobby has completed browser QA on core flows;
-- backup/export recovery path is confirmed;
-- remaining limitations are listed plainly.
-
-## Final Automation Stop Signal
-
-When ready, Dobby should update this file with:
-
-`Status: Ready for Leo review — pause Codex automation.`
+1. Review with a safe account/database first.
+2. Add a small set of BUY/SELL/CASH transactions, including a backdated SELL case.
+3. Confirm sparse snapshot states say `Need data` / `Need snapshots` instead of fake performance.
+4. Export report/CSV and confirm terminology feels understandable.
+5. Only after that, decide whether to run guarded mutation smoke against a safe DB target.

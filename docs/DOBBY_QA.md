@@ -628,3 +628,35 @@ Recommended next Codex batch:
 2. Decide/document historical snapshot recomputation semantics for backdated transaction edits.
 3. Remove or fix fake allocation-table unrealized gains derived from row index rather than portfolio math.
 4. Keep reliability first; do not move to AI/news/tax/fees polish yet.
+
+### 2026-05-05T16:30:00Z — Dobby review of Cycle 13 formula/terminology slice
+
+Signal: `DOBBY_READY_FOR_LEO_REVIEW`
+
+Reviewed remote tip `948fa87` (`Refresh math terminology context`) including implementation commit `7323935` (`Clarify portfolio math terminology`).
+
+Verdict: accept this slice and pause automation for Leo review. I do not see a remaining P0 reliability blocker in the reviewed core personal-use paths.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 78/78.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run context:check` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+
+Code review notes:
+
+- Good terminology cleanup: summary cards, holdings Performance view, digest/report, and review export now consistently distinguish `Open-position P&L` from realized P&L and total portfolio value.
+- Good data-quality behavior: digest/report/export use persisted snapshot TWR only and withhold estimated fallback returns when snapshots are absent.
+- Good snapshot-semantics visibility: chart, quick-add/settings copy, and architecture docs now state that backdated entries validate historical holdings but do not automatically rebuild historical snapshots.
+- Export field renames (`openPositionPnl*`, `snapshotTwrPercent`, `twrSource`) make review exports less misleading while backup JSON still preserves the full typed records.
+- Focused tests cover digest/export terminology and no-snapshot TWR withholding.
+
+Remaining non-P0 limitations:
+
+- Real Neon/Vercel mutation smoke still needs a safe DB target and allowlisted smoke user.
+- Full browser click-through still needs an allowed deployed/authenticated target.
+- Historical snapshot backfill remains a documented limitation rather than an implemented feature.
+
+Dobby added `docs/SHIP_READINESS.md` with the Leo-review verdict, accepted reliability slices, known limits, and recommended review checklist.
