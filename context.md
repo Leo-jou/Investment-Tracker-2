@@ -94,10 +94,11 @@ Overview performance surfaces now avoid simulated analytics history. The Overvie
 Generated refresh summary:
 - Documentation: 3 files
 - Other: 3 files
+- UI components: 3 files
 - Database: 1 file
-- Tooling: 1 file
 
 Recent commits:
+- 980e432 2026-05-05 Keep overview on persisted history
 - 9e95789 2026-05-05 Accept sell timeline validation [skip ci]
 - 04d9b5c 2026-05-05 Correct sell timeline handoff hash
 - 7e047c3 2026-05-05 Record sell timeline handoff
@@ -105,7 +106,6 @@ Recent commits:
 - 695ee81 2026-05-05 Reject incomplete sell timeline validation [skip ci]
 - ef516c9 2026-05-05 Correct sell validation handoff [skip ci]
 - a2ae7a5 2026-05-05 Review sell validation slice [skip ci]
-- 7434c96 2026-05-05 Skip Vercel for Dobby feedback commits [skip ci]
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -160,4 +160,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T15:47:15.312Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.
+2026-05-05T15:47:49.169Z - Refreshed generated context from 8 recent commits, 10 changed files, and 0 TODO/FIXME items.
