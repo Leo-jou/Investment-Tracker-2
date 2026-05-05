@@ -117,11 +117,28 @@ Dobby reviewed `643602f` (`Harden real-data price semantics`):
 
 Next recommendation: take the user/account asset-scoping slice next. Focus on preventing global/unrelated assets from appearing in Leo-visible asset lists, CSV known-symbol checks, and backup/export payloads. Keep it small and avoid migration/data deletion without Leo approval.
 
+
+
+## Dobby Review — 2026-05-05T11:05:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle.
+
+Dobby reviewed `461aa29` (`Scope visible assets to account data`):
+
+- `npm test` passed: 58/58.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+- Asset scoping slice accepted: dashboard assets, `/assets`, CSV known-symbol validation, and backup/report export asset payloads are now scoped away from unrelated global assets.
+- Browser/UI QA is still blocked until Dobby has Chrome/Chromium access or an OpenClaw browser node.
+
+Next recommendation: add mutation-capable DB/API smoke tests for create/edit/delete/import/export/scoping paths, including another-account asset fixtures. Then address first-run demo-data safety before Leo enters real data. Keep automation active during the 24-hour MVP push unless a ready-for-Leo pause signal appears.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.
 
-### [ ] P0: Add mutation-capable smoke tests for real user data flows
+### [ ] P0: Add mutation-capable DB/API smoke tests for real user data flows and scoping
 
 Target flows:
 
@@ -129,8 +146,10 @@ Target flows:
 - add BUY transaction;
 - edit transaction;
 - delete transaction;
-- add manual position if still part of MVP;
-- export CSV/backup after mutation.
+- CSV import known/unknown symbols using account-scoped assets;
+- `/assets` excludes another account's assets;
+- `/api/export` / backup JSON excludes another account's assets and clarifies selected-portfolio vs all-user-portfolio metadata;
+- add manual position if still part of MVP.
 
 Audit notes:
 - Current `scripts/smoke-production.ts` is mostly read-only, except optional price refresh.

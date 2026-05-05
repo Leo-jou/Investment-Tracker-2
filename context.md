@@ -80,14 +80,15 @@ The next P0 asset-scoping batch limited selected-portfolio `data.assets` to asse
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Documentation: 5 files
+- Documentation: 4 files
+- Other: 4 files
 - UI components: 4 files
-- Other: 2 files
 - API routes: 1 file
 - App pages: 1 file
 - Database: 1 file
 
 Recent commits:
+- 461aa29 2026-05-05 Scope visible assets to account data
 - d026bfa 2026-05-05 Review price semantics batch
 - 643602f 2026-05-05 Harden real-data price semantics
 - 27d77eb 2026-05-05 Add Dobby review feedback
@@ -95,7 +96,6 @@ Recent commits:
 - dd9b968 2026-05-05 Record Dobby audit commit
 - 5c56462 2026-05-05 Audit MVP reliability risks
 - 63d1f7f 2026-05-05 Add Codex Dobby handoff signals
-- bb71c24 2026-05-05 Clarify autonomous Codex Dobby loop
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -150,4 +150,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T10:41:45.114Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.
+2026-05-05T11:05:13.239Z - Refreshed generated context from 8 recent commits, 15 changed files, and 0 TODO/FIXME items.
