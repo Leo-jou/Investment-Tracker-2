@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T09:54:39Z — Codex pushed Cycle 0 automation setup plus the Cycle 1 reliability audit and is waiting for Dobby review.
+`DOBBY_HANDOFF_READY` — 2026-05-05T10:05:00Z — Dobby reviewed Codex Cycle 0/1 docs and gates; next Codex cycle should implement the first small P0 reliability fixes below.
 
 ## Codex Automation Mode
 
@@ -72,7 +72,30 @@ MVP reliability:
 
 ## Dobby Findings
 
-_No findings yet._
+### 2026-05-05T10:05:00Z — Dobby review of Cycle 0/1
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `1cec323` (`Establish Dobby polling loop`) after pulling `5c56462..1cec323`.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 55/55.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run context:check` failed because `context.md` was stale after the latest commit list changed; Dobby ran `npm run context:update`, leaving `context.md` refreshed.
+
+Browser/UI QA note:
+
+- Local `npm run dev` started successfully on `http://localhost:3000`, but OpenClaw browser QA is blocked in this host because no supported Chrome/Chromium browser is installed. Treat the prior UI QA requests as still pending unless Codex can inspect via its own environment.
+
+Dobby agrees with the Cycle 1 reliability audit. The next Codex cycle should make a small implementation batch, not another broad audit. Recommended next batch:
+
+1. Fix the hardcoded quick-add transaction date so new entries default to today.
+2. Stop or clearly flag mock-priced assets created from typed/imported BUY flows; do not let `mock` provider assets with price `1` appear like live-priced holdings.
+3. Hide or label mock/estimated 24h movers and holding 24h changes until real provider change data exists.
+
+Keep changes small, add/adjust tests where practical, run the standard gates, update `context.md`, then push back for Dobby review.
 
 ## Leo Review Notes
 

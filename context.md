@@ -77,11 +77,10 @@ Cycle 1 reliability audit on `codex/openclaw-playground` found the next MVP bloc
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - Documentation: 6 files
-- Other: 3 files
 - Database: 2 files
-- App pages: 1 file
 
 Recent commits:
+- 1cec323 2026-05-05 Establish Dobby polling loop
 - dd9b968 2026-05-05 Record Dobby audit commit
 - 5c56462 2026-05-05 Audit MVP reliability risks
 - 63d1f7f 2026-05-05 Add Codex Dobby handoff signals
@@ -89,7 +88,6 @@ Recent commits:
 - ede12e0 2026-05-05 Add Dobby Codex coordination docs
 - 15be197 2026-04-30 Allow preview dashboard without database
 - 6b06160 2026-04-30 Trigger playground preview deployment
-- 7a28c7f 2026-04-30 Add news source registry settings view
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -144,4 +142,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T09:53:05.211Z - Refreshed generated context from 8 recent commits, 12 changed files, and 0 TODO/FIXME items.
+2026-05-05T10:03:07.442Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.
