@@ -20,13 +20,15 @@ type PortfolioHeaderProps = {
   portfolios: PortfolioOption[];
   currency: Currency;
   timeframeStats: TimeframeStats;
+  disabledReason?: string;
 };
 
 export function PortfolioHeader({
   portfolio,
   portfolios,
   currency,
-  timeframeStats
+  timeframeStats,
+  disabledReason
 }: PortfolioHeaderProps) {
   const router = useRouter();
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
@@ -39,6 +41,10 @@ export function PortfolioHeader({
 
   async function handleCreatePortfolio(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
     setIsSavingPortfolio(true);
     setError(null);
 
@@ -67,6 +73,10 @@ export function PortfolioHeader({
 
   async function handleDescriptionSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
     setIsSavingPortfolio(true);
     setError(null);
 
@@ -131,6 +141,8 @@ export function PortfolioHeader({
               variant="subtle"
               size="sm"
               type="button"
+              disabled={Boolean(disabledReason)}
+              title={disabledReason ?? "Add portfolio"}
               onClick={() => setIsAddingPortfolio((value) => !value)}
             >
               <Plus className="h-4 w-4" />
@@ -144,9 +156,10 @@ export function PortfolioHeader({
                 value={newPortfolioName}
                 onChange={(event) => setNewPortfolioName(event.target.value)}
                 placeholder="Portfolio name"
+                disabled={Boolean(disabledReason)}
                 required
               />
-              <Button disabled={isSavingPortfolio}>
+              <Button disabled={Boolean(disabledReason) || isSavingPortfolio}>
                 {isSavingPortfolio ? <MoreHorizontal className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 Create
               </Button>
@@ -159,8 +172,13 @@ export function PortfolioHeader({
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Portfolio description"
+                disabled={Boolean(disabledReason)}
               />
-              <Button size="compactIcon" disabled={isSavingPortfolio} title="Save description">
+              <Button
+                size="compactIcon"
+                disabled={Boolean(disabledReason) || isSavingPortfolio}
+                title={disabledReason ?? "Save description"}
+              >
                 <Save className="h-4 w-4" />
               </Button>
               <Button
@@ -179,7 +197,9 @@ export function PortfolioHeader({
           ) : (
             <button
               type="button"
-              className="mt-4 text-left text-lg text-[#2f7df6] hover:text-[#5c9bff]"
+              className="mt-4 text-left text-lg text-[#2f7df6] hover:text-[#5c9bff] disabled:text-zinc-500"
+              disabled={Boolean(disabledReason)}
+              title={disabledReason ?? "Edit description"}
               onClick={() => {
                 setDescription(portfolio.description);
                 setIsEditingDescription(true);
@@ -191,8 +211,8 @@ export function PortfolioHeader({
           {error && <p className="mt-3 text-sm text-[#ff4d64]">{error}</p>}
         </div>
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start">
-          <PriceRefreshButton />
-          <AddTransactionMenu />
+          <PriceRefreshButton disabledReason={disabledReason} />
+          <AddTransactionMenu disabledReason={disabledReason} />
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireSessionEmail } from "@/lib/auth/session";
+import { assertDbConfiguredForMutation } from "@/lib/db/client";
 import {
   createTransactionForEmail,
   getDashboardDataForEmail,
@@ -44,6 +45,8 @@ export async function POST(request: Request) {
     if (!body.commit) {
       return NextResponse.json({ preview });
     }
+
+    assertDbConfiguredForMutation();
 
     const rows = importableRows(preview).filter(
       (row) => !row.messages.some((message) => /duplicate/i.test(message))

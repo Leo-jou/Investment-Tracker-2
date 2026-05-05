@@ -11,11 +11,17 @@ import type { AssetSearchResult } from "@/lib/types";
 
 type AssetSearchInputProps = {
   inputName?: string;
+  disabled?: boolean;
   onQueryChange?: (query: string) => void;
   onSelect?: (asset: AssetSearchResult) => void;
 };
 
-export function AssetSearchInput({ inputName, onQueryChange, onSelect }: AssetSearchInputProps) {
+export function AssetSearchInput({
+  inputName,
+  disabled = false,
+  onQueryChange,
+  onSelect
+}: AssetSearchInputProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AssetSearchResult[]>(mockAssetSearchResults);
@@ -23,6 +29,10 @@ export function AssetSearchInput({ inputName, onQueryChange, onSelect }: AssetSe
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    if (disabled) {
+      return;
+    }
+
     const controller = new AbortController();
     const handle = window.setTimeout(async () => {
       setIsLoading(true);
@@ -48,7 +58,7 @@ export function AssetSearchInput({ inputName, onQueryChange, onSelect }: AssetSe
       window.clearTimeout(handle);
       controller.abort();
     };
-  }, [query]);
+  }, [disabled, query]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -77,12 +87,14 @@ export function AssetSearchInput({ inputName, onQueryChange, onSelect }: AssetSe
   const visibleResults = useMemo(() => results.slice(0, 6), [results]);
 
   function handleQueryChange(nextQuery: string) {
+    if (disabled) return;
     setQuery(nextQuery);
     setIsOpen(true);
     onQueryChange?.(nextQuery);
   }
 
   function handleSelect(asset: AssetSearchResult) {
+    if (disabled) return;
     setQuery(asset.symbol);
     setIsOpen(false);
     onSelect?.(asset);
@@ -96,13 +108,16 @@ export function AssetSearchInput({ inputName, onQueryChange, onSelect }: AssetSe
           name={inputName}
           value={query}
           onChange={(event) => handleQueryChange(event.target.value)}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            if (!disabled) setIsOpen(true);
+          }}
           placeholder="Search by symbol or name"
           className="pl-9"
+          disabled={disabled}
         />
       </label>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[280px] overflow-y-auto rounded-[8px] border border-[#2b2b2f] bg-[#090909] p-1 shadow-2xl tv-scrollbar">
           {visibleResults.map((asset) => (
             <button

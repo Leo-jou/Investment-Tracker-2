@@ -38,6 +38,7 @@ const mockNews: PortfolioNewsItem[] = [
 ];
 
 const mockDashboardData: DashboardData = {
+  persistenceMode: "persistent",
   portfolio: {
     id: "portfolio-1",
     name: "Personal",

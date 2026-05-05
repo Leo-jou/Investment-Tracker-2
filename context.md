@@ -70,7 +70,7 @@ Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a gua
 
 `BACKLOG.md` captures the roadmap with inline status labels. Export modal and branded report highlight improvements are marked shipped. Risk/readiness and benchmark history remain partial because the current ratios use a demo analytics overlay and demo composite benchmark rather than persisted real benchmark snapshots.
 
-Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, persisted benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, broker-specific import presets/sample-format handling, complete DB-backed CRUD coverage, and mutation-capable end-to-end test coverage.
+Still missing or likely incomplete: DB-backed settings persistence, production cron/email variables for scheduled refresh/digest delivery, broader SEC CIK coverage, official company IR feed registry, AI-backed news materiality summaries, persisted benchmark snapshot storage for mixed-asset beta, provider coverage beyond CoinGecko/Twelve Data/RSS/optional GDELT, paired transfer support, dividend support, broker-specific import presets/sample-format handling, complete DB-backed CRUD coverage, and execution of mutation smoke coverage against a safe DB/API target.
 
 Cycle 1 reliability audit on `codex/openclaw-playground` found the next MVP blockers before Leo enters real data: no all-portfolio aggregate view, asset metadata/backups are not fully user/account scoped because `getDashboardDataForEmail` loads all active assets, first-run Neon workspaces still seed demo transactions/manual positions, typed/imported BUY flows can silently create unrefreshable mock-priced assets, overview charts/timeframe cards can use simulated analytics snapshots without an overview label, daily movers/24h moves are mock or estimated, quick-add still defaults to `2026-04-27`, SELL validation is not historical-date aware, and mutation/user-scope API smoke coverage is missing. `docs/WORK_QUEUE.md` now breaks these into concrete P0 follow-up tasks for Dobby/Codex cycles.
 
@@ -79,6 +79,8 @@ The first post-audit P0 implementation batch fixed quick-add's hardcoded date, s
 The next P0 asset-scoping batch limited selected-portfolio `data.assets` to assets referenced by that portfolio's transactions, limited `/assets` to assets referenced by the signed-in account's portfolios, and made CSV import known-symbol checks use that account-scoped asset list instead of all global active assets. This also scopes backup/export asset payloads because export builders consume `DashboardData.assets`.
 
 Mutation-capable DB/API smoke coverage now exists as `npm run smoke:mutations`. It is opt-in and skips unless `SMOKE_MUTATIONS=1` is set; when enabled with `DATABASE_URL` and an allowlisted smoke email, it exercises login, portfolio create, transaction create/edit/delete, CSV import known/unknown symbol validation, `/assets` account scoping, backup export scoping, and direct cleanup of temporary DB fixtures. `/api/transactions` POST returns the created transaction id to make cleanup reliable.
+
+First-run real DB workspaces are now empty by default: `ensureUserWorkspace` creates only a blank `Personal` portfolio for new users and no longer seeds demo assets, transactions, manual positions, price snapshots, or simulated snapshots. Existing user data is not deleted or migrated. Empty real portfolios no longer receive simulated analytics history; charts show an empty-history state until real entries/snapshots exist. When `DATABASE_URL` is absent, dashboard/transactions/manual/assets views show a read-only demo-mode warning and disable portfolio, transaction, import, manual-position, asset-search, and price-refresh write controls.
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
@@ -91,6 +93,7 @@ Generated refresh summary:
 - Tooling: 1 file
 
 Recent commits:
+- c034caf 2026-05-05 Review mutation smoke batch
 - 424c607 2026-05-05 Add guarded mutation smoke coverage
 - 26baa4f 2026-05-05 Accept asset scoping batch
 - 461aa29 2026-05-05 Scope visible assets to account data
@@ -98,7 +101,6 @@ Recent commits:
 - 643602f 2026-05-05 Harden real-data price semantics
 - 27d77eb 2026-05-05 Add Dobby review feedback
 - 1cec323 2026-05-05 Establish Dobby polling loop
-- dd9b968 2026-05-05 Record Dobby audit commit
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -133,7 +135,7 @@ Generated TODO/FIXME scan:
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
-2. Fix the remaining P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with running the guarded mutation smoke against a safe target, first-run demo data behavior, and a clear all-portfolio aggregate view.
+2. Fix the remaining P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with running the guarded mutation smoke against a safe target and adding a clear all-portfolio aggregate view.
 3. Finish quote/price semantics before real data entry: show `priceCapturedAt`, provider freshness, stale/unavailable/manual/mock states, and refresh failures across holdings/assets/quick-add.
 4. Align charts/tooltips with real persisted data by avoiding unlabeled simulated analytics history outside the Analysis tab.
 5. Add historical-date-aware SELL validation.
@@ -153,4 +155,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T11:21:32.510Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.
+2026-05-05T11:32:45.875Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.

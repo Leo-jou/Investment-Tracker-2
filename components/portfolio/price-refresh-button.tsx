@@ -12,13 +12,19 @@ type RefreshResponse = {
   errors?: { scope: string; message: string }[];
 };
 
-export function PriceRefreshButton() {
+export function PriceRefreshButton({ disabledReason }: { disabledReason?: string }) {
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
 
   async function refreshPrices() {
+    if (disabledReason) {
+      setMessage(disabledReason);
+      setHasError(true);
+      return;
+    }
+
     setIsRefreshing(true);
     setMessage(null);
     setHasError(false);
@@ -54,8 +60,8 @@ export function PriceRefreshButton() {
         variant="subtle"
         size="sm"
         onClick={refreshPrices}
-        disabled={isRefreshing}
-        title="Refresh saved market prices and FX rates"
+        disabled={Boolean(disabledReason) || isRefreshing}
+        title={disabledReason ?? "Refresh saved market prices and FX rates"}
       >
         <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
         {isRefreshing ? "Refreshing" : "Refresh prices"}

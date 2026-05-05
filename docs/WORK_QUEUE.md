@@ -199,8 +199,8 @@ Fix any remaining local/mock-only persistence for MVP-critical data.
 
 Concrete next work:
 - Scope `data.assets` and backup exports to assets referenced by the authenticated user's selected portfolio or account; do not include unrelated global assets in user-visible lists/backups.
-- Decide whether first-run Neon workspaces should be empty for real users or explicitly flagged/resettable demo workspaces; current bootstrap inserts demo transactions and a manual position.
-- Make no-`DATABASE_URL` preview/demo mode impossible to confuse with persistent real-data mode before allowing edits.
+- Verify the first-run Neon workspace behavior against a safe DB target: new users should get an empty default portfolio, not demo trades/manual positions/simulated snapshots.
+- Verify no-`DATABASE_URL` preview/demo mode renders as read-only demo mode and cannot be confused with persistent real-data mode before allowing edits.
 - Consider fail-closed email allowlist behavior in production for the private email fallback.
 
 Cycle 3 partial result:
@@ -210,11 +210,19 @@ Cycle 3 partial result:
 - CSV import known-symbol validation now uses the signed-in account's scoped asset list, so known symbols can span Leo's own portfolios without including unrelated global assets.
 - Added focused tests for the asset-scoping helper.
 
+Cycle 5 partial result:
+
+- Real DB first-run workspace bootstrap now creates only a blank `Personal` portfolio with no demo assets, transactions, manual positions, price snapshots, or simulated portfolio snapshots.
+- Existing users/data are not deleted or migrated; this only changes bootstrap behavior for users without portfolios.
+- Empty real portfolios no longer receive simulated analytics chart history; charts show an empty-history state until real entries/snapshots exist.
+- No-`DATABASE_URL` mode is explicitly marked as read-only demo mode in dashboard/transactions/manual/assets views, and write controls for portfolios, transactions, imports, manual positions, provider asset search, and price refresh are disabled with the persistence warning.
+- Mutation APIs now use a clear no-database guard message, and CSV import commit fails closed before attempting row writes when persistence is absent.
+- Added focused analytics-history coverage so a zero-value empty portfolio does not generate fake chart values.
+
 Still open:
 
-- First-run Neon workspaces still seed demo transactions/manual positions.
-- No-`DATABASE_URL` preview/demo mode is still editable-looking and needs clearer persistence gating.
-- Mutation-capable API smoke coverage is still missing.
+- Run the guarded mutation smoke against a safe Vercel/Neon target to verify real DB create/edit/delete/import/export/scoping and cleanup.
+- Browser/HTTP-render QA should verify the new read-only demo banner/disabled controls and the empty first-run portfolio behavior.
 
 ### [~] P0: Harden live quote and price refresh semantics
 

@@ -13,9 +13,15 @@ type ManualPositionsCardProps = {
   positions: ManualPosition[];
   currency: Currency;
   portfolioId?: string;
+  disabledReason?: string;
 };
 
-export function ManualPositionsCard({ positions, currency, portfolioId }: ManualPositionsCardProps) {
+export function ManualPositionsCard({
+  positions,
+  currency,
+  portfolioId,
+  disabledReason
+}: ManualPositionsCardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,6 +30,11 @@ export function ManualPositionsCard({ positions, currency, portfolioId }: Manual
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
 
@@ -45,6 +56,11 @@ export function ManualPositionsCard({ positions, currency, portfolioId }: Manual
 
   async function handleEditSubmit(event: FormEvent<HTMLFormElement>, position: ManualPosition) {
     event.preventDefault();
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
+
     setSavingId(position.id);
     setError(null);
 
@@ -65,6 +81,11 @@ export function ManualPositionsCard({ positions, currency, portfolioId }: Manual
   }
 
   async function handleDelete(position: ManualPosition) {
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
+
     const confirmed = window.confirm(`Delete manual position "${position.label}"?`);
     if (!confirmed) return;
 
@@ -95,18 +116,35 @@ export function ManualPositionsCard({ positions, currency, portfolioId }: Manual
             Cash, external holdings, private assets, or anything without automatic pricing.
           </p>
         </div>
-        <Button variant="subtle">
+        <Button variant="subtle" disabled={Boolean(disabledReason)} title={disabledReason}>
           <Plus className="h-4 w-4" />
           Add manual value
         </Button>
       </div>
 
+      {disabledReason && (
+        <p className="mt-4 rounded-[7px] border border-[#4a3820] bg-[#120d05] p-3 text-sm text-[#f6b342]">
+          {disabledReason}
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-5 grid gap-4 lg:grid-cols-[1fr_0.7fr_0.5fr_auto]">
         {portfolioId && <input type="hidden" name="portfolioId" value={portfolioId} />}
-        <Input name="label" placeholder="Label" required />
-        <Input name="value" placeholder="Value" inputMode="decimal" required />
-        <Input name="currency" placeholder="Currency" defaultValue={currency} />
-        <Button disabled={isSaving}>
+        <Input name="label" placeholder="Label" disabled={Boolean(disabledReason)} required />
+        <Input
+          name="value"
+          placeholder="Value"
+          inputMode="decimal"
+          disabled={Boolean(disabledReason)}
+          required
+        />
+        <Input
+          name="currency"
+          placeholder="Currency"
+          defaultValue={currency}
+          disabled={Boolean(disabledReason)}
+        />
+        <Button disabled={Boolean(disabledReason) || isSaving}>
           <Plus className="h-4 w-4" />
           {isSaving ? "Saving" : "Save"}
         </Button>
@@ -129,6 +167,7 @@ export function ManualPositionsCard({ positions, currency, portfolioId }: Manual
                   className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] text-zinc-500 hover:bg-[#202024] hover:text-white"
                   type="button"
                   title="Edit manual position"
+                  disabled={Boolean(disabledReason)}
                   onClick={() => setEditingId(editingId === position.id ? null : position.id)}
                 >
                   <Pencil className="h-4 w-4" />
@@ -137,7 +176,7 @@ export function ManualPositionsCard({ positions, currency, portfolioId }: Manual
                   className="inline-flex h-8 w-8 items-center justify-center rounded-[6px] text-zinc-500 hover:bg-[#202024] hover:text-white disabled:opacity-50"
                   type="button"
                   title="Delete manual position"
-                  disabled={deletingId === position.id}
+                  disabled={Boolean(disabledReason) || deletingId === position.id}
                   onClick={() => handleDelete(position)}
                 >
                   {deletingId === position.id ? (
@@ -153,19 +192,44 @@ export function ManualPositionsCard({ positions, currency, portfolioId }: Manual
                 onSubmit={(event) => handleEditSubmit(event, position)}
                 className="mt-4 grid gap-3 lg:grid-cols-[1fr_0.55fr_0.4fr_0.55fr_1fr_auto]"
               >
-                <Input name="label" placeholder="Label" defaultValue={position.label} required />
+                <Input
+                  name="label"
+                  placeholder="Label"
+                  defaultValue={position.label}
+                  disabled={Boolean(disabledReason)}
+                  required
+                />
                 <Input
                   name="value"
                   placeholder="Value"
                   inputMode="decimal"
                   defaultValue={currencyValue(position, position.currency)}
+                  disabled={Boolean(disabledReason)}
                   required
                 />
-                <Input name="currency" placeholder="Currency" defaultValue={position.currency} />
-                <Input name="valuedOn" type="date" defaultValue={position.updatedAt} />
-                <Input name="note" placeholder="Note" defaultValue={position.note ?? ""} />
+                <Input
+                  name="currency"
+                  placeholder="Currency"
+                  defaultValue={position.currency}
+                  disabled={Boolean(disabledReason)}
+                />
+                <Input
+                  name="valuedOn"
+                  type="date"
+                  defaultValue={position.updatedAt}
+                  disabled={Boolean(disabledReason)}
+                />
+                <Input
+                  name="note"
+                  placeholder="Note"
+                  defaultValue={position.note ?? ""}
+                  disabled={Boolean(disabledReason)}
+                />
                 <div className="flex gap-2">
-                  <Button size="compactIcon" disabled={savingId === position.id}>
+                  <Button
+                    size="compactIcon"
+                    disabled={Boolean(disabledReason) || savingId === position.id}
+                  >
                     {savingId === position.id ? (
                       <MoreHorizontal className="h-4 w-4" />
                     ) : (

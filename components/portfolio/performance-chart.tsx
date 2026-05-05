@@ -76,7 +76,14 @@ export function PerformanceChart({
       </div>
 
       <div className="mt-7 h-[420px] min-w-0 w-full">
-        {isMounted ? (
+        {data.length === 0 ? (
+          <div className="flex h-full w-full items-center justify-center rounded-[8px] border border-dashed border-[#2b2b2f] bg-[#050505] px-6 text-center">
+            <p className="max-w-sm text-sm leading-6 text-zinc-500">
+              No portfolio history yet. Add real entries or refresh snapshots before this chart
+              populates.
+            </p>
+          </div>
+        ) : isMounted ? (
           <ResponsiveContainer width="100%" height={420}>
             <AreaChart data={data} margin={{ left: 0, right: 14, top: 18, bottom: 0 }}>
               <defs>

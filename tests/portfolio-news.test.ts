@@ -282,6 +282,7 @@ function restoreEnv(key: string, value: string | undefined) {
 }
 
 const mockDashboardData: DashboardData = {
+  persistenceMode: "persistent",
   portfolio: {
     id: "portfolio-1",
     name: "Personal",

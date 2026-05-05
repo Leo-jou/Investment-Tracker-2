@@ -1,16 +1,23 @@
 import { PageBackLink } from "@/components/layout/page-back-link";
 import { AssetSearchInput } from "@/components/portfolio/asset-search-input";
+import { PersistenceModeBanner } from "@/components/portfolio/persistence-mode-banner";
 import { Badge } from "@/components/ui/badge";
 import { requireSessionEmail } from "@/lib/auth/session";
+import { demoModeMutationMessage, isDbConfigured } from "@/lib/db/client";
 import { listAssetsForEmail } from "@/lib/db/portfolio-repository";
 import { formatMoney } from "@/lib/format";
 
 export default async function AssetsPage() {
   const email = await requireSessionEmail();
   const assets = await listAssetsForEmail(email);
+  const isDemoMode = !isDbConfigured();
 
   return (
     <div className="space-y-10">
+      <PersistenceModeBanner
+        mode={isDemoMode ? "demo" : "persistent"}
+        message={isDemoMode ? demoModeMutationMessage : undefined}
+      />
       <div>
         <PageBackLink />
         <h1 className="text-4xl font-bold">Assets</h1>
@@ -22,7 +29,12 @@ export default async function AssetsPage() {
       <section className="grid gap-8 xl:grid-cols-[420px_1fr]">
         <div className="rounded-[8px] border border-[#2b2b2f] bg-black p-4">
           <h2 className="mb-4 text-2xl font-bold">Add asset</h2>
-          <AssetSearchInput />
+          <AssetSearchInput disabled={isDemoMode} />
+          {isDemoMode && (
+            <p className="mt-3 text-sm text-[#f6b342]">
+              Provider search is disabled in read-only demo mode.
+            </p>
+          )}
         </div>
 
         <div className="overflow-x-auto tv-scrollbar">

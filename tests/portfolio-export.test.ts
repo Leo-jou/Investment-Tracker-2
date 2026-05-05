@@ -74,6 +74,7 @@ test("CSV export respects selected sections", () => {
 });
 
 const mockDashboardData: DashboardData = {
+  persistenceMode: "persistent",
   portfolio: {
     id: "portfolio-1",
     name: "Personal",

@@ -75,7 +75,7 @@ export function AnalysisPanels({
             <p className="mt-2 max-w-3xl text-sm text-zinc-500">
               Calculated from portfolio snapshots using {currency}-basis TWR returns so deposits and withdrawals do not create fake gains or losses.
             </p>
-            {analyticsHistoryMode === "simulated" && analyticsHistoryNotice && (
+            {analyticsHistoryNotice && (
               <p className="mt-3 max-w-3xl rounded-[7px] border border-[#4a3820] bg-[#120d05] p-3 text-sm text-[#f6b342]">
                 {analyticsHistoryNotice}
               </p>

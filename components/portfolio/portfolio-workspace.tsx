@@ -10,6 +10,7 @@ import { DigestPanel } from "@/components/portfolio/digest-panel";
 import { ExportActions } from "@/components/portfolio/export-actions";
 import { ManualPositionsCard } from "@/components/portfolio/manual-positions-card";
 import { NewsFeed, type NewsFeedHolding } from "@/components/portfolio/news-feed";
+import { PersistenceModeBanner } from "@/components/portfolio/persistence-mode-banner";
 import { PortfolioChecksPanel } from "@/components/portfolio/portfolio-checks-panel";
 import { PortfolioHeader } from "@/components/portfolio/portfolio-header";
 import { PortfolioTabs, type PortfolioTab } from "@/components/portfolio/portfolio-tabs";
@@ -29,6 +30,7 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
   const [activeTab, setActiveTab] = useState<PortfolioTab>("Overview");
   const [timeframe, setTimeframe] = useState<TimeframeKey>("ALL");
   const analyticsSnapshots = data.analyticsSnapshots;
+  const disabledReason = data.persistenceMode === "demo" ? data.persistenceNotice : undefined;
   const newsHoldings = buildNewsHoldings(data);
   const timeframeStats = calculateTimeframeStats(analyticsSnapshots, timeframe, currency);
   const portfolioChecks = buildPortfolioChecks({
@@ -40,6 +42,8 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
 
   return (
     <div className="space-y-10">
+      <PersistenceModeBanner mode={data.persistenceMode} message={data.persistenceNotice} />
+
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <ExportActions portfolioId={data.portfolio.id} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -54,6 +58,7 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
         portfolios={data.portfolios}
         currency={currency}
         timeframeStats={timeframeStats}
+        disabledReason={disabledReason}
       />
 
       <PortfolioChecksPanel checks={portfolioChecks} />
@@ -83,14 +88,18 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
             positions={data.manualPositions}
             currency={currency}
             portfolioId={data.portfolio.id}
+            disabledReason={disabledReason}
           />
         </div>
       )}
 
       {activeTab === "Transactions" && (
         <div className="space-y-10">
-          <TransactionImportPanel portfolioId={data.portfolio.id} />
-          <QuickAddTransactionForm portfolioId={data.portfolio.id} />
+          <TransactionImportPanel portfolioId={data.portfolio.id} disabledReason={disabledReason} />
+          <QuickAddTransactionForm
+            portfolioId={data.portfolio.id}
+            disabledReason={disabledReason}
+          />
           <TransactionsTable
             transactions={data.transactions}
             assets={data.assets}

@@ -28,3 +28,17 @@ test("simulated analytics history provides regular snapshots and ready risk metr
   assert.equal(risk.beta.status, "ready");
   assert.ok(risk.beta.value !== null);
 });
+
+test("empty real portfolio history does not generate fake chart values", () => {
+  const history = buildAnalyticsHistory({
+    snapshots: [],
+    currentValueUsd: 0,
+    currentValueEur: 0,
+    now: new Date("2026-04-28T00:00:00.000Z")
+  });
+
+  assert.equal(history.mode, "actual");
+  assert.equal(history.snapshots.length, 0);
+  assert.equal(history.benchmarkReturns.length, 0);
+  assert.match(history.notice ?? "", /No portfolio history exists yet/);
+});

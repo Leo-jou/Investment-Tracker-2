@@ -24,10 +24,12 @@ const transactionTypes: Array<{ label: string; value: TransactionType }> = [
 
 export function QuickAddTransactionForm({
   portfolioId,
-  initialType
+  initialType,
+  disabledReason
 }: {
   portfolioId?: string;
   initialType?: string;
+  disabledReason?: string;
 }) {
   const [type, setType] = useState<TransactionType>(normalizeTransactionType(initialType));
   const [isSaving, setIsSaving] = useState(false);
@@ -48,6 +50,11 @@ export function QuickAddTransactionForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
 
@@ -186,6 +193,11 @@ export function QuickAddTransactionForm({
         </div>
         <SegmentedControl value={type} onChange={handleTypeChange} options={transactionTypes} />
       </div>
+      {disabledReason && (
+        <p className="mb-4 rounded-[7px] border border-[#4a3820] bg-[#120d05] p-3 text-sm text-[#f6b342]">
+          {disabledReason}
+        </p>
+      )}
 
       {isPricedTrade && (
         <>
@@ -193,6 +205,7 @@ export function QuickAddTransactionForm({
           <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr_0.7fr_0.7fr]">
             <AssetSearchInput
               inputName="assetSymbol"
+              disabled={Boolean(disabledReason)}
               onQueryChange={(query) => {
                 if (selectedAsset && query.trim().toUpperCase() !== selectedAsset.symbol) {
                   setSelectedAsset(null);
@@ -224,6 +237,7 @@ export function QuickAddTransactionForm({
               placeholder="Quantity"
               inputMode="decimal"
               required
+              disabled={Boolean(disabledReason)}
               onChange={(event) => handleQuantityChange(event.target.value)}
             />
             <Input
@@ -232,9 +246,15 @@ export function QuickAddTransactionForm({
               placeholder="Total paid/received"
               inputMode="decimal"
               required
+              disabled={Boolean(disabledReason)}
               onChange={(event) => handleGrossAmountChange(event.target.value)}
             />
-            <Input name="fees" placeholder="Fees" inputMode="decimal" />
+            <Input
+              name="fees"
+              placeholder="Fees"
+              inputMode="decimal"
+              disabled={Boolean(disabledReason)}
+            />
           </div>
           {selectedAsset && (
             <p className="mt-2 text-xs text-zinc-500">
@@ -261,19 +281,46 @@ export function QuickAddTransactionForm({
             placeholder={type === "DEPOSIT" ? "Deposit amount" : "Withdrawal amount"}
             inputMode="decimal"
             required
+            disabled={Boolean(disabledReason)}
             onChange={(event) => setGrossAmount(event.target.value)}
           />
-          <Input name="currency" placeholder="Currency" defaultValue="USD" />
-          <Input name="fees" placeholder="Fees" inputMode="decimal" />
+          <Input
+            name="currency"
+            placeholder="Currency"
+            defaultValue="USD"
+            disabled={Boolean(disabledReason)}
+          />
+          <Input
+            name="fees"
+            placeholder="Fees"
+            inputMode="decimal"
+            disabled={Boolean(disabledReason)}
+          />
         </div>
       )}
 
       {isManualValue && (
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.7fr_0.4fr]">
           {portfolioId && <input type="hidden" name="portfolioId" value={portfolioId} />}
-          <Input name="label" placeholder="Label, e.g. SpaceX fundraising participation" required />
-          <Input name="value" placeholder="Value" inputMode="decimal" required />
-          <Input name="currency" placeholder="Currency" defaultValue="USD" />
+          <Input
+            name="label"
+            placeholder="Label, e.g. SpaceX fundraising participation"
+            disabled={Boolean(disabledReason)}
+            required
+          />
+          <Input
+            name="value"
+            placeholder="Value"
+            inputMode="decimal"
+            disabled={Boolean(disabledReason)}
+            required
+          />
+          <Input
+            name="currency"
+            placeholder="Currency"
+            defaultValue="USD"
+            disabled={Boolean(disabledReason)}
+          />
         </div>
       )}
 
@@ -282,10 +329,16 @@ export function QuickAddTransactionForm({
           name={isManualValue ? "valuedOn" : "occurredOn"}
           type="date"
           value={entryDate}
+          disabled={Boolean(disabledReason)}
           onChange={(event) => setEntryDate(event.target.value)}
         />
         {!isManualValue ? (
-          <Input name="platform" placeholder="Platform" list="platform-options" />
+          <Input
+            name="platform"
+            placeholder="Platform"
+            list="platform-options"
+            disabled={Boolean(disabledReason)}
+          />
         ) : (
           <Input name="source" placeholder="Source" disabled />
         )}
@@ -296,8 +349,8 @@ export function QuickAddTransactionForm({
           <option value="Binance" />
           <option value="Bux Zero" />
         </datalist>
-        <Input name="note" placeholder="Optional note" />
-        <Button className="w-full lg:w-auto" disabled={isSaving}>
+        <Input name="note" placeholder="Optional note" disabled={Boolean(disabledReason)} />
+        <Button className="w-full lg:w-auto" disabled={Boolean(disabledReason) || isSaving}>
           <Save className="h-4 w-4" />
           {isSaving ? "Saving" : "Save"}
         </Button>

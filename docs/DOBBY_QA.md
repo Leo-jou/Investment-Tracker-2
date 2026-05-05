@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T11:20:00Z — Dobby accepted the guarded mutation smoke coverage slice and handed the next P0 batch back to Codex.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T11:32:56Z — Codex completed the first-run demo-data safety/no-database read-only gating slice and is waiting for Dobby review.
 
 ## Codex Automation Mode
 
@@ -44,18 +44,36 @@ MVP reliability:
 ## Pending Dobby Review
 
 - Commit: final pushed branch tip for this handoff.
-- Task: P0 mutation-capable DB/API smoke coverage from Dobby's 2026-05-05T11:05 review.
-- Summary: Added an opt-in guarded mutation smoke script for real DB/API flows. The script logs in through `/api/auth/login`, creates a temporary portfolio through `/api/portfolios`, creates/edits/deletes a provider-backed BUY through transaction APIs, seeds another-account asset fixtures directly in the DB, checks `/assets` and backup export scoping, verifies CSV import known/unknown symbol behavior, and cleans up temporary portfolio/transactions/assets. Transaction POST now returns the created transaction id so smoke cleanup can be precise.
+- Task: P0 first-run real-user workspace safety and no-`DATABASE_URL` persistence-mode gating from Dobby's 2026-05-05T11:20 review.
+- Summary: Changed real DB workspace bootstrap so new users with no portfolios get a blank `Personal` portfolio only; no demo assets, transactions, manual positions, price snapshots, or simulated snapshots are inserted. Existing user data is not deleted or migrated. Empty real portfolios no longer receive fake simulated analytics chart history. No-DB/demo mode now has a visible read-only warning in dashboard, transactions, manual positions, and assets views; write controls for portfolio edits, transaction entry/import, manual positions, provider asset search, and price refresh are disabled with the persistence warning. Mutation APIs now share a clear no-database guard, and CSV import commit fails closed before row writes when persistence is absent.
 - Files changed:
-  - `app/api/transactions/route.ts`
+  - `app/api/transactions/import/route.ts`
+  - `app/assets/page.tsx`
+  - `app/manual-positions/page.tsx`
+  - `app/transactions/page.tsx`
+  - `components/portfolio/add-transaction-menu.tsx`
+  - `components/portfolio/analysis-panels.tsx`
+  - `components/portfolio/asset-search-input.tsx`
+  - `components/portfolio/manual-positions-card.tsx`
+  - `components/portfolio/performance-chart.tsx`
+  - `components/portfolio/persistence-mode-banner.tsx`
+  - `components/portfolio/portfolio-header.tsx`
+  - `components/portfolio/portfolio-workspace.tsx`
+  - `components/portfolio/price-refresh-button.tsx`
+  - `components/portfolio/quick-add-transaction-form.tsx`
+  - `components/portfolio/transaction-import-panel.tsx`
+  - `lib/data/demo-history.ts`
+  - `lib/db/client.ts`
   - `lib/db/portfolio-repository.ts`
-  - `scripts/smoke-mutations.ts`
-  - `package.json`
+  - `tests/demo-history.test.ts`
+  - `tests/portfolio-digest.test.ts`
+  - `tests/portfolio-export.test.ts`
+  - `tests/portfolio-news.test.ts`
   - `docs/WORK_QUEUE.md`
   - `docs/DOBBY_QA.md`
   - `context.md`
 - Gates run:
-  - `npm test` passed: 58/58.
+  - `npm test` passed: 59/59.
   - `npm run lint` passed.
   - `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
   - `npm run build` passed.
@@ -63,14 +81,15 @@ MVP reliability:
   - `npm run context:check` passed.
 - Known risks:
   - No all-portfolio aggregate view exists yet; dashboard and standalone transaction/manual-position pages default to the first portfolio unless a specific portfolio route is used.
-  - First-run Neon workspace bootstrap still inserts demo transactions, snapshots, and one manual position, which is risky for real personal-data onboarding unless clearly resettable or disabled.
-  - The new mutation smoke is intentionally opt-in and requires `SMOKE_MUTATIONS=1`, `DATABASE_URL`, and an allowlisted `SMOKE_MUTATION_EMAIL` or `SMOKE_EMAIL`; it was not run against a real DB in this local cycle.
-  - Overview chart/timeframe metrics use `analyticsSnapshots`, which may be simulated history, without the same visible labeling shown in Analysis.
+  - This local cycle did not connect to a real Neon target, so the blank first-run workspace behavior still needs safe DB verification with a new allowlisted test user.
+  - The mutation smoke remains intentionally opt-in and requires `SMOKE_MUTATIONS=1`, `DATABASE_URL`, and an allowlisted `SMOKE_MUTATION_EMAIL` or `SMOKE_EMAIL`; it was not run against a real DB in this local cycle.
+  - Non-empty sparse portfolios can still use simulated analytics history; Analysis labels it, but the remaining overview chart/timeframe labeling issue is still in the queue.
   - SELL validation checks current total holding quantity, not historical as-of-date availability.
 - Browser QA requested:
-  - Run `SMOKE_MUTATIONS=1 SMOKE_MUTATION_EMAIL=<allowlisted test email> DATABASE_URL=<same target DB> npm run smoke:mutations` against a safe target environment.
-  - Verify the script cleans up its temporary portfolio, transactions, test assets, and other-account fixture.
-  - Check whether the remaining portfolio switcher still needs an `All portfolios` option before Leo enters real data.
+  - In no-`DATABASE_URL` preview/demo mode, verify the read-only banner appears on dashboard, transactions, manual positions, and assets pages.
+  - Verify demo-mode portfolio, transaction, import, manual-position, provider asset-search, and price-refresh write controls are disabled and return the persistence warning if invoked.
+  - Against a safe DB/API target, verify a brand-new allowlisted user gets an empty `Personal` portfolio with no seeded transactions/manual positions/assets/simulated snapshots.
+  - Run `SMOKE_MUTATIONS=1 SMOKE_MUTATION_EMAIL=<allowlisted test email> DATABASE_URL=<same target DB> npm run smoke:mutations` against a safe target environment when credentials are available, and verify cleanup.
 
 ## Dobby Findings
 

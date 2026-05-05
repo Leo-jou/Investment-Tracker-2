@@ -4,11 +4,14 @@ import { normalizeEmail } from "@/lib/auth/email";
 import { convertCurrency, fallbackFxRates, toDisplayPair, type FxRateMap } from "@/lib/data/conversions";
 import {
   buildAnalyticsHistory,
-  buildSimulatedSnapshots,
   type AnalyticsHistoryMode
 } from "@/lib/data/demo-history";
-import { demoAssets, demoTransactions } from "@/lib/data/demo-seed";
-import { getDb, isDbConfigured } from "@/lib/db/client";
+import {
+  assertDbConfiguredForMutation,
+  demoModeMutationMessage,
+  getDb,
+  isDbConfigured
+} from "@/lib/db/client";
 import {
   assets,
   fxSnapshots,
@@ -49,6 +52,8 @@ import { filterAssetsByReferencedTransactions } from "@/lib/portfolio/asset-scop
 import * as mockData from "@/lib/mock-data";
 
 export type DashboardData = {
+  persistenceMode: "persistent" | "demo";
+  persistenceNotice?: string;
   portfolio: Portfolio;
   portfolios: PortfolioOption[];
   assets: Asset[];
@@ -88,8 +93,6 @@ export type FxSnapshotInput = {
   capturedAt: Date;
 };
 
-const bootstrapTimestamp = new Date("2026-04-27T00:00:00.000Z");
-
 export async function ensureUserWorkspace(email: string) {
   if (!isDbConfigured()) {
     const normalizedEmail = normalizeEmail(email);
@@ -125,105 +128,15 @@ export async function ensureUserWorkspace(email: string) {
 
   if (existingPortfolios.length > 0) return user;
 
-  const [portfolio] = await db
+  await db
     .insert(portfolios)
     .values({
       userId: user.id,
       name: "Personal",
-      description: "Core portfolio",
+      description: "Ready for real entries",
       baseCurrency: "USD"
     })
     .returning();
-
-  const assetBySymbol = new Map<string, DbAsset>();
-
-  for (const demoAsset of demoAssets) {
-    const [asset] = await db
-      .insert(assets)
-      .values({
-        symbol: demoAsset.symbol,
-        name: demoAsset.name,
-        type: demoAsset.type,
-        currency: demoAsset.currency,
-        exchange: demoAsset.exchange,
-        provider: demoAsset.provider,
-        externalId: demoAsset.externalId,
-        color: demoAsset.color
-      })
-      .onConflictDoUpdate({
-        target: [assets.provider, assets.externalId],
-        set: {
-          symbol: demoAsset.symbol,
-          name: demoAsset.name,
-          exchange: demoAsset.exchange,
-          color: demoAsset.color,
-          updatedAt: new Date()
-        }
-      })
-      .returning();
-
-    assetBySymbol.set(asset.symbol, asset);
-
-    await db
-      .insert(priceSnapshots)
-      .values({
-        assetId: asset.id,
-        provider: demoAsset.provider,
-        capturedAt: bootstrapTimestamp,
-        price: demoAsset.price,
-        currency: demoAsset.currency
-      })
-      .onConflictDoNothing();
-  }
-
-  await db
-    .insert(fxSnapshots)
-    .values([
-      {
-        baseCurrency: "USD",
-        quoteCurrency: "EUR",
-        rate: fallbackFxRates.usdToEur,
-        capturedAt: bootstrapTimestamp
-      },
-      {
-        baseCurrency: "EUR",
-        quoteCurrency: "USD",
-        rate: fallbackFxRates.eurToUsd,
-        capturedAt: bootstrapTimestamp
-      }
-    ])
-    .onConflictDoNothing();
-
-  for (const demoTransaction of demoTransactions) {
-    const asset =
-      "symbol" in demoTransaction && demoTransaction.symbol
-        ? assetBySymbol.get(demoTransaction.symbol)
-        : undefined;
-
-    await db.insert(transactions).values({
-      portfolioId: portfolio.id,
-      assetId: asset?.id,
-      type: demoTransaction.type,
-      occurredOn: demoTransaction.occurredOn,
-      quantity: "quantity" in demoTransaction ? demoTransaction.quantity : undefined,
-      grossAmount: demoTransaction.grossAmount,
-      currency: demoTransaction.currency,
-      fees: demoTransaction.fees,
-      platform: demoTransaction.platform,
-      note: demoTransaction.note
-    });
-  }
-
-  await db.insert(manualPositions).values({
-    portfolioId: portfolio.id,
-    label: "SpaceX fundraising participation",
-    value: 5000,
-    currency: "USD",
-    note: "Manual private-market valuation",
-    valuedOn: "2026-04-01"
-  });
-
-  await seedPortfolioSnapshots(portfolio.id);
   return user;
 }
 
@@ -282,6 +195,7 @@ export async function getDashboardDataForEmail(
   const allocations = buildAllocations(positions, manualViews, scopedAssets);
 
   return {
+    persistenceMode: "persistent",
     portfolio: portfolioView,
     portfolios: portfolioOptions,
     assets: assetViews,
@@ -315,6 +229,8 @@ function buildMockDashboardData(portfolioId?: string): DashboardData {
   });
 
   return {
+    persistenceMode: "demo",
+    persistenceNotice: demoModeMutationMessage,
     portfolio,
     portfolios: portfolioOptions,
     assets: mockData.assets,
@@ -360,6 +276,7 @@ export async function listAssetsForEmail(email: string) {
 }
 
 export async function createPortfolioForEmail(email: string, input: FormData | Record<string, unknown>) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   const values = readInput(input);
   const existingPortfolios = await listPortfolioOptionsForUser(user.id);
@@ -391,6 +308,7 @@ export async function updatePortfolioForEmail(
   portfolioId: string,
   input: FormData | Record<string, unknown>
 ) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   await getPortfolioForUser(user.id, portfolioId);
   const values = readInput(input);
@@ -513,6 +431,7 @@ export async function refreshCurrentPortfolioSnapshotsForEmail(email: string) {
 }
 
 export async function createTransactionForEmail(email: string, input: FormData | Record<string, unknown>) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   const parsed = parseTransactionInput(input);
   const db = getDb();
@@ -565,6 +484,7 @@ export async function updateTransactionForEmail(
   transactionId: string,
   input: FormData | Record<string, unknown>
 ) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   const parsed = parseTransactionInput(input);
   const db = getDb();
@@ -611,6 +531,7 @@ export async function updateTransactionForEmail(
 }
 
 export async function deleteTransactionForEmail(email: string, transactionId: string) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   const [existing] = await getDb()
     .select()
@@ -632,6 +553,7 @@ export async function createManualPositionForEmail(
   email: string,
   input: FormData | Record<string, unknown>
 ) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   const values = readInput(input);
   const label = String(values.label ?? "").trim();
@@ -661,6 +583,7 @@ export async function updateManualPositionForEmail(
   positionId: string,
   input: FormData | Record<string, unknown>
 ) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   const values = readInput(input);
   const label = String(values.label ?? "").trim();
@@ -696,6 +619,7 @@ export async function updateManualPositionForEmail(
 }
 
 export async function deleteManualPositionForEmail(email: string, positionId: string) {
+  assertDbConfiguredForMutation();
   const user = await ensureUserWorkspace(email);
   const [existing] = await getDb()
     .select()
@@ -1146,28 +1070,6 @@ function buildSnapshotViews(rows: (typeof portfolioSnapshots.$inferSelect)[]): P
     cashFlowEur: row.externalCashFlowEur,
     twr: row.twrPercent
   }));
-}
-
-async function seedPortfolioSnapshots(portfolioId: string) {
-  await getDb()
-    .insert(portfolioSnapshots)
-    .values(
-      buildSimulatedSnapshots({
-        currentValueUsd: 58_469,
-        currentValueEur: 54_290,
-        now: new Date("2026-04-28T00:00:00.000Z"),
-        dayCount: 120
-      }).map((snapshot) => ({
-        portfolioId,
-        snapshotDate: snapshot.date,
-        valueEur: snapshot.valueEur,
-        valueUsd: snapshot.valueUsd,
-        investedCapitalEur: snapshot.investedCapitalEur,
-        externalCashFlowEur: snapshot.cashFlowEur,
-        twrPercent: snapshot.twr
-      }))
-    )
-    .onConflictDoNothing();
 }
 
 function buildApiStatuses(): ApiStatus[] {

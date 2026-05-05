@@ -27,7 +27,13 @@ const importFields: Array<{ field: ImportField; label: string; required?: boolea
   { field: "notes", label: "Notes" }
 ];
 
-export function TransactionImportPanel({ portfolioId }: { portfolioId?: string }) {
+export function TransactionImportPanel({
+  portfolioId,
+  disabledReason
+}: {
+  portfolioId?: string;
+  disabledReason?: string;
+}) {
   const [csvText, setCsvText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [mapping, setMapping] = useState<ImportMapping>({});
@@ -46,6 +52,11 @@ export function TransactionImportPanel({ portfolioId }: { portfolioId?: string }
   const importableCount = preview.validRows + preview.warningRows - preview.duplicateRows;
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (!file) return;
     const text = await file.text();
@@ -69,6 +80,11 @@ export function TransactionImportPanel({ portfolioId }: { portfolioId?: string }
   }
 
   async function submitImport(commit: boolean) {
+    if (disabledReason) {
+      setError(disabledReason);
+      return;
+    }
+
     setIsBusy(true);
     setError(null);
     setMessage(null);
@@ -130,12 +146,32 @@ export function TransactionImportPanel({ portfolioId }: { portfolioId?: string }
             presets stay off until real sample exports are available.
           </p>
         </div>
-        <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200">
+        <label
+          className={cn(
+            "inline-flex items-center justify-center gap-2 rounded-[6px] px-4 py-2 text-sm font-semibold",
+            disabledReason
+              ? "cursor-not-allowed bg-zinc-800 text-zinc-500"
+              : "cursor-pointer bg-white text-black hover:bg-zinc-200"
+          )}
+          title={disabledReason ?? "Choose CSV"}
+        >
           <Upload className="h-4 w-4" />
           Choose CSV
-          <input className="sr-only" type="file" accept=".csv,text/csv" onChange={handleFileChange} />
+          <input
+            className="sr-only"
+            type="file"
+            accept=".csv,text/csv"
+            disabled={Boolean(disabledReason)}
+            onChange={handleFileChange}
+          />
         </label>
       </div>
+
+      {disabledReason && (
+        <p className="mt-4 rounded-[7px] border border-[#4a3820] bg-[#120d05] p-3 text-sm text-[#f6b342]">
+          {disabledReason}
+        </p>
+      )}
 
       {fileName && <p className="mt-4 text-sm text-zinc-400">Selected: {fileName}</p>}
 
@@ -155,6 +191,7 @@ export function TransactionImportPanel({ portfolioId }: { portfolioId?: string }
                 {label} {required && <span className="text-[#f6b342]">*</span>}
                 <select
                   value={mapping[field] ?? ""}
+                  disabled={Boolean(disabledReason)}
                   onChange={(event) => handleMappingChange(field, event.target.value)}
                   className="mt-1 h-10 w-full rounded-[6px] border border-[#2b2b2f] bg-[#050505] px-3 text-sm text-zinc-100 outline-none focus:border-[#3b82f6]"
                 >
@@ -170,13 +207,18 @@ export function TransactionImportPanel({ portfolioId }: { portfolioId?: string }
           </div>
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button type="button" variant="ghost" disabled={isBusy} onClick={() => submitImport(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={Boolean(disabledReason) || isBusy}
+              onClick={() => submitImport(false)}
+            >
               {isBusy ? <MoreHorizontal className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
               Dry run
             </Button>
             <Button
               type="button"
-              disabled={isBusy || importableCount <= 0}
+              disabled={Boolean(disabledReason) || isBusy || importableCount <= 0}
               onClick={() => submitImport(true)}
             >
               {isBusy ? <MoreHorizontal className="h-4 w-4" /> : <Upload className="h-4 w-4" />}

@@ -37,6 +37,15 @@ export function buildAnalyticsHistory({
     };
   }
 
+  if (sortedSnapshots.length === 0 && currentValueUsd <= 0 && currentValueEur <= 0) {
+    return {
+      snapshots: [],
+      benchmarkReturns: [],
+      mode: "actual",
+      notice: "No portfolio history exists yet. Add real entries or wait for snapshots before charts and risk metrics populate."
+    };
+  }
+
   const generatedSnapshots = buildSimulatedSnapshots({
     currentValueUsd,
     currentValueEur,

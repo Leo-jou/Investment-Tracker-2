@@ -33,7 +33,7 @@ const menuGroups = [
   }
 ];
 
-export function AddTransactionMenu() {
+export function AddTransactionMenu({ disabledReason }: { disabledReason?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -62,15 +62,23 @@ export function AddTransactionMenu() {
   return (
     <div ref={containerRef} className="relative flex overflow-visible">
       <div className="flex rounded-[8px] bg-white text-black">
-        <Button asChild className="rounded-none px-6">
-          <Link href="/transactions?type=BUY#quick-add">Add transaction</Link>
-        </Button>
+        {disabledReason ? (
+          <Button type="button" disabled className="rounded-none px-6" title={disabledReason}>
+            Add transaction
+          </Button>
+        ) : (
+          <Button asChild className="rounded-none px-6">
+            <Link href="/transactions?type=BUY#quick-add">Add transaction</Link>
+          </Button>
+        )}
         <Button
           type="button"
           className="rounded-none border-l border-zinc-300 px-4"
           size="icon"
           aria-expanded={isOpen}
           aria-haspopup="menu"
+          disabled={Boolean(disabledReason)}
+          title={disabledReason ?? "Open transaction menu"}
           onClick={() => setIsOpen((value) => !value)}
         >
           <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
