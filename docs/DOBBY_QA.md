@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T10:32:00Z — Dobby reviewed the quick-add/live-price safety batch; continue with the next P0 reliability slice.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T10:50:41Z — Codex pushed the P0 user/account asset-scoping slice and is waiting for Dobby review.
 
 ## Codex Automation Mode
 
@@ -44,41 +44,34 @@ MVP reliability:
 ## Pending Dobby Review
 
 - Commit: final pushed branch tip for this handoff.
-- Task: First small P0 implementation batch from Dobby's 2026-05-05T10:05 review.
-- Summary: Fixed quick-add's hardcoded transaction date, stopped BUY flows from creating or extending mock/manual-priced trade assets without provider-backed selection, added CSV import safety messaging for unknown trade symbols, labeled existing saved-price holdings, and hid fake/estimated 24h movers/holding moves behind `Not connected` states.
+- Task: P0 user/account asset-scoping slice from Dobby's 2026-05-05T10:32 review.
+- Summary: Scoped dashboard `data.assets` to assets referenced by the selected portfolio's transactions, scoped `/assets` to assets referenced by portfolios owned by the signed-in account, and changed CSV import known-symbol validation to use the account-scoped asset list instead of unrelated global assets.
 - Files changed:
   - `app/api/transactions/import/route.ts`
-  - `app/assets/page.tsx`
-  - `components/portfolio/asset-pill.tsx`
-  - `components/portfolio/daily-movers.tsx`
-  - `components/portfolio/positions-table.tsx`
-  - `components/portfolio/quick-add-transaction-form.tsx`
+  - `lib/db/portfolio-repository.ts`
+  - `lib/portfolio/asset-scope.ts`
+  - `tests/asset-scope.test.ts`
   - `docs/WORK_QUEUE.md`
   - `docs/DOBBY_QA.md`
-  - `lib/db/portfolio-repository.ts`
-  - `lib/import/transaction-import.ts`
-  - `tests/transaction-import.test.ts`
   - `context.md`
 - Gates run:
-  - `npm test` passed: 56/56.
+  - `npm test` passed: 58/58.
   - `npm run lint` passed.
-  - `npm run build` passed after rerunning outside the sandbox for Turbopack local port access.
+  - `npm run build` passed.
   - `npm run context:update` passed and refreshed `context.md`.
-  - `npm run context:check` passed after the final context wording cleanup.
+  - `npm run context:check` passed.
 - Known risks:
   - No all-portfolio aggregate view exists yet; dashboard and standalone transaction/manual-position pages default to the first portfolio unless a specific portfolio route is used.
-  - `getDashboardDataForEmail` loads all active assets, so asset lists and backup JSON can include global asset metadata unrelated to the signed-in user's selected portfolio/account.
   - First-run Neon workspace bootstrap still inserts demo transactions, snapshots, and one manual position, which is risky for real personal-data onboarding unless clearly resettable or disabled.
-  - CSV import now blocks unknown trade symbols instead of creating mock-priced assets; Leo may need to create/select provider-backed assets in quick-add before importing rows for new tickers.
-  - Existing historical `mock` provider assets are labeled/blocked for new BUYs but are not migrated or deleted in this cycle.
+  - CSV import known-symbol checks are account-scoped, but unknown new tickers still need to be selected through provider-backed quick-add/search before import.
+  - Existing historical `mock` provider assets are labeled/blocked for new BUYs but are not migrated or deleted.
   - Overview chart/timeframe metrics use `analyticsSnapshots`, which may be simulated history, without the same visible labeling shown in Analysis.
   - SELL validation checks current total holding quantity, not historical as-of-date availability.
   - Mutation/user-scope API coverage is missing; current production smoke is mostly read-only.
 - Browser QA requested:
-  - Verify quick-add date defaults to today's local date and still submits BUY/SELL/cash/manual entries.
-  - Verify typed unknown BUY symbols show a clear error instead of creating a mock-priced asset.
-  - Verify CSV preview marks unknown trade symbols invalid and does not import them.
-  - Verify daily movers, asset 24h values, and holdings 24h movement columns no longer display fake percentages.
+  - Verify `/assets` no longer shows unrelated global assets from other accounts/portfolios.
+  - Verify backup JSON and report JSON include only assets tied to the selected portfolio's transactions.
+  - Verify CSV import still accepts account-known symbols while rejecting unknown symbols.
   - Check whether the remaining portfolio switcher still needs an `All portfolios` option before Leo enters real data.
 
 ## Dobby Findings

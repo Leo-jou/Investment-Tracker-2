@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { requireSessionEmail } from "@/lib/auth/session";
 import {
   createTransactionForEmail,
-  getDashboardDataForEmail
+  getDashboardDataForEmail,
+  listAssetsForEmail
 } from "@/lib/db/portfolio-repository";
 import {
   buildImportPreview,
@@ -31,12 +32,13 @@ export async function POST(request: Request) {
     }
 
     const data = await getDashboardDataForEmail(email, body.portfolioId);
+    const accountAssets = await listAssetsForEmail(email);
     const preview = buildImportPreview({
       parsed,
       mapping: body.mapping ?? {},
       portfolioId: data.portfolio.id,
       existingTransactions: data.transactions,
-      knownAssetSymbols: data.assets.map((asset) => asset.symbol)
+      knownAssetSymbols: accountAssets.map((asset) => asset.symbol)
     });
 
     if (!body.commit) {

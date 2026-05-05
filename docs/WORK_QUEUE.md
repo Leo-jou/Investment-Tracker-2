@@ -136,7 +136,7 @@ Audit notes:
 - Current `scripts/smoke-production.ts` is mostly read-only, except optional price refresh.
 - Unit tests cover portfolio math, export generation, provider normalization, and CSV import parsing, but not the API create/edit/delete scoping paths against a real DB.
 
-### [ ] P0: Confirm all core data is Neon-backed and user-scoped
+### [~] P0: Confirm all core data is Neon-backed and user-scoped
 
 Fix any remaining local/mock-only persistence for MVP-critical data.
 
@@ -145,6 +145,19 @@ Concrete next work:
 - Decide whether first-run Neon workspaces should be empty for real users or explicitly flagged/resettable demo workspaces; current bootstrap inserts demo transactions and a manual position.
 - Make no-`DATABASE_URL` preview/demo mode impossible to confuse with persistent real-data mode before allowing edits.
 - Consider fail-closed email allowlist behavior in production for the private email fallback.
+
+Cycle 3 partial result:
+
+- Dashboard `data.assets` now includes only assets referenced by the selected portfolio's transactions, preventing unrelated global assets from leaking into selected-portfolio views, CSV known-symbol inputs derived from dashboard data, and backup/export payloads.
+- `/assets` now lists only assets referenced by portfolios owned by the signed-in account, rather than every active global asset row.
+- CSV import known-symbol validation now uses the signed-in account's scoped asset list, so known symbols can span Leo's own portfolios without including unrelated global assets.
+- Added focused tests for the asset-scoping helper.
+
+Still open:
+
+- First-run Neon workspaces still seed demo transactions/manual positions.
+- No-`DATABASE_URL` preview/demo mode is still editable-looking and needs clearer persistence gating.
+- Mutation-capable API smoke coverage is still missing.
 
 ### [~] P0: Harden live quote and price refresh semantics
 

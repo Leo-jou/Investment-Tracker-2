@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 import { normalizeEmail } from "@/lib/auth/email";
 import { convertCurrency, fallbackFxRates, toDisplayPair, type FxRateMap } from "@/lib/data/conversions";
@@ -45,6 +45,7 @@ import {
   calculateNetContributionsUsd,
   calculateRealizedGainUsd
 } from "@/lib/portfolio/calculations";
+import { filterAssetsByReferencedTransactions } from "@/lib/portfolio/asset-scope";
 import * as mockData from "@/lib/mock-data";
 
 export type DashboardData = {
@@ -256,11 +257,12 @@ export async function getDashboardDataForEmail(
     getLatestFxRates()
   ]);
 
+  const scopedAssets = filterAssetsByReferencedTransactions(dbAssets, dbTransactions);
   const latestPrices = await getLatestPrices();
-  const assetViews = buildAssetViews(dbAssets, latestPrices, rates);
-  const transactionViews = buildTransactionViews(dbTransactions, dbAssets);
+  const assetViews = buildAssetViews(scopedAssets, latestPrices, rates);
+  const transactionViews = buildTransactionViews(dbTransactions, scopedAssets);
   const manualViews = buildManualPositionViews(dbManualPositions, rates);
-  const positions = buildPositions(dbTransactions, dbAssets, latestPrices, rates, portfolio.id);
+  const positions = buildPositions(dbTransactions, scopedAssets, latestPrices, rates, portfolio.id);
   const rawSnapshots = buildSnapshotViews(dbSnapshots);
   const portfolioView = buildPortfolioView(
     portfolio.id,
@@ -277,7 +279,7 @@ export async function getDashboardDataForEmail(
     currentValueUsd: portfolioView.valueUsd,
     currentValueEur: portfolioView.valueEur
   });
-  const allocations = buildAllocations(positions, manualViews, dbAssets);
+  const allocations = buildAllocations(positions, manualViews, scopedAssets);
 
   return {
     portfolio: portfolioView,
@@ -332,11 +334,29 @@ function buildMockDashboardData(portfolioId?: string): DashboardData {
 }
 
 export async function listAssetsForEmail(email: string) {
-  await ensureUserWorkspace(email);
-  const dbAssets = await getDb().select().from(assets).where(eq(assets.isActive, true));
+  if (!isDbConfigured()) {
+    return mockData.assets;
+  }
+
+  const user = await ensureUserWorkspace(email);
+  const db = getDb();
+  const userPortfolios = await db
+    .select({ id: portfolios.id })
+    .from(portfolios)
+    .where(eq(portfolios.userId, user.id));
+
+  if (userPortfolios.length === 0) return [];
+
+  const portfolioIds = userPortfolios.map((portfolio) => portfolio.id);
+  const [dbAssets, dbTransactions] = await Promise.all([
+    db.select().from(assets).where(eq(assets.isActive, true)),
+    db.select().from(transactions).where(inArray(transactions.portfolioId, portfolioIds))
+  ]);
   const rates = await getLatestFxRates();
   const latestPrices = await getLatestPrices();
-  return buildAssetViews(dbAssets, latestPrices, rates);
+  const scopedAssets = filterAssetsByReferencedTransactions(dbAssets, dbTransactions);
+
+  return buildAssetViews(scopedAssets, latestPrices, rates);
 }
 
 export async function createPortfolioForEmail(email: string, input: FormData | Record<string, unknown>) {

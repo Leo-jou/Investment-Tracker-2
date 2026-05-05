@@ -76,9 +76,11 @@ Cycle 1 reliability audit on `codex/openclaw-playground` found the next MVP bloc
 
 The first post-audit P0 implementation batch fixed quick-add's hardcoded date, stopped typed/CSV BUY flows from creating or extending mock/manual-priced trade assets without provider-backed selection, made CSV imports reject unknown trade symbols before import, labeled existing saved-price holdings, and hid fake/estimated 24h movers/holding moves until provider-backed daily change data exists.
 
+The next P0 asset-scoping batch limited selected-portfolio `data.assets` to assets referenced by that portfolio's transactions, limited `/assets` to assets referenced by the signed-in account's portfolios, and made CSV import known-symbol checks use that account-scoped asset list instead of all global active assets. This also scopes backup/export asset payloads because export builders consume `DashboardData.assets`.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Documentation: 6 files
+- Documentation: 5 files
 - UI components: 4 files
 - Other: 2 files
 - API routes: 1 file
@@ -86,6 +88,7 @@ Generated refresh summary:
 - Database: 1 file
 
 Recent commits:
+- d026bfa 2026-05-05 Review price semantics batch
 - 643602f 2026-05-05 Harden real-data price semantics
 - 27d77eb 2026-05-05 Add Dobby review feedback
 - 1cec323 2026-05-05 Establish Dobby polling loop
@@ -93,7 +96,6 @@ Recent commits:
 - 5c56462 2026-05-05 Audit MVP reliability risks
 - 63d1f7f 2026-05-05 Add Codex Dobby handoff signals
 - bb71c24 2026-05-05 Clarify autonomous Codex Dobby loop
-- ede12e0 2026-05-05 Add Dobby Codex coordination docs
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -128,7 +130,7 @@ Generated TODO/FIXME scan:
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
-2. Fix the remaining P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with mutation-capable smoke tests, user/account scoping for assets/backups, and a clear all-portfolio aggregate view.
+2. Fix the remaining P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with mutation-capable smoke tests, first-run demo data behavior, and a clear all-portfolio aggregate view.
 3. Finish quote/price semantics before real data entry: show `priceCapturedAt`, provider freshness, stale/unavailable/manual/mock states, and refresh failures across holdings/assets/quick-add.
 4. Align charts/tooltips with real persisted data by avoiding unlabeled simulated analytics history outside the Analysis tab.
 5. Add historical-date-aware SELL validation.
@@ -148,4 +150,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T10:31:09.614Z - Refreshed generated context from 8 recent commits, 15 changed files, and 0 TODO/FIXME items.
+2026-05-05T10:41:45.114Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.
