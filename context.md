@@ -92,22 +92,24 @@ Overview performance surfaces now avoid simulated analytics history. The Overvie
 
 Portfolio distribution now avoids fake allocation-table gains. Allocation rows use actual transaction-backed open-position P&L from `Position.pnlEur` for asset/group rows, and manual-only rows show `N/A` because manual valuations do not store cost basis.
 
+Formula terminology now favors `Open-position P&L` for transaction-backed open holdings versus remaining average-cost basis. Digest/report exports use persisted snapshot TWR only and show `Need snapshots`/`needs_snapshots` instead of estimated TWR when snapshots are absent. Backdated transaction/manual writes validate history but still upsert only the current-day portfolio snapshot; historical snapshot backfills are not automatic.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- UI components: 4 files
+- UI components: 8 files
+- Other: 7 files
 - Documentation: 3 files
-- Other: 3 files
 - Tooling: 1 file
 
 Recent commits:
+- 7323935 2026-05-05 Clarify portfolio math terminology
+- 8a23588 2026-05-05 Accept allocation PnL consistency [skip ci]
 - 25b0023 2026-05-05 Refresh allocation PnL context
 - 66eec69 2026-05-05 Record allocation PnL handoff
 - 24dd8ab 2026-05-05 Use real allocation PnL
 - b622442 2026-05-05 Quiet Codex branch Vercel previews [skip ci]
 - 139c6ee 2026-05-05 Accept overview persisted-history safety [skip ci]
 - 980e432 2026-05-05 Keep overview on persisted history
-- 9e95789 2026-05-05 Accept sell timeline validation [skip ci]
-- 04d9b5c 2026-05-05 Correct sell timeline handoff hash
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -162,4 +164,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T16:09:43.460Z - Refreshed generated context from 8 recent commits, 11 changed files, and 0 TODO/FIXME items.
+2026-05-05T16:24:53.600Z - Refreshed generated context from 8 recent commits, 19 changed files, and 0 TODO/FIXME items.

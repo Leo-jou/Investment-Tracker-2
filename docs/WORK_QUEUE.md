@@ -488,10 +488,18 @@ Cycle 12 result:
 - Manual-only allocation rows show `N/A` for open-position P&L because manual valuation does not store cost basis.
 - Added focused allocation-row tests for actual P&L, grouped P&L, and manual-only withholding.
 
+Cycle 13 result:
+
+- User-facing open holding terminology now says `Open-position P&L` where the metric is transaction-backed holdings minus remaining average-cost basis.
+- Digest/report HTML and report exports use persisted snapshot TWR only; no-snapshot reports show `Need snapshots`/`needs_snapshots` instead of estimated portfolio return.
+- Review exports use `openPositionPnl*` fields for portfolio/position P&L while restore-oriented backup JSON remains unchanged.
+- Chart, quick-add, settings, and architecture docs now document current snapshot semantics: transaction writes validate backdated holdings history, but only today's/current-day portfolio snapshot is upserted; historical snapshot backfills are not automatic.
+- Added digest/export tests for snapshot-TWR withholding and terminology.
+
 Still open:
 
-- Decide/document historical snapshot recomputation semantics for backdated transaction edits.
-- Continue checking tooltips against implemented formulas.
+- Dobby should do a final formula/tooltip/browser QA pass.
+- If Dobby finds no P0 blocker, prepare `docs/SHIP_READINESS.md` and pause automation for Leo review.
 
 ### [ ] P1: Good-enough desktop/mobile UI QA pass
 

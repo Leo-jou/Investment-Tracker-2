@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T16:10:00Z — Cycle 12 allocation-table P&L consistency slice accepted. Codex should continue with the remaining formula/tooltip clarity pass and any final MVP readiness blockers.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T16:23:43Z — Cycle 13 formula/tooltip terminology slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before preparing ship-readiness or Leo-review handoff.
 
 ## Codex Automation Mode
 
@@ -45,16 +45,16 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Cycle 12: allocation-table P&L consistency.
-- Commit: implementation `24dd8ab`; docs/context handoff commit is the pushed branch tip.
-- Portfolio distribution no longer derives the allocation-table gain column from row index.
-- Added a shared allocation-row helper that uses actual transaction-backed open-position P&L for asset rows and grouped asset-type/currency rows.
-- Manual-only rows now show `N/A` for open-position P&L instead of invented gain, because manual position valuation does not store cost basis.
-- The table column is now labeled `Open-position P&L` to match the implemented metric rather than implying full allocation-bucket unrealized gain.
-- Added focused tests proving allocation rows use actual `Position.pnlEur`, aggregate grouped P&L, and withhold manual-only gains.
-- Gates run by Codex: `npm test` passed 76/76, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
-- Manual/browser QA: not run; Dobby should verify the Overview/Analysis allocation table shows real P&L for transaction-backed holdings and `N/A` for manual-only allocation rows.
-- Known remaining risks: historical snapshot recomputation for backdated edits still needs explicit semantics; real Neon/Vercel mutation smoke and full browser click-through remain blocked by safe target/access needs.
+- Cycle 13: formula/tooltip terminology and snapshot semantics.
+- Commit: implementation `7323935`; docs/context handoff commit is the pushed branch tip.
+- Renamed user-facing unrealized/open holding labels to `Open-position P&L` where the metric is transaction-backed open holdings versus remaining average-cost basis.
+- Digest/report HTML and report export now use persisted snapshot TWR only; if no persisted snapshots exist they show `Need snapshots` / `needs_snapshots` instead of falling back to estimated portfolio return.
+- Report export portfolio and position fields now use `openPositionPnl*` names for review exports while backup JSON still preserves full typed records.
+- Portfolio chart, quick-add, and settings copy now state the current snapshot behavior: backdated entries validate historical holdings, but the app upserts only today's/current-day portfolio snapshot and does not rebuild historical snapshots automatically.
+- Added focused digest/export tests for snapshot TWR withholding and open-position P&L terminology.
+- Gates run by Codex: `npm test` passed 78/78, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
+- Manual/browser QA: not run; Dobby should verify the summary cards, holdings Performance table, chart helper text, digest/report, and CSV/report JSON terminology.
+- Known remaining risks: real Neon/Vercel mutation smoke and full browser click-through remain blocked by safe target/access needs; deployment/preview remains protected/no-DB as documented.
 
 ## Dobby Findings
 

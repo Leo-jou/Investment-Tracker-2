@@ -16,9 +16,9 @@ This MVP is a provider-ready Next.js app that uses the real production shape whi
 - The MVP starts with Google/email login, with the database schema ready for future multi-user auth.
 - Manual entry is the source of truth. Broker and wallet sync are out of scope.
 - USD is the default display currency. EUR is available through an FX-backed toggle.
-- Daily snapshots are enough for refresh and performance calculations.
+- Daily snapshots are enough for refresh and performance calculations, but they are not a historical reconstruction engine.
 - TWR is the primary performance metric because deposits and withdrawals must not distort returns.
-- Provider failures should degrade to mock/fallback data instead of blocking the app.
+- Provider failures should degrade to unavailable or clearly saved-price states instead of fake live data.
 - News matching should prefer trusted RSS/symbol feeds and official filings. Broad third-party news search remains opt-in.
 - Risk metrics should be withheld when cadence or benchmark data is too weak to support a defensible number.
 
@@ -40,6 +40,7 @@ Important rules:
 - `assets.provider + assets.external_id` is unique to prevent duplicated provider mappings.
 - Transfers can share `transactions.transfer_group_id` so paired entries can be reconciled.
 - `portfolio_snapshots.external_cash_flow_eur` is the cash-flow input used to avoid fake gains/losses.
+- Transaction and manual-position writes currently upsert the current-day portfolio snapshot only. Backdated entries validate holdings history and affect current portfolio math immediately, but historical snapshot/TWR backfills are not automatic.
 
 ## Implementation Phases
 
