@@ -463,11 +463,17 @@ Cycle 11 result:
 - The TWR performance summary shows `Need data` instead of falling back to estimated all-time return when persisted snapshots are sparse.
 - Added focused timeframe coverage that empty persisted history withholds all-time performance instead of producing a fake value.
 
+Cycle 12 result:
+
+- Portfolio distribution no longer shows generated/fake unrealized gains derived from allocation row index.
+- Allocation rows now use actual transaction-backed open-position P&L from `Position.pnlEur` for asset rows and grouped asset-type/currency rows.
+- Manual-only allocation rows show `N/A` for open-position P&L because manual valuation does not store cost basis.
+- Added focused allocation-row tests for actual P&L, grouped P&L, and manual-only withholding.
+
 Still open:
 
 - Decide/document historical snapshot recomputation semantics for backdated transaction edits.
 - Continue checking tooltips against implemented formulas.
-- Remove fake allocation-table unrealized gains that are derived from row index rather than portfolio math.
 
 ### [ ] P1: Good-enough desktop/mobile UI QA pass
 

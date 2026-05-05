@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T15:46:33Z — Cycle 11 overview simulated-history safety slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing remaining tooltip/formula clarity.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T16:03:11Z — Cycle 12 allocation-table P&L consistency slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing remaining formula/tooltip clarity.
 
 ## Codex Automation Mode
 
@@ -45,14 +45,16 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Cycle 11: overview simulated-history safety.
-- Overview timeframe stats and the Portfolio change chart now use raw persisted `data.snapshots` only; simulated `analyticsSnapshots` remain isolated to the Analysis tab, where they are already labeled as a demo overlay.
-- The TWR performance summary no longer falls back to `portfolio.twr`/estimated return when persisted snapshots are sparse; it shows `Need data` until at least two persisted snapshots exist for the selected range.
-- `PortfolioSummaryCard` now supports null values so data-quality states can be shown without formatting fake zeroes.
-- Added a focused timeframe test proving empty persisted history withholds all-time performance.
-- Gates run by Codex: `npm test` passed 74/74, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
-- Manual/browser QA: not run; Dobby should verify Overview shows persisted-snapshot empty/data-quality states while Analysis still labels demo analytics history.
-- Known remaining risks: backdated entries still update today's snapshot only and do not rebuild historical snapshots; real Neon/Vercel mutation smoke and full browser click-through remain blocked by safe target/access needs.
+- Cycle 12: allocation-table P&L consistency.
+- Commit: implementation `468383a`; docs/context handoff commit is the pushed branch tip.
+- Portfolio distribution no longer derives the allocation-table gain column from row index.
+- Added a shared allocation-row helper that uses actual transaction-backed open-position P&L for asset rows and grouped asset-type/currency rows.
+- Manual-only rows now show `N/A` for open-position P&L instead of invented gain, because manual position valuation does not store cost basis.
+- The table column is now labeled `Open-position P&L` to match the implemented metric rather than implying full allocation-bucket unrealized gain.
+- Added focused tests proving allocation rows use actual `Position.pnlEur`, aggregate grouped P&L, and withhold manual-only gains.
+- Gates run by Codex: `npm test` passed 76/76, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
+- Manual/browser QA: not run; Dobby should verify the Overview/Analysis allocation table shows real P&L for transaction-backed holdings and `N/A` for manual-only allocation rows.
+- Known remaining risks: historical snapshot recomputation for backdated edits still needs explicit semantics; real Neon/Vercel mutation smoke and full browser click-through remain blocked by safe target/access needs.
 
 ## Dobby Findings
 
