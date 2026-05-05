@@ -46,7 +46,7 @@ MVP reliability:
 ## Pending Dobby Review
 
 - Cycle 12: allocation-table P&L consistency.
-- Commit: implementation `468383a`; docs/context handoff commit is the pushed branch tip.
+- Commit: implementation `24dd8ab`; docs/context handoff commit is the pushed branch tip.
 - Portfolio distribution no longer derives the allocation-table gain column from row index.
 - Added a shared allocation-row helper that uses actual transaction-backed open-position P&L for asset rows and grouped asset-type/currency rows.
 - Manual-only rows now show `N/A` for open-position P&L instead of invented gain, because manual position valuation does not store cost basis.
