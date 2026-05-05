@@ -19,8 +19,6 @@ type HoldingView = "Position" | "Performance" | "Risk" | "Details";
 type PositionRow = {
   position: Position;
   asset: Asset;
-  investedEur: number;
-  dailyGainEur: number;
 };
 
 type Column = {
@@ -35,7 +33,7 @@ const holdingViews: HoldingView[] = ["Position", "Performance", "Risk", "Details
 
 const viewDescriptions: Record<HoldingView, string> = {
   Position: "Current holding size, value, allocation, and platform labels.",
-  Performance: "Open-position P&L and latest 24h provider move.",
+  Performance: "Open-position P&L. Provider-backed 24h moves are hidden until connected.",
   Risk: "Concentration and data-quality notes for current exposure.",
   Details: "Provider, exchange, native currency, and price metadata."
 };
@@ -55,9 +53,7 @@ export function PositionsTable({ positions, assets, currency }: PositionsTablePr
         return [
           {
             position,
-            asset,
-            investedEur: position.marketValueEur - position.pnlEur,
-            dailyGainEur: position.marketValueEur * asset.change24hPercent * 0.01
+            asset
           }
         ];
       }),
@@ -203,18 +199,14 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
         label: "24h gain",
         align: "right",
         width: "w-[150px]",
-        render: ({ dailyGainEur }) => (
-          <span className={trendClass(dailyGainEur)}>{formatMoney(dailyGainEur * fx, currency)}</span>
-        )
+        render: () => <Unavailable24h />
       },
       {
         key: "daily-return",
         label: "24h move",
         align: "right",
         width: "w-[130px]",
-        render: ({ asset }) => (
-          <span className={trendClass(asset.change24hPercent)}>{formatPercent(asset.change24hPercent)}</span>
-        )
+        render: () => <Unavailable24h />
       },
       {
         key: "allocation",
@@ -376,6 +368,10 @@ function platformLabel(position: Position) {
   if (platforms.length === 0) return <span className="text-zinc-600">Unspecified</span>;
   if (platforms.length <= 2) return platforms.join(", ");
   return `${platforms.slice(0, 2).join(", ")} +${platforms.length - 2}`;
+}
+
+function Unavailable24h() {
+  return <span className="text-zinc-500">Not connected</span>;
 }
 
 function getRiskNote(asset: Asset, position: Position) {

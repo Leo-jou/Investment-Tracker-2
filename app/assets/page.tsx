@@ -3,8 +3,7 @@ import { AssetSearchInput } from "@/components/portfolio/asset-search-input";
 import { Badge } from "@/components/ui/badge";
 import { requireSessionEmail } from "@/lib/auth/session";
 import { listAssetsForEmail } from "@/lib/db/portfolio-repository";
-import { formatMoney, formatPercent, trendClass } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/format";
 
 export default async function AssetsPage() {
   const email = await requireSessionEmail();
@@ -35,7 +34,7 @@ export default async function AssetsPage() {
                 <th className="py-3 font-medium">Type</th>
                 <th className="py-3 font-medium">Provider</th>
                 <th className="py-3 text-right font-medium">Price</th>
-                <th className="py-3 text-right font-medium">24h</th>
+                <th className="py-3 text-right font-medium">24h data</th>
               </tr>
             </thead>
             <tbody>
@@ -50,8 +49,8 @@ export default async function AssetsPage() {
                   <td className="py-4 text-right text-zinc-200">
                     {formatMoney(asset.priceEur, "EUR")}
                   </td>
-                  <td className={cn("py-4 text-right", trendClass(asset.change24hPercent))}>
-                    {formatPercent(asset.change24hPercent)}
+                  <td className="py-4 text-right text-zinc-500">
+                    Not connected
                   </td>
                 </tr>
               ))}

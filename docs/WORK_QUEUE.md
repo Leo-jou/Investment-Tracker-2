@@ -131,7 +131,7 @@ Concrete next work:
 - Make no-`DATABASE_URL` preview/demo mode impossible to confuse with persistent real-data mode before allowing edits.
 - Consider fail-closed email allowlist behavior in production for the private email fallback.
 
-### [ ] P0: Harden live quote and price refresh semantics
+### [~] P0: Harden live quote and price refresh semantics
 
 Make stale/unavailable/manual/mock price states explicit and safe.
 
@@ -140,6 +140,20 @@ Concrete next work:
 - Surface `priceCapturedAt`, provider, and stale/unavailable/manual/mock states in holdings/assets/quick-add.
 - Replace or hide mock/estimated 24h movers and 24h holding moves until real provider change data exists.
 - Keep refresh failures visible and ensure skipped assets are clear to the user.
+
+Cycle 2 partial result:
+
+- Quick-add transaction dates now default to the user's current local date instead of the historical `2026-04-27` seed date.
+- BUY creation no longer creates a new `mock` provider asset with a saved price of 1 when the user types an unknown symbol or imports an unknown CSV symbol.
+- BUY creation against existing `mock` or `manual` priced assets is blocked unless the user selects a provider-backed search result.
+- CSV import previews mark unknown trade symbols invalid with a clear mock-price safety message.
+- Existing `mock` or `manual` holdings now show a `saved price` badge in holding rows.
+- Daily movers, asset-list 24h values, and holdings 24h gain/move values are hidden behind a `Not connected` state until real provider-backed change data is available.
+
+Still open:
+
+- Surface `priceCapturedAt`, provider freshness, stale/unavailable states, and refresh failures more completely across holdings/assets/quick-add.
+- Add provider-backed 24h change data before re-enabling movers or holding 24h movement columns.
 
 ### [ ] P0: Verify all-portfolio aggregate view
 
@@ -150,7 +164,7 @@ Audit notes:
 - `/portfolios/[id]` supports individual portfolio views.
 - No account-level aggregate portfolio option is present in the switcher, exports, charts, or backup.
 
-### [ ] P0: Math and tooltip consistency pass
+### [~] P0: Math and tooltip consistency pass
 
 Verify formulas and UI labels for portfolio value, net contributions, realized/unrealized P&L, TWR, risk metrics, and chart filters.
 
@@ -160,6 +174,11 @@ Concrete next work:
 - Tighten SELL validation so it cannot pass based only on current total holdings when the sell date would oversell historically.
 - Fix quick-add's hardcoded default date before real data entry.
 - Remove fake allocation-table unrealized gains that are derived from row index rather than portfolio math.
+
+Cycle 2 partial result:
+
+- Fixed quick-add's hardcoded default date.
+- Removed the fake/estimated 24h movement values from user-visible tables and mover panels.
 
 ### [ ] P1: Good-enough desktop/mobile UI QA pass
 

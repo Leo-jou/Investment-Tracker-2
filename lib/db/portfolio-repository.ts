@@ -744,12 +744,34 @@ async function resolveTransactionAsset(parsed: ReturnType<typeof parseTransactio
   if (!parsed.assetSymbol || !["BUY", "SELL"].includes(parsed.type)) return undefined;
 
   if (parsed.assetMetadata) {
+    if (
+      parsed.type === "BUY" &&
+      (parsed.assetMetadata.provider === "mock" || parsed.assetMetadata.provider === "manual")
+    ) {
+      throw new Error(
+        `${parsed.assetSymbol} is saved as ${parsed.assetMetadata.provider} priced. Select a provider-backed search result before adding more trades.`
+      );
+    }
     return upsertAssetFromSearchResult(parsed.assetMetadata);
   }
 
-  return parsed.type === "BUY"
-    ? findOrCreateAssetBySymbol(parsed.assetSymbol)
-    : findAssetBySymbol(parsed.assetSymbol);
+  const existing = await findAssetBySymbol(parsed.assetSymbol);
+
+  if (parsed.type === "BUY") {
+    if (!existing) {
+      throw new Error(
+        `Select ${parsed.assetSymbol} from provider search before saving a trade. Unknown typed symbols and CSV imports do not create mock-priced assets.`
+      );
+    }
+
+    if (existing.provider === "mock" || existing.provider === "manual") {
+      throw new Error(
+        `${parsed.assetSymbol} is saved as ${existing.provider} priced. Select a provider-backed search result before adding more trades.`
+      );
+    }
+  }
+
+  return existing;
 }
 
 async function persistSubmittedQuote(
@@ -843,44 +865,6 @@ async function upsertCurrentPortfolioSnapshot(portfolioId: string) {
         twrPercent
       }
     });
-}
-
-async function findOrCreateAssetBySymbol(symbol: string) {
-  const db = getDb();
-  const [existing] = await db.select().from(assets).where(eq(assets.symbol, symbol)).limit(1);
-  if (existing) return existing;
-
-  const [asset] = await db
-    .insert(assets)
-    .values({
-      symbol,
-      name: symbol,
-      type: "STOCK",
-      currency: "USD",
-      provider: "mock",
-      externalId: symbol,
-      color: "#3b82f6"
-    })
-    .onConflictDoUpdate({
-      target: [assets.provider, assets.externalId],
-      set: {
-        updatedAt: new Date()
-      }
-    })
-    .returning();
-
-  await db
-    .insert(priceSnapshots)
-    .values({
-      assetId: asset.id,
-      provider: "mock",
-      capturedAt: bootstrapTimestamp,
-      price: 1,
-      currency: "USD"
-    })
-    .onConflictDoNothing();
-
-  return asset;
 }
 
 async function getLatestPrices() {

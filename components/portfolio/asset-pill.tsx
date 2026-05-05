@@ -12,6 +12,11 @@ export function AssetPill({ asset }: { asset: Asset }) {
       </span>
       <Badge className="shrink-0">{asset.symbol}</Badge>
       <span className="truncate text-sm text-zinc-200">{asset.name}</span>
+      {(asset.provider === "mock" || asset.provider === "manual") && (
+        <span className="shrink-0 rounded-[4px] border border-[#4a3820] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-[#f6b342]">
+          saved price
+        </span>
+      )}
     </div>
   );
 }

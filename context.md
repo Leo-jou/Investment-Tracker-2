@@ -74,12 +74,15 @@ Still missing or likely incomplete: DB-backed settings persistence, production c
 
 Cycle 1 reliability audit on `codex/openclaw-playground` found the next MVP blockers before Leo enters real data: no all-portfolio aggregate view, asset metadata/backups are not fully user/account scoped because `getDashboardDataForEmail` loads all active assets, first-run Neon workspaces still seed demo transactions/manual positions, typed/imported BUY flows can silently create unrefreshable mock-priced assets, overview charts/timeframe cards can use simulated analytics snapshots without an overview label, daily movers/24h moves are mock or estimated, quick-add still defaults to `2026-04-27`, SELL validation is not historical-date aware, and mutation/user-scope API smoke coverage is missing. `docs/WORK_QUEUE.md` now breaks these into concrete P0 follow-up tasks for Dobby/Codex cycles.
 
+The first post-audit P0 implementation batch fixed quick-add's hardcoded date, stopped typed/CSV BUY flows from creating or extending mock/manual-priced trade assets without provider-backed selection, made CSV imports reject unknown trade symbols before import, labeled existing saved-price holdings, and hid fake/estimated 24h movers/holding moves until provider-backed daily change data exists.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - Documentation: 6 files
 - Database: 2 files
 
 Recent commits:
+- 27d77eb 2026-05-05 Add Dobby review feedback
 - 1cec323 2026-05-05 Establish Dobby polling loop
 - dd9b968 2026-05-05 Record Dobby audit commit
 - 5c56462 2026-05-05 Audit MVP reliability risks
@@ -87,7 +90,6 @@ Recent commits:
 - bb71c24 2026-05-05 Clarify autonomous Codex Dobby loop
 - ede12e0 2026-05-05 Add Dobby Codex coordination docs
 - 15be197 2026-04-30 Allow preview dashboard without database
-- 6b06160 2026-04-30 Trigger playground preview deployment
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -122,10 +124,10 @@ Generated TODO/FIXME scan:
 ## Next Recommended Steps
 
 1. Run `npm run context:update` after meaningful Codex work sessions.
-2. Fix the P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with mutation-capable smoke tests, user/account scoping for assets/backups, and a clear all-portfolio aggregate view.
-3. Harden quote/price semantics before real data entry: stop silent mock asset creation, show stale/unavailable/manual/mock states, and hide fake 24h/daily movers until provider-backed.
+2. Fix the remaining P0 reliability audit findings in `docs/WORK_QUEUE.md`, starting with mutation-capable smoke tests, user/account scoping for assets/backups, and a clear all-portfolio aggregate view.
+3. Finish quote/price semantics before real data entry: show `priceCapturedAt`, provider freshness, stale/unavailable/manual/mock states, and refresh failures across holdings/assets/quick-add.
 4. Align charts/tooltips with real persisted data by avoiding unlabeled simulated analytics history outside the Analysis tab.
-5. Fix quick-add's hardcoded date and add historical-date-aware SELL validation.
+5. Add historical-date-aware SELL validation.
 6. Run a manual browser Google login smoke test with an allowlisted Google account.
 7. Move settings preferences from browser storage into Neon once migration access is resolved.
 8. Configure `CRON_SECRET`, `CRON_REFRESH_EMAILS`, `DIGEST_EMAIL_RECIPIENTS`, `RESEND_API_KEY`, and `EMAIL_FROM` in Vercel when scheduled refresh and digest email should actually run.
@@ -142,4 +144,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T10:03:07.442Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.
+2026-05-05T10:14:23.474Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.

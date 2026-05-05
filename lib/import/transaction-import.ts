@@ -110,19 +110,29 @@ export function buildImportPreview({
   parsed,
   mapping,
   portfolioId,
-  existingTransactions = []
+  existingTransactions = [],
+  knownAssetSymbols = []
 }: {
   parsed: ParsedCsv;
   mapping: ImportMapping;
   portfolioId?: string;
   existingTransactions?: Transaction[];
+  knownAssetSymbols?: string[];
 }): ImportPreview {
   const existingFingerprints = new Set(
     existingTransactions.map((transaction) => fingerprintTransaction(transaction)).filter(Boolean)
   );
   const seenFingerprints = new Set<string>();
+  const knownAssetSymbolSet = new Set(knownAssetSymbols.map(normalizeSymbol).filter(Boolean));
   const rows = parsed.rows.map((row) =>
-    normalizeImportRow({ row, mapping, portfolioId, existingFingerprints, seenFingerprints })
+    normalizeImportRow({
+      row,
+      mapping,
+      portfolioId,
+      existingFingerprints,
+      seenFingerprints,
+      knownAssetSymbols: knownAssetSymbolSet
+    })
   );
 
   return {
@@ -144,13 +154,15 @@ function normalizeImportRow({
   mapping,
   portfolioId,
   existingFingerprints,
-  seenFingerprints
+  seenFingerprints,
+  knownAssetSymbols
 }: {
   row: CsvRow;
   mapping: ImportMapping;
   portfolioId?: string;
   existingFingerprints: Set<string>;
   seenFingerprints: Set<string>;
+  knownAssetSymbols: Set<string>;
 }): ImportPreviewRow {
   const messages: string[] = [];
 
@@ -177,6 +189,11 @@ function normalizeImportRow({
   if (type === "BUY" || type === "SELL") {
     if (!assetSymbol) messages.push("Trades need a symbol.");
     if (quantity === undefined || quantity <= 0) messages.push("Trades need a positive quantity.");
+    if (assetSymbol && !knownAssetSymbols.has(assetSymbol)) {
+      messages.push(
+        "New trade symbols must be added from provider search before import; CSV rows cannot create mock-priced assets."
+      );
+    }
     if (type === "SELL") {
       messages.push("Sell rows require an existing holding and may be rejected during import if quantity is unavailable.");
     }
@@ -187,7 +204,7 @@ function normalizeImportRow({
   }
 
   const invalid = messages.some((message) =>
-    /map the|unsupported|invalid|missing|required|positive|cannot be negative|currency must/i.test(message)
+    /map the|unsupported|invalid|missing|required|positive|cannot be negative|cannot create mock-priced|currency must/i.test(message)
   );
 
   const input =

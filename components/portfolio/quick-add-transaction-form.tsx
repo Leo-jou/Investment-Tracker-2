@@ -35,6 +35,7 @@ export function QuickAddTransactionForm({
   const [selectedAsset, setSelectedAsset] = useState<AssetSearchResult | null>(null);
   const [quantity, setQuantity] = useState("");
   const [grossAmount, setGrossAmount] = useState("");
+  const [entryDate, setEntryDate] = useState(() => todayDateInputValue());
   const [lastEdited, setLastEdited] = useState<LastEditedTradeField | null>(null);
   const [isQuoting, setIsQuoting] = useState(false);
   const [quoteMessage, setQuoteMessage] = useState<string | null>(null);
@@ -280,7 +281,8 @@ export function QuickAddTransactionForm({
         <Input
           name={isManualValue ? "valuedOn" : "occurredOn"}
           type="date"
-          defaultValue="2026-04-27"
+          value={entryDate}
+          onChange={(event) => setEntryDate(event.target.value)}
         />
         {!isManualValue ? (
           <Input name="platform" placeholder="Platform" list="platform-options" />
@@ -315,6 +317,12 @@ export function QuickAddTransactionForm({
       </div>
     </form>
   );
+}
+
+function todayDateInputValue() {
+  const today = new Date();
+  const localTime = today.getTime() - today.getTimezoneOffset() * 60_000;
+  return new Date(localTime).toISOString().slice(0, 10);
 }
 
 function getAssetPriceUsd(asset: AssetSearchResult | null) {

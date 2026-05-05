@@ -35,7 +35,8 @@ export async function POST(request: Request) {
       parsed,
       mapping: body.mapping ?? {},
       portfolioId: data.portfolio.id,
-      existingTransactions: data.transactions
+      existingTransactions: data.transactions,
+      knownAssetSymbols: data.assets.map((asset) => asset.symbol)
     });
 
     if (!body.commit) {

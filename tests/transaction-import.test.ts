@@ -37,7 +37,12 @@ test("CSV import builds valid trade and cash-flow preview rows", () => {
 2026-04-01,BUY,NVDA,2,1800.50,1.25,USD,IBKR,Starter position
 2026-04-02,DEPOSIT,, ,1000,0,EUR,Bank,Cash in`);
   const mapping = suggestImportMapping(parsed.headers);
-  const preview = buildImportPreview({ parsed, mapping, portfolioId: "portfolio_1" });
+  const preview = buildImportPreview({
+    parsed,
+    mapping,
+    portfolioId: "portfolio_1",
+    knownAssetSymbols: ["NVDA"]
+  });
 
   assert.equal(preview.totalRows, 2);
   assert.equal(preview.validRows, 2);
@@ -71,7 +76,12 @@ test("CSV import flags unsupported rows and possible duplicates", () => {
     }
   ];
 
-  const preview = buildImportPreview({ parsed, mapping, existingTransactions });
+  const preview = buildImportPreview({
+    parsed,
+    mapping,
+    existingTransactions,
+    knownAssetSymbols: ["NVDA"]
+  });
 
   assert.equal(preview.validRows, 0);
   assert.equal(preview.warningRows, 2);
@@ -84,10 +94,31 @@ test("CSV import flags unsupported rows and possible duplicates", () => {
 test("CSV import accepts European decimal formatting and day-first dates", () => {
   const parsed = parseCsv(`Date,Type,Symbol,Quantity,Total,Currency
 30/04/2026,BUY,SPY,"1,5","750,25",USD`);
-  const preview = buildImportPreview({ parsed, mapping: suggestImportMapping(parsed.headers) });
+  const preview = buildImportPreview({
+    parsed,
+    mapping: suggestImportMapping(parsed.headers),
+    knownAssetSymbols: ["SPY"]
+  });
 
   assert.equal(preview.validRows, 1);
   assert.equal(preview.rows[0].input?.occurredOn, "2026-04-30");
   assert.equal(preview.rows[0].input?.quantity, 1.5);
   assert.equal(preview.rows[0].input?.grossAmount, 750.25);
+});
+
+test("CSV import warns before unknown trade symbols can create mock-priced assets", () => {
+  const parsed = parseCsv(`date,type,symbol,quantity,total,currency
+2026-04-01,BUY,XYZ,3,300,USD`);
+  const preview = buildImportPreview({
+    parsed,
+    mapping: suggestImportMapping(parsed.headers),
+    knownAssetSymbols: ["NVDA"]
+  });
+
+  assert.equal(preview.validRows, 0);
+  assert.equal(preview.warningRows, 0);
+  assert.equal(preview.invalidRows, 1);
+  assert.equal(preview.rows[0].raw.symbol, "XYZ");
+  assert.match(preview.rows[0].messages.join(" "), /cannot create mock-priced assets/);
+  assert.equal(importableRows(preview).length, 0);
 });
