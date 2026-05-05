@@ -73,15 +73,16 @@ Still missing or likely incomplete: DB-backed settings persistence, production c
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 15 files
-- UI components: 8 files
+- Other: 7 files
 - Documentation: 6 files
-- API routes: 2 files
+- UI components: 5 files
 - App pages: 2 files
 - Database: 2 files
+- API routes: 1 file
 - Metrics: 1 file
 
 Recent commits:
+- bb71c24 2026-05-05 Clarify autonomous Codex Dobby loop
 - ede12e0 2026-05-05 Add Dobby Codex coordination docs
 - 15be197 2026-04-30 Allow preview dashboard without database
 - 6b06160 2026-04-30 Trigger playground preview deployment
@@ -89,7 +90,6 @@ Recent commits:
 - 20b59a8 2026-04-30 Add generic CSV transaction import
 - caa3c82 2026-04-30 Add risk readiness progress panel
 - d7745ff 2026-04-30 Ignore macOS metadata files
-- 654b2b9 2026-04-28 Ship export and demo analytics batch
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -143,4 +143,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T09:43:44.569Z - Refreshed generated context from 8 recent commits, 36 changed files, and 0 TODO/FIXME items.
+2026-05-05T09:47:48.357Z - Refreshed generated context from 8 recent commits, 24 changed files, and 0 TODO/FIXME items.

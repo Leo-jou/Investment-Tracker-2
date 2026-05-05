@@ -60,6 +60,46 @@ Time budget:
 - Initial autonomous reliability sprint target: 24 hours.
 - At or before 24 hours, Dobby should update Leo with either: ready-for-review deployment, current blocker, or remaining time needed.
 
+
+## Handoff Signal Protocol
+
+To avoid Codex starting while Dobby is still writing QA feedback, Codex must look for an explicit handoff signal in `docs/DOBBY_QA.md`.
+
+Dobby owns these signals:
+
+- `DOBBY_REVIEW_IN_PROGRESS` — Dobby is reviewing; Codex must wait and not start new work.
+- `DOBBY_HANDOFF_READY` — Dobby finished review; Codex may pull/rebase, read docs, and continue the next unblocked task.
+- `DOBBY_BLOCKED` — Dobby found a blocker; Codex must not continue until the blocker is resolved or clarified.
+- `DOBBY_READY_FOR_LEO_REVIEW` — automation should pause; Leo needs to review the deployed MVP.
+
+Codex owns these signals in `docs/DOBBY_QA.md` while it is working:
+
+- `CODEX_WORK_IN_PROGRESS` — Codex is implementing/auditing; Dobby should wait for a push unless urgent.
+- `CODEX_PUSHED_FOR_REVIEW` — Codex pushed a cycle and is waiting for Dobby review.
+- `CODEX_BLOCKED` — Codex cannot safely continue and needs Dobby/Leo input.
+
+Codex must only begin a new implementation/audit cycle when the latest relevant Dobby signal is `DOBBY_HANDOFF_READY`.
+
+## Polling Cadence
+
+After Codex pushes a cycle and writes `CODEX_PUSHED_FOR_REVIEW`, it should wait 10 minutes, then check GitHub for Dobby feedback.
+
+If no `DOBBY_HANDOFF_READY`, `DOBBY_BLOCKED`, or `DOBBY_READY_FOR_LEO_REVIEW` signal is present:
+
+- check every 15 minutes for the first hour;
+- after one hour, check every 30 minutes;
+- continue within the 24-hour sprint window.
+
+Each check should:
+
+1. `git fetch origin`
+2. compare remote `origin/codex/openclaw-playground` with the local/last seen commit;
+3. if remote advanced, pull/rebase;
+4. re-read the source-of-truth docs;
+5. continue only if the handoff signal allows it.
+
+Do not create empty commits just to check in.
+
 ## Operating Loop
 
 Each Codex cycle should be small and shippable.

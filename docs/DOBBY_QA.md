@@ -2,6 +2,10 @@
 
 This is the coordination log between Codex implementation cycles and Dobby review.
 
+## Current Handoff Signal
+
+`DOBBY_HANDOFF_READY` — 2026-05-05T09:47:00Z — Coordination protocol is ready. Codex may establish autonomous polling and begin Cycle 0.
+
 ## Review Protocol
 
 Dobby reviews after Codex pushes to `codex/openclaw-playground`.
