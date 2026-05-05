@@ -93,6 +93,7 @@ Generated refresh summary:
 - Pricing providers: 1 file
 
 Recent commits:
+- 2ca810f 2026-05-05 Record refresh guard handoff
 - bd33a29 2026-05-05 Fail closed demo price refresh
 - 2320627 2026-05-05 Document Codex context rebase recovery
 - a3146f8 2026-05-05 Add Codex anti-stall escalation rule
@@ -100,7 +101,6 @@ Recent commits:
 - 8f16795 2026-05-05 Block demo refresh false positive
 - 9032523 2026-05-05 Harden first-run demo safety
 - f0cfca9 2026-05-05 Request Vercel preview URL
-- c034caf 2026-05-05 Review mutation smoke batch
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -155,4 +155,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T13:06:46.800Z - Refreshed generated context from 8 recent commits, 29 changed files, and 0 TODO/FIXME items.
+2026-05-05T13:31:21.217Z - Refreshed generated context from 8 recent commits, 29 changed files, and 0 TODO/FIXME items.

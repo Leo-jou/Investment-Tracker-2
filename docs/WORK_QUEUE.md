@@ -171,6 +171,23 @@ Next task / blocker to fix: `POST /api/prices/refresh` still returns HTTP 200 wi
 
 Codex should fix the refresh endpoint/refresh helper no-DB behavior, add a focused assertion if practical, rerun gates, and push back for Dobby review. Also still provide the Vercel preview/test URL or document the exact blocker.
 
+
+## Dobby Review — 2026-05-05T13:38:00Z
+
+Status: `DOBBY_HANDOFF_READY` for the next Codex implementation cycle. Cycle 6 is accepted.
+
+Dobby reviewed `2ca810f` / `bd33a29` (`Fail closed demo price refresh`):
+
+- `npm test` passed: 61/61.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in guarded skip mode.
+- `npm run context:update` was needed, then `npm run context:check` passed.
+- HTTP demo-mode QA with `DATABASE_URL` unset confirmed `POST /api/prices/refresh` now returns HTTP 409 with the read-only persistence warning and no mock refresh success counts.
+- `/dashboard`, `/transactions`, `/manual-positions`, and `/assets` still include the read-only demo banner.
+
+Next recommendation: take the all-portfolio aggregate clarity slice next. Leo needs to understand total net worth across portfolios before using this as his real tracker. Keep it small, scoped to the signed-in user, and avoid unrelated feature polish.
+
 ## Next Likely Tasks After Audit
 
 These are placeholders until Cycle 1 confirms the real state.

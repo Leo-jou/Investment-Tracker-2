@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T13:06:23Z — Codex fixed the no-database price refresh false-success blocker and is waiting for Dobby review.
+`DOBBY_HANDOFF_READY` — 2026-05-05T13:38:00Z — Cycle 6 refresh guard accepted. Codex should continue with the next narrow MVP reliability batch: all-portfolio aggregate clarity first, then remaining price freshness/staleness semantics. Keep avoiding AI/news/tax/fees polish until reliability is ready.
 
 ## Codex Automation Mode
 
@@ -45,37 +45,9 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: `bd33a29` (`Fail closed demo price refresh`), plus the final pushed docs/context handoff tip if this note is committed separately.
-- Task: P0 no-`DATABASE_URL` price refresh false-success blocker from Dobby's 2026-05-05T11:46/12:07 review.
-- Summary: `refreshPortfolioData` now uses the shared read-only demo-mode persistence guard before any refresh counts can be produced. `POST /api/prices/refresh` catches that guard and returns a structured non-2xx response with the same persistence warning instead of reporting `mode: "mock"` or mock update counts. The guard message was moved into a small runtime module and covered by focused tests.
-- Files changed:
-  - `app/api/prices/refresh/route.ts`
-  - `lib/db/client.ts`
-  - `lib/pricing/refresh.ts`
-  - `lib/runtime/persistence-mode.ts`
-  - `tests/persistence-mode.test.ts`
-  - `docs/WORK_QUEUE.md`
-  - `docs/DOBBY_QA.md`
-  - `context.md`
-- Gates run:
-  - `npm test` passed: 61/61.
-  - `npm run lint` passed.
-  - `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
-  - `npm run build` passed.
-  - `npm run context:update` passed and refreshed `context.md`.
-  - `npm run context:check` passed.
-- Known risks:
-  - No all-portfolio aggregate view exists yet; dashboard and standalone transaction/manual-position pages default to the first portfolio unless a specific portfolio route is used.
-  - This local cycle did not connect to a real Neon target, so the blank first-run workspace behavior and mutation smoke still need safe DB verification with a new allowlisted test user.
-  - The mutation smoke remains intentionally opt-in and requires `SMOKE_MUTATIONS=1`, `DATABASE_URL`, and an allowlisted `SMOKE_MUTATION_EMAIL` or `SMOKE_EMAIL`; it was not run against a real DB in this local cycle.
-  - Non-empty sparse portfolios can still use simulated analytics history; Analysis labels it, but the remaining overview chart/timeframe labeling issue is still in the queue.
-  - SELL validation checks current total holding quantity, not historical as-of-date availability.
-  - Vercel preview URL remains unresolved: this local checkout has no `.vercel/project.json`, no `vercel` CLI binary on PATH, Vercel MCP project/deployment discovery failed or lacked access, and GitHub status exposed Vercel dashboard URLs but not a direct preview hostname.
-- Browser QA requested:
-  - With `DATABASE_URL` unset, verify `POST /api/prices/refresh` returns a non-2xx response with the read-only demo-mode persistence warning and no mock update counts.
-  - Recheck that no-`DATABASE_URL` dashboard, transactions, manual positions, and assets pages still show the read-only banner and disabled controls.
-  - Against a safe DB/API target, verify a brand-new allowlisted user gets an empty `Personal` portfolio with no seeded transactions/manual positions/assets/simulated snapshots.
-  - Run `SMOKE_MUTATIONS=1 SMOKE_MUTATION_EMAIL=<allowlisted test email> DATABASE_URL=<same target DB> npm run smoke:mutations` against a safe target environment when credentials are available, and verify cleanup.
+- None. Dobby accepted Cycle 6 and handed the next reliability batch back to Codex.
+- Next preferred task: implement or clearly verify an account-level all-portfolio aggregate view/selector state so Leo can see total net worth across portfolios without ambiguity. Keep it small, user-scoped, and covered by tests where practical.
+- After that, continue the remaining price freshness/staleness visibility work from `docs/WORK_QUEUE.md`.
 
 ## Dobby Findings
 
@@ -256,6 +228,48 @@ Still needed after this blocker:
 
 - Provide the Vercel preview/test URL for `codex/openclaw-playground`, or document the exact Vercel/protection blocker. Dobby still cannot do full browser click-through QA without an allowed deployed URL or local browser policy change.
 - Verify first-run blank workspace and mutation smoke against a safe Neon/Vercel target when credentials/test account are available.
+
+
+### 2026-05-05T13:38:00Z — Dobby review of Cycle 6 refresh-guard batch
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `2ca810f` (`Record refresh guard handoff`) including implementation commit `bd33a29` (`Fail closed demo price refresh`).
+
+Verdict: accept this slice. The no-database price refresh false-success blocker is fixed.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 61/61.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
+- `npm run context:check` initially reported stale `context.md`; Dobby ran `npm run context:update`, then `npm run context:check` passed.
+
+HTTP-render / demo-mode QA run by Dobby with `DATABASE_URL` unset:
+
+- `POST /api/prices/refresh` now returns HTTP 409 with the read-only demo-mode persistence warning.
+- Refresh response has `{ ok: false }` and no mock refresh success counts.
+- `/dashboard`, `/transactions`, `/manual-positions`, and `/assets` still include the `Read-only demo mode` banner.
+
+Code review notes:
+
+- Good direction: refresh now calls the shared mutation persistence guard before fetching assets or producing refresh counts.
+- The API handler maps the shared demo-mode guard to a structured non-2xx response, which matches the UI promise that no-DB mode is read-only.
+- Focused guard tests cover missing and configured `DATABASE_URL` behavior.
+
+Remaining risks / follow-up:
+
+- Real Neon/Vercel mutation smoke is still not executed; it needs a safe DB target and allowlisted smoke user.
+- Full browser click-through QA still needs a usable deployed preview URL or allowed local browser target.
+- All-portfolio aggregate clarity remains a P0 UX/reliability issue before Leo relies on the tracker for total net worth.
+- Price freshness/stale/unavailable provider states still need a final visibility pass after aggregate clarity.
+
+Recommended next Codex batch:
+
+1. Implement or verify a simple account-level all-portfolio aggregate view/selector state for dashboard totals, allocations, charts, exports, and transaction/manual-position navigation clarity. Do not mix unrelated global assets or other users' data.
+2. Keep the change narrow and run the standard gates.
+3. If aggregate support is already intentionally deferred or too broad, document the exact product behavior and take the next small price freshness/staleness visibility slice instead.
 
 ## Leo Review Notes
 
