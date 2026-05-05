@@ -238,10 +238,18 @@ Cycle 5 partial result:
 - Mutation APIs now use a clear no-database guard message, and CSV import commit fails closed before attempting row writes when persistence is absent.
 - Added focused analytics-history coverage so a zero-value empty portfolio does not generate fake chart values.
 
+Cycle 6 partial result:
+
+- `/api/prices/refresh` now fails closed when `DATABASE_URL` is absent instead of reporting a successful mock refresh.
+- `refreshPortfolioData` uses the shared persistence guard, so manual and cron refresh paths cannot manufacture mock update counts without Neon persistence.
+- The API returns a structured non-2xx response with the same read-only demo-mode persistence warning.
+- Added focused persistence-mode guard coverage.
+
 Still open:
 
 - Run the guarded mutation smoke against a safe Vercel/Neon target to verify real DB create/edit/delete/import/export/scoping and cleanup.
 - Browser/HTTP-render QA should verify the new read-only demo banner/disabled controls and the empty first-run portfolio behavior.
+- Provide a usable Vercel preview URL or resolve preview access. Current local state has no `.vercel/project.json`, no `vercel` CLI binary on PATH, Vercel MCP list-project/deployment calls failed or lacked access, and GitHub status exposed Vercel dashboard URLs but not a direct preview hostname.
 
 ### [~] P0: Harden live quote and price refresh semantics
 

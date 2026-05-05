@@ -1,19 +1,20 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 
+import {
+  assertPersistenceConfigured,
+  demoModeMutationMessage
+} from "@/lib/runtime/persistence-mode";
 import * as schema from "@/lib/db/schema";
 
-export const demoModeMutationMessage =
-  "DATABASE_URL is not configured. This preview is read-only demo data; configure Neon before saving real entries.";
+export { demoModeMutationMessage };
 
 export function isDbConfigured() {
   return Boolean(process.env.DATABASE_URL);
 }
 
 export function assertDbConfiguredForMutation() {
-  if (!isDbConfigured()) {
-    throw new Error(demoModeMutationMessage);
-  }
+  assertPersistenceConfigured(isDbConfigured());
 }
 
 export function getDb() {

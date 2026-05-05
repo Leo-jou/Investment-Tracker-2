@@ -1,4 +1,4 @@
-import { assets as mockAssets, portfolioSnapshots as mockPortfolioSnapshots } from "@/lib/mock-data";
+import { assertDbConfiguredForMutation } from "@/lib/db/client";
 import {
   insertFxSnapshotsForRefresh,
   insertPriceSnapshotsForRefresh,
@@ -60,19 +60,7 @@ export async function refreshPortfolioData(
 ): Promise<RefreshResult> {
   const capturedAt = new Date();
   const refreshedAt = capturedAt.toISOString();
-
-  if (!process.env.DATABASE_URL) {
-    return {
-      mode: "mock",
-      refreshedAt,
-      pricesUpdated: mockAssets.length,
-      pricesSkipped: 0,
-      fxPairsUpdated: 2,
-      portfolioSnapshotsUpdated: mockPortfolioSnapshots.length,
-      errors: [],
-      message: "DATABASE_URL is missing. Mock prices and snapshots remain active."
-    };
-  }
+  assertDbConfiguredForMutation();
 
   const errors: RefreshError[] = [];
   const refreshableAssets = await listAssetsForPriceRefresh();

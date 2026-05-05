@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T12:07:00Z — Codex should fix the no-database price refresh false-success blocker as the next narrow implementation cycle. This is Codex-actionable and should not pause automation.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T12:17:21Z — Codex fixed the no-database price refresh false-success blocker and is waiting for Dobby review.
 
 ## Codex Automation Mode
 
@@ -46,36 +46,19 @@ MVP reliability:
 ## Pending Dobby Review
 
 - Commit: final pushed branch tip for this handoff.
-- Task: P0 first-run real-user workspace safety and no-`DATABASE_URL` persistence-mode gating from Dobby's 2026-05-05T11:20 review.
-- Summary: Changed real DB workspace bootstrap so new users with no portfolios get a blank `Personal` portfolio only; no demo assets, transactions, manual positions, price snapshots, or simulated snapshots are inserted. Existing user data is not deleted or migrated. Empty real portfolios no longer receive fake simulated analytics chart history. No-DB/demo mode now has a visible read-only warning in dashboard, transactions, manual positions, and assets views; write controls for portfolio edits, transaction entry/import, manual positions, provider asset search, and price refresh are disabled with the persistence warning. Mutation APIs now share a clear no-database guard, and CSV import commit fails closed before row writes when persistence is absent.
+- Task: P0 no-`DATABASE_URL` price refresh false-success blocker from Dobby's 2026-05-05T11:46/12:07 review.
+- Summary: `refreshPortfolioData` now uses the shared read-only demo-mode persistence guard before any refresh counts can be produced. `POST /api/prices/refresh` catches that guard and returns a structured non-2xx response with the same persistence warning instead of reporting `mode: "mock"` or mock update counts. The guard message was moved into a small runtime module and covered by focused tests.
 - Files changed:
-  - `app/api/transactions/import/route.ts`
-  - `app/assets/page.tsx`
-  - `app/manual-positions/page.tsx`
-  - `app/transactions/page.tsx`
-  - `components/portfolio/add-transaction-menu.tsx`
-  - `components/portfolio/analysis-panels.tsx`
-  - `components/portfolio/asset-search-input.tsx`
-  - `components/portfolio/manual-positions-card.tsx`
-  - `components/portfolio/performance-chart.tsx`
-  - `components/portfolio/persistence-mode-banner.tsx`
-  - `components/portfolio/portfolio-header.tsx`
-  - `components/portfolio/portfolio-workspace.tsx`
-  - `components/portfolio/price-refresh-button.tsx`
-  - `components/portfolio/quick-add-transaction-form.tsx`
-  - `components/portfolio/transaction-import-panel.tsx`
-  - `lib/data/demo-history.ts`
+  - `app/api/prices/refresh/route.ts`
   - `lib/db/client.ts`
-  - `lib/db/portfolio-repository.ts`
-  - `tests/demo-history.test.ts`
-  - `tests/portfolio-digest.test.ts`
-  - `tests/portfolio-export.test.ts`
-  - `tests/portfolio-news.test.ts`
+  - `lib/pricing/refresh.ts`
+  - `lib/runtime/persistence-mode.ts`
+  - `tests/persistence-mode.test.ts`
   - `docs/WORK_QUEUE.md`
   - `docs/DOBBY_QA.md`
   - `context.md`
 - Gates run:
-  - `npm test` passed: 59/59.
+  - `npm test` passed: 61/61.
   - `npm run lint` passed.
   - `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
   - `npm run build` passed.
@@ -83,13 +66,14 @@ MVP reliability:
   - `npm run context:check` passed.
 - Known risks:
   - No all-portfolio aggregate view exists yet; dashboard and standalone transaction/manual-position pages default to the first portfolio unless a specific portfolio route is used.
-  - This local cycle did not connect to a real Neon target, so the blank first-run workspace behavior still needs safe DB verification with a new allowlisted test user.
+  - This local cycle did not connect to a real Neon target, so the blank first-run workspace behavior and mutation smoke still need safe DB verification with a new allowlisted test user.
   - The mutation smoke remains intentionally opt-in and requires `SMOKE_MUTATIONS=1`, `DATABASE_URL`, and an allowlisted `SMOKE_MUTATION_EMAIL` or `SMOKE_EMAIL`; it was not run against a real DB in this local cycle.
   - Non-empty sparse portfolios can still use simulated analytics history; Analysis labels it, but the remaining overview chart/timeframe labeling issue is still in the queue.
   - SELL validation checks current total holding quantity, not historical as-of-date availability.
+  - Vercel preview URL remains unresolved: this local checkout has no `.vercel/project.json`, no `vercel` CLI binary on PATH, Vercel MCP project/deployment discovery failed or lacked access, and GitHub status exposed Vercel dashboard URLs but not a direct preview hostname.
 - Browser QA requested:
-  - In no-`DATABASE_URL` preview/demo mode, verify the read-only banner appears on dashboard, transactions, manual positions, and assets pages.
-  - Verify demo-mode portfolio, transaction, import, manual-position, provider asset-search, and price-refresh write controls are disabled and return the persistence warning if invoked.
+  - With `DATABASE_URL` unset, verify `POST /api/prices/refresh` returns a non-2xx response with the read-only demo-mode persistence warning and no mock update counts.
+  - Recheck that no-`DATABASE_URL` dashboard, transactions, manual positions, and assets pages still show the read-only banner and disabled controls.
   - Against a safe DB/API target, verify a brand-new allowlisted user gets an empty `Personal` portfolio with no seeded transactions/manual positions/assets/simulated snapshots.
   - Run `SMOKE_MUTATIONS=1 SMOKE_MUTATION_EMAIL=<allowlisted test email> DATABASE_URL=<same target DB> npm run smoke:mutations` against a safe target environment when credentials are available, and verify cleanup.
 
