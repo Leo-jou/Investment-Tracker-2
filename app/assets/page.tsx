@@ -6,6 +6,12 @@ import { requireSessionEmail } from "@/lib/auth/session";
 import { demoModeMutationMessage, isDbConfigured } from "@/lib/db/client";
 import { listAssetsForEmail } from "@/lib/db/portfolio-repository";
 import { formatMoney } from "@/lib/format";
+import {
+  formatPriceTimestamp,
+  getAssetPriceStatus,
+  priceProviderLabel,
+  type PriceStatusTone
+} from "@/lib/portfolio/price-status";
 
 export default async function AssetsPage() {
   const email = await requireSessionEmail();
@@ -38,7 +44,7 @@ export default async function AssetsPage() {
         </div>
 
         <div className="overflow-x-auto tv-scrollbar">
-          <table className="w-full min-w-[760px] border-collapse text-sm">
+          <table className="w-full min-w-[920px] border-collapse text-sm">
             <thead>
               <tr className="border-y border-[#2b2b2f] text-left text-zinc-500">
                 <th className="py-3 font-medium">Symbol</th>
@@ -46,30 +52,48 @@ export default async function AssetsPage() {
                 <th className="py-3 font-medium">Type</th>
                 <th className="py-3 font-medium">Provider</th>
                 <th className="py-3 text-right font-medium">Price</th>
-                <th className="py-3 text-right font-medium">24h data</th>
+                <th className="py-3 text-right font-medium">Price status</th>
               </tr>
             </thead>
             <tbody>
-              {assets.map((asset) => (
-                <tr key={asset.id} className="border-b border-[#202024]">
-                  <td className="py-4">
-                    <Badge>{asset.symbol}</Badge>
-                  </td>
-                  <td className="py-4 text-zinc-200">{asset.name}</td>
-                  <td className="py-4 text-zinc-500">{asset.type}</td>
-                  <td className="py-4 text-zinc-500">{asset.provider}</td>
-                  <td className="py-4 text-right text-zinc-200">
-                    {formatMoney(asset.priceEur, "EUR")}
-                  </td>
-                  <td className="py-4 text-right text-zinc-500">
-                    Not connected
-                  </td>
-                </tr>
-              ))}
+              {assets.map((asset) => {
+                const priceStatus = getAssetPriceStatus(asset);
+                return (
+                  <tr key={asset.id} className="border-b border-[#202024]">
+                    <td className="py-4">
+                      <Badge>{asset.symbol}</Badge>
+                    </td>
+                    <td className="py-4 text-zinc-200">{asset.name}</td>
+                    <td className="py-4 text-zinc-500">{asset.type}</td>
+                    <td className="py-4 text-zinc-500">
+                      <span className="block text-zinc-300">{priceProviderLabel(asset.provider)}</span>
+                      <span className="block text-xs text-zinc-600">{asset.exchange ?? asset.externalId}</span>
+                    </td>
+                    <td className="py-4 text-right text-zinc-200">
+                      {asset.priceEur > 0 ? formatMoney(asset.priceEur, "EUR") : "Unavailable"}
+                      <span className="block text-xs text-zinc-600">
+                        {formatPriceTimestamp(asset.priceCapturedAt)}
+                      </span>
+                    </td>
+                    <td className="py-4 text-right">
+                      <span className={priceStatusClass(priceStatus.tone)}>{priceStatus.label}</span>
+                      <span className="mt-1 block text-xs text-zinc-600">{priceStatus.detail}</span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </section>
     </div>
   );
+}
+
+function priceStatusClass(tone: PriceStatusTone) {
+  const base = "inline-flex rounded-[5px] px-2 py-1 text-xs font-semibold";
+  if (tone === "ok") return `${base} bg-[#05251f] text-[#00c2a8]`;
+  if (tone === "danger") return `${base} bg-[#2a0710] text-[#ff4d64]`;
+  if (tone === "warning") return `${base} bg-[#2f2107] text-[#f6b342]`;
+  return `${base} bg-[#202024] text-zinc-300`;
 }

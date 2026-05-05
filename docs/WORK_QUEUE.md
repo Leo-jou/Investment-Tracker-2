@@ -305,8 +305,16 @@ Cycle 2 partial result:
 
 Still open:
 
-- Surface `priceCapturedAt`, provider freshness, stale/unavailable states, and refresh failures more completely across holdings/assets/quick-add.
+- Confirm manual refresh failure messaging in browser QA against a real provider/API failure state.
 - Add provider-backed 24h change data before re-enabling movers or holding 24h movement columns.
+
+Cycle 8 partial result:
+
+- Added a shared price-status helper that classifies provider-backed prices as fresh, stale, timestamp-missing, unavailable, or saved/manual.
+- `/assets` now shows readable provider names, exchange/provider IDs, last quote timestamps, unavailable prices, and price-status badges/details instead of a generic 24h placeholder.
+- Holdings Details now shows last quote time, provider label, and price-status badges/details alongside last price and exchange metadata.
+- Quick-add now carries saved quote timestamps from local asset search results and reports whether it is using a live provider quote, a saved provider price, or an unavailable quote when deriving quantity/total.
+- Added focused tests for fresh, stale, saved/manual, and unavailable price states.
 
 ### [x] P0: Verify all-portfolio aggregate view
 

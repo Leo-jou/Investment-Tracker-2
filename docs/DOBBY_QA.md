@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T14:13:00Z — Dobby reviewed the all-portfolio aggregate clarity slice; continue with the next P0 reliability slice.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T14:24:33Z — Codex implemented the price freshness/stale/unavailable visibility slice and is waiting for Dobby review.
 
 ## Codex Automation Mode
 
@@ -45,21 +45,23 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Commit: `86377c1` (`Add all-portfolio aggregate dashboard`), plus the final pushed docs/context handoff tip if this note is committed separately.
-- Task: P0 all-portfolio aggregate clarity slice from Dobby's 2026-05-05T13:38 review.
-- Summary: `/dashboard` now loads a virtual `All portfolios` account view for the signed-in user. The portfolio switcher includes the aggregate option first, aggregate reads combine only that user's portfolios, holdings, transactions, manual positions, allocations, snapshots, exports, news/digest subjects, and assets, and ambiguous aggregate write controls are disabled until a specific portfolio is selected.
+- Commit: final pushed branch tip for this handoff.
+- Task: P0 price freshness/stale/unavailable visibility slice from Dobby's 2026-05-05T14:13 review.
+- Summary: Added a shared price-status helper and surfaced provider/capture-time/freshness states across assets, holdings Details, and quick-add quote messages. Provider-backed prices now show fresh/stale/unavailable/timestamp-missing states, manual/mock prices stay labeled as saved prices, and local asset search carries `priceCapturedAt` into quick-add so saved quote age is visible when live quote lookup falls back.
 - Files changed:
-  - `app/dashboard/page.tsx`
-  - `components/portfolio/portfolio-header.tsx`
-  - `components/portfolio/portfolio-workspace.tsx`
-  - `lib/db/portfolio-repository.ts`
-  - `lib/portfolio/aggregate.ts`
-  - `tests/portfolio-aggregate.test.ts`
+  - `app/api/assets/search/route.ts`
+  - `app/assets/page.tsx`
+  - `components/portfolio/positions-table.tsx`
+  - `components/portfolio/quick-add-transaction-form.tsx`
+  - `lib/portfolio/price-status.ts`
+  - `lib/pricing/live-quote.ts`
+  - `lib/types.ts`
+  - `tests/price-status.test.ts`
   - `docs/WORK_QUEUE.md`
   - `docs/DOBBY_QA.md`
   - `context.md`
 - Gates run:
-  - `npm test` passed: 63/63.
+  - `npm test` passed: 67/67.
   - `npm run lint` passed.
   - `npm run build` passed.
   - `npm run smoke:mutations` passed in safe skip mode because `SMOKE_MUTATIONS=1` was not set locally.
@@ -68,14 +70,13 @@ MVP reliability:
 - Known risks:
   - Real Neon/Vercel mutation smoke is still not executed; it still needs a safe DB target and allowlisted smoke user.
   - Full browser click-through QA still needs a usable deployed preview URL or allowed local browser target.
-  - Aggregate writes are intentionally disabled because transaction/manual-position creation requires a concrete portfolio. Leo must choose a specific portfolio before adding/importing/editing holdings.
-  - Remaining price freshness/stale/unavailable provider-state visibility is still queued after this aggregate slice.
+  - Manual refresh failure messaging still needs browser/HTTP QA in a real provider/API failure state; this slice focuses on persisted quote freshness and quick-add fallback visibility.
+  - 24h movers and holding 24h movement remain intentionally disabled until real provider-backed change data is stored.
 - Browser QA requested:
-  - Verify `/dashboard` shows `All portfolios` as the selected view and totals/holdings/transactions reflect all signed-in-user portfolios.
-  - Verify switcher navigation from `All portfolios` to an individual portfolio and back to `/dashboard`.
-  - Verify aggregate Export uses `portfolioId=portfolio_all` and backup/report/CSV payloads remain user-scoped.
-  - Verify aggregate transaction/import/manual-position controls are disabled with the specific-portfolio message, while individual portfolio pages still allow writes when persistence is configured.
-  - Re-run no-`DATABASE_URL` demo-mode smoke to ensure the read-only banner still dominates the aggregate write-disabled state.
+  - Verify `/assets` shows provider names, last quote timestamps, unavailable prices, and fresh/stale/saved/unavailable status badges.
+  - Verify Holdings > Details shows last price, last quote, provider, and price status without reintroducing fake 24h movement.
+  - Verify quick-add provider search/selection says whether it is using a live quote, saved quote, or unavailable quote, and still blocks unknown/mock-priced BUY flows as before.
+  - Recheck read-only no-`DATABASE_URL` mode so asset search and write controls remain disabled with the persistence warning.
 
 ## Dobby Findings
 

@@ -5,6 +5,12 @@ import { MoreHorizontal, Search } from "lucide-react";
 
 import { AssetPill } from "@/components/portfolio/asset-pill";
 import { formatMoney, formatPercent, formatQuantity, trendClass } from "@/lib/format";
+import {
+  formatPriceTimestamp,
+  getAssetPriceStatus,
+  priceProviderLabel,
+  type PriceStatusTone
+} from "@/lib/portfolio/price-status";
 import type { Asset, Currency, Position } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -264,7 +270,17 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
         label: "Last price",
         align: "right",
         width: "w-[150px]",
-        render: ({ asset }) => formatMoney(asset.priceEur * fx, currency)
+        render: ({ asset }) =>
+          asset.priceEur > 0 ? formatMoney(asset.priceEur * fx, currency) : <span className="text-zinc-500">Unavailable</span>
+      },
+      {
+        key: "last-quote",
+        label: "Last quote",
+        align: "right",
+        width: "w-[170px]",
+        render: ({ asset }) => (
+          <span className="text-xs text-zinc-400">{formatPriceTimestamp(asset.priceCapturedAt)}</span>
+        )
       },
       {
         key: "avg-price",
@@ -285,7 +301,22 @@ function getColumns(activeView: HoldingView, currency: Currency, fx: number): Co
         label: "Provider",
         align: "right",
         width: "w-[150px]",
-        render: ({ asset }) => asset.provider
+        render: ({ asset }) => priceProviderLabel(asset.provider)
+      },
+      {
+        key: "price-status",
+        label: "Status",
+        align: "right",
+        width: "w-[170px]",
+        render: ({ asset }) => {
+          const status = getAssetPriceStatus(asset);
+          return (
+            <span>
+              <span className={priceStatusClass(status.tone)}>{status.label}</span>
+              <span className="mt-1 block text-xs text-zinc-600">{status.detail}</span>
+            </span>
+          );
+        }
       },
       {
         key: "exchange",
@@ -372,6 +403,14 @@ function platformLabel(position: Position) {
 
 function Unavailable24h() {
   return <span className="text-zinc-500">Not connected</span>;
+}
+
+function priceStatusClass(tone: PriceStatusTone) {
+  const base = "inline-flex rounded-[5px] px-2 py-1 text-xs font-semibold";
+  if (tone === "ok") return `${base} bg-[#05251f] text-[#00c2a8]`;
+  if (tone === "danger") return `${base} bg-[#2a0710] text-[#ff4d64]`;
+  if (tone === "warning") return `${base} bg-[#2f2107] text-[#f6b342]`;
+  return `${base} bg-[#202024] text-zinc-300`;
 }
 
 function getRiskNote(asset: Asset, position: Position) {

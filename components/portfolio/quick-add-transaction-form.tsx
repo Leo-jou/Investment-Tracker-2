@@ -10,9 +10,15 @@ import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { convertCurrency } from "@/lib/data/conversions";
 import { formatMoney } from "@/lib/format";
+import { formatPriceTimestamp, priceProviderLabel } from "@/lib/portfolio/price-status";
 import type { AssetSearchResult, TransactionType } from "@/lib/types";
 
 type LastEditedTradeField = "quantity" | "grossAmount";
+type SelectedAsset = AssetSearchResult & {
+  quoteSource?: "live" | "saved" | "unavailable";
+  quotedAt?: string;
+  message?: string;
+};
 
 const transactionTypes: Array<{ label: string; value: TransactionType }> = [
   { label: "Buy", value: "BUY" },
@@ -34,7 +40,7 @@ export function QuickAddTransactionForm({
   const [type, setType] = useState<TransactionType>(normalizeTransactionType(initialType));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedAsset, setSelectedAsset] = useState<AssetSearchResult | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<SelectedAsset | null>(null);
   const [quantity, setQuantity] = useState("");
   const [grossAmount, setGrossAmount] = useState("");
   const [entryDate, setEntryDate] = useState(() => todayDateInputValue());
@@ -112,7 +118,7 @@ export function QuickAddTransactionForm({
         body: JSON.stringify(asset)
       });
       const payload = (await response.json().catch(() => ({}))) as {
-        quote?: AssetSearchResult & { quoteSource?: string; message?: string; quotedAt?: string };
+        quote?: SelectedAsset;
         error?: string;
       };
 
@@ -125,11 +131,7 @@ export function QuickAddTransactionForm({
 
       setSelectedAsset(payload.quote);
       recalculateFromPrice(getAssetPriceUsd(payload.quote));
-      setQuoteMessage(
-        payload.quote.quoteSource === "live"
-          ? `Live quote refreshed for ${payload.quote.symbol}.`
-          : payload.quote.message ?? `Using latest saved price for ${payload.quote.symbol}.`
-      );
+      setQuoteMessage(formatQuoteMessage(payload.quote));
     } catch {
       if (quoteRequestIdRef.current === requestId) {
         setQuoteMessage("Live quote unavailable. Using the latest saved price if present.");
@@ -261,7 +263,7 @@ export function QuickAddTransactionForm({
               {isQuoting
                 ? `Fetching live quote for ${selectedAsset.symbol}...`
                 : selectedPriceUsd
-                  ? `${quoteMessage ?? "Using quote"} Price: ${formatMoney(
+                  ? `${quoteMessage ?? formatQuoteMessage(selectedAsset)} Price: ${formatMoney(
                       selectedPriceUsd,
                       "USD"
                     )}. Fees stay separate.`
@@ -378,7 +380,25 @@ function todayDateInputValue() {
   return new Date(localTime).toISOString().slice(0, 10);
 }
 
-function getAssetPriceUsd(asset: AssetSearchResult | null) {
+function formatQuoteMessage(asset: SelectedAsset) {
+  const provider = priceProviderLabel(asset.provider);
+  const timestamp = formatPriceTimestamp(asset.quotedAt ?? asset.priceCapturedAt);
+  if (asset.quoteSource === "live") {
+    return `Live ${provider} quote captured ${timestamp}.`;
+  }
+  if (asset.quoteSource === "saved") {
+    return `Using saved ${provider} price from ${timestamp}.`;
+  }
+  if (asset.quoteSource === "unavailable") {
+    return asset.message ?? `${provider} quote unavailable. Enter total manually.`;
+  }
+  if (asset.priceCapturedAt) {
+    return `Using saved ${provider} price from ${timestamp}.`;
+  }
+  return `Using selected ${provider} price.`;
+}
+
+function getAssetPriceUsd(asset: SelectedAsset | null) {
   if (!asset) return undefined;
   if (asset.priceUsd) return asset.priceUsd;
   if (asset.priceEur) return convertCurrency(asset.priceEur, "EUR", "USD");

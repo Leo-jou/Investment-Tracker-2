@@ -40,6 +40,7 @@ export async function quoteAssetForTransaction(input: AssetSearchResult): Promis
     currency: asset.currency,
     provider: asset.provider,
     externalId: asset.externalId,
+    quotedAt: input.priceCapturedAt,
     quoteSource: input.priceUsd || input.priceEur ? "saved" : "unavailable",
     message:
       asset.provider === "fmp"

@@ -60,7 +60,8 @@ function toAssetSearchResult(asset: Asset): AssetSearchResult {
     provider: asset.provider,
     externalId: asset.externalId,
     priceEur: asset.priceEur,
-    priceUsd: asset.priceUsd
+    priceUsd: asset.priceUsd,
+    priceCapturedAt: asset.priceCapturedAt
   };
 }
 

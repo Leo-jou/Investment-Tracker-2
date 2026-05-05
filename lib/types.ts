@@ -144,6 +144,7 @@ export type AssetSearchResult = {
   externalId: string;
   priceEur?: number;
   priceUsd?: number;
+  priceCapturedAt?: string;
 };
 
 export type ApiStatus = {
