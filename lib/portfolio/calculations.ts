@@ -108,6 +108,23 @@ export function calculateAssetQuantity(
   return buildPositionStates(rows, rates).get(assetId)?.quantity ?? 0;
 }
 
+export function calculateAssetQuantityBeforeTransaction(
+  rows: PortfolioMathTransaction[],
+  assetId: string,
+  transaction: PortfolioMathTransaction,
+  rates: FxRateMap
+) {
+  const candidate = { ...transaction, assetId, id: transaction.id ?? "__pending_transaction__" };
+  const rowsBeforeCandidate: PortfolioMathTransaction[] = [];
+
+  for (const row of sortTransactionsForPositioning([...rows, candidate])) {
+    if (row === candidate) break;
+    rowsBeforeCandidate.push(row);
+  }
+
+  return calculateAssetQuantity(rowsBeforeCandidate, assetId, rates);
+}
+
 export function calculateCashUsd(rows: PortfolioMathTransaction[], rates: FxRateMap) {
   return rows.reduce((cash, row) => {
     const grossUsd = convertCurrency(row.grossAmount, row.currency, "USD", rates);

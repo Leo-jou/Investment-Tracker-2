@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { fallbackFxRates } from "../lib/data/conversions.ts";
 import {
+  calculateAssetQuantityBeforeTransaction,
   buildPositionStates,
   calculateAssetQuantity,
   calculateCashUsd,
@@ -120,6 +121,74 @@ test("asset quantity can be recalculated without the edited transaction", () => 
   );
 
   assert.equal(quantityBeforeEditedSell, 10);
+});
+
+test("sell availability is calculated at the transaction date", () => {
+  const availableBeforeBackdatedSell = calculateAssetQuantityBeforeTransaction(
+    [
+      tx({
+        id: "later-buy",
+        type: "BUY",
+        assetId: "asset_btc",
+        quantity: 10,
+        grossAmount: 1000,
+        occurredOn: "2026-02-01"
+      })
+    ],
+    "asset_btc",
+    tx({
+      id: "pending-sell",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 4,
+      grossAmount: 500,
+      occurredOn: "2026-01-15",
+      createdAt: "2026-05-05T12:00:00.000Z"
+    }),
+    rates
+  );
+
+  assert.equal(availableBeforeBackdatedSell, 0);
+});
+
+test("same-day sell availability follows created-at ordering", () => {
+  const rows = [
+    tx({
+      id: "earlier-buy",
+      type: "BUY",
+      assetId: "asset_btc",
+      quantity: 10,
+      grossAmount: 1000,
+      occurredOn: "2026-01-01",
+      createdAt: "2026-01-01T10:00:00.000Z"
+    }),
+    tx({
+      id: "later-buy",
+      type: "BUY",
+      assetId: "asset_btc",
+      quantity: 5,
+      grossAmount: 600,
+      occurredOn: "2026-01-01",
+      createdAt: "2026-01-01T14:00:00.000Z"
+    })
+  ];
+
+  const availableAtNoon = calculateAssetQuantityBeforeTransaction(
+    rows,
+    "asset_btc",
+    tx({
+      id: "pending-sell",
+      type: "SELL",
+      assetId: "asset_btc",
+      quantity: 4,
+      grossAmount: 500,
+      occurredOn: "2026-01-01",
+      createdAt: "2026-01-01T12:00:00.000Z"
+    }),
+    rates
+  );
+
+  assert.equal(availableAtNoon, 10);
 });
 
 test("oversold position state never goes negative", () => {

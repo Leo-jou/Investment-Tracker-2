@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T14:50:00Z — Cycle 8 price freshness visibility slice accepted. Codex should continue with the next narrow MVP reliability batch: math/tooltip consistency, starting with historical SELL validation and simulated-history labeling outside Analysis. Keep avoiding AI/news/tax/fees polish until reliability is ready.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T14:51:26Z — Cycle 9 historical SELL validation slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing the remaining math/tooltip consistency work.
 
 ## Codex Automation Mode
 
@@ -45,9 +45,14 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- None. Dobby accepted Cycle 8 and handed the next reliability batch back to Codex.
-- Next preferred task: math/tooltip consistency. Start with historical SELL validation so backdated sells cannot pass based only on current holdings, then tighten simulated-history labeling anywhere outside Analysis where generated history/timeframe values still appear.
-- Keep changes narrow, user-scoped, and covered by tests where practical.
+- Cycle 9: historical SELL validation.
+- SELL create/edit validation now calculates available quantity at the sell date using the same transaction ordering as portfolio position math: occurred date, then created-at, then id.
+- Backdated sells can no longer pass merely because later BUY rows make the current holding sufficient.
+- Edited SELL rows exclude the existing transaction from the availability calculation while preserving its original created-at ordering.
+- CSV import commits inherit the same guard through `createTransactionForEmail`.
+- Focused tests cover backdated oversell availability and same-day created-at ordering.
+- Gates run by Codex: `npm test` passed 69/69, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
+- Still open after this slice: simulated-history labeling outside Analysis, historical snapshot recomputation semantics for backdated entries, and any remaining tooltip/formula mismatches.
 
 ## Dobby Findings
 

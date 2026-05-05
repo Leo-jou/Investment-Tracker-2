@@ -42,7 +42,7 @@ import type { BenchmarkReturn } from "@/lib/performance/risk";
 import { calculateTimeWeightedReturn } from "@/lib/performance/twr";
 import {
   buildPositionStates,
-  calculateAssetQuantity,
+  calculateAssetQuantityBeforeTransaction,
   calculateCashUsd,
   calculateExternalCashFlowEur,
   calculateNetContributionsUsd,
@@ -559,7 +559,12 @@ export async function createTransactionForEmail(email: string, input: FormData |
 
   if (parsed.type === "SELL") {
     if (!asset) throw new Error("Cannot sell an asset that is not in the local asset list.");
-    await assertSellQuantityAvailable(portfolio.id, asset.id, parsed.quantity ?? 0);
+    await assertSellQuantityAvailable(
+      portfolio.id,
+      asset.id,
+      parsed.quantity ?? 0,
+      parsed.occurredOn
+    );
   }
 
   await persistSubmittedQuote(asset, parsed.assetQuote);
@@ -624,6 +629,7 @@ export async function updateTransactionForEmail(
       portfolio.id,
       asset.id,
       parsed.quantity ?? 0,
+      parsed.occurredOn,
       transactionId
     );
   }
@@ -797,6 +803,7 @@ async function assertSellQuantityAvailable(
   portfolioId: string,
   assetId: string,
   requestedQuantity: number,
+  occurredOn: string,
   excludeTransactionId?: string
 ) {
   const rows = await getDb()
@@ -807,11 +814,28 @@ async function assertSellQuantityAvailable(
   const relevantRows = excludeTransactionId
     ? rows.filter((row) => row.id !== excludeTransactionId)
     : rows;
-  const availableQuantity = calculateAssetQuantity(relevantRows, assetId, rates);
+  const createdAt =
+    excludeTransactionId && rows.find((row) => row.id === excludeTransactionId)?.createdAt;
+  const availableQuantity = calculateAssetQuantityBeforeTransaction(
+    relevantRows,
+    assetId,
+    {
+      id: excludeTransactionId,
+      assetId,
+      type: "SELL",
+      occurredOn,
+      createdAt: createdAt ?? new Date(),
+      quantity: requestedQuantity,
+      grossAmount: 0,
+      currency: "USD",
+      fees: 0
+    },
+    rates
+  );
 
-  if (requestedQuantity > availableQuantity) {
+  if (requestedQuantity - availableQuantity > 1e-10) {
     throw new Error(
-      `Sell quantity exceeds current holding. Available quantity: ${availableQuantity.toFixed(8)}.`
+      `Sell quantity exceeds holding on ${occurredOn}. Available quantity on that date: ${availableQuantity.toFixed(8)}.`
     );
   }
 }

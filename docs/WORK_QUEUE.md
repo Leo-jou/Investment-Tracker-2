@@ -373,14 +373,27 @@ Verify formulas and UI labels for portfolio value, net contributions, realized/u
 Concrete next work:
 - Use raw persisted snapshots for overview value/timeframe cards, or label simulated analytics history wherever it is used outside the Analysis tab.
 - Revisit historical data entry behavior: mutations upsert today's snapshot only, so backdated transaction entry does not recompute historical snapshots.
-- Tighten SELL validation so it cannot pass based only on current total holdings when the sell date would oversell historically.
-- Fix quick-add's hardcoded default date before real data entry.
 - Remove fake allocation-table unrealized gains that are derived from row index rather than portfolio math.
 
 Cycle 2 partial result:
 
 - Fixed quick-add's hardcoded default date.
 - Removed the fake/estimated 24h movement values from user-visible tables and mover panels.
+
+Cycle 9 partial result:
+
+- SELL create/edit validation now checks available quantity at the submitted sell date instead of current/final holdings.
+- The availability check uses the same ordering as portfolio position math: occurred date, then created-at, then id.
+- Backdated sells cannot borrow from later BUY rows; same-day sells can use only earlier same-day rows by created-at ordering.
+- CSV import commits inherit the same guard because rows are saved through `createTransactionForEmail`.
+- Added focused portfolio-calculation tests for backdated SELL availability and same-day created-at ordering.
+
+Still open:
+
+- Label or avoid simulated analytics history wherever overview/timeframe UI outside Analysis could be mistaken for persisted history.
+- Decide/document historical snapshot recomputation semantics for backdated transaction edits.
+- Continue checking tooltips against implemented formulas.
+- Remove fake allocation-table unrealized gains that are derived from row index rather than portfolio math.
 
 ### [ ] P1: Good-enough desktop/mobile UI QA pass
 

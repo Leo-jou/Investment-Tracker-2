@@ -97,6 +97,7 @@ Generated refresh summary:
 - Pricing providers: 1 file
 
 Recent commits:
+- 931e8c7 2026-05-05 Review price freshness slice [skip ci]
 - 3a7c986 2026-05-05 Review price freshness slice [skip ci]
 - aed8a3e 2026-05-05 Record price freshness handoff
 - d38ccf4 2026-05-05 Surface price freshness states
@@ -104,7 +105,6 @@ Recent commits:
 - 24f06ce 2026-05-05 Record aggregate dashboard handoff
 - 86377c1 2026-05-05 Add all-portfolio aggregate dashboard
 - ce50c5b 2026-05-05 Review refresh guard cycle
-- 2ca810f 2026-05-05 Record refresh guard handoff
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -159,4 +159,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T14:48:19.530Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.
+2026-05-05T14:52:36.849Z - Refreshed generated context from 8 recent commits, 17 changed files, and 0 TODO/FIXME items.
