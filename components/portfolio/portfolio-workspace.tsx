@@ -30,6 +30,7 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
   const [currency, setCurrency] = useState<Currency>(() => readStoredDefaultCurrency() ?? "USD");
   const [activeTab, setActiveTab] = useState<PortfolioTab>("Overview");
   const [timeframe, setTimeframe] = useState<TimeframeKey>("ALL");
+  const overviewSnapshots = data.snapshots;
   const analyticsSnapshots = data.analyticsSnapshots;
   const isAggregate = data.portfolio.id === ALL_PORTFOLIOS_ID;
   const persistenceDisabledReason =
@@ -38,7 +39,7 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
     persistenceDisabledReason ??
     (isAggregate ? "Choose a specific portfolio before adding transactions or manual positions." : undefined);
   const newsHoldings = buildNewsHoldings(data);
-  const timeframeStats = calculateTimeframeStats(analyticsSnapshots, timeframe, currency);
+  const timeframeStats = calculateTimeframeStats(overviewSnapshots, timeframe, currency);
   const portfolioChecks = buildPortfolioChecks({
     positions: data.positions,
     assets: data.assets,
@@ -75,7 +76,7 @@ export function PortfolioWorkspace({ data }: { data: DashboardData }) {
 
       {activeTab === "Overview" && (
         <div className="space-y-20">
-          <PortfolioValueChart snapshots={analyticsSnapshots} currency={currency} timeframe={timeframe} />
+          <PortfolioValueChart snapshots={overviewSnapshots} currency={currency} timeframe={timeframe} />
           <DailyMovers />
           <AssetAllocationChart
             allocations={data.allocations}

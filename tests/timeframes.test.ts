@@ -43,6 +43,15 @@ test("sparse timeframe reports not enough data instead of fake zero", () => {
   assert.equal(stats.twr, null);
 });
 
+test("empty persisted history withholds all-time performance", () => {
+  const stats = calculateTimeframeStats([], "ALL", "USD");
+
+  assert.equal(stats.hasEnoughData, false);
+  assert.equal(stats.valueChange, null);
+  assert.equal(stats.twr, null);
+  assert.deepEqual(stats.snapshots, []);
+});
+
 const snapshots: PortfolioSnapshot[] = [
   {
     date: "2025-12-31",

@@ -456,9 +456,15 @@ Cycle 10 result:
 - CSV import commits inherit the stricter guard through `createTransactionForEmail`; focused tests cover sequential CSV-style rows that oversell downstream.
 - Added pure helper coverage for downstream oversell detection and fully covered timelines.
 
+Cycle 11 result:
+
+- Overview timeframe stats and the Portfolio change chart now use persisted portfolio snapshots only, not simulated analytics history.
+- Simulated `analyticsSnapshots` remain available only in the Analysis tab, where the UI already labels demo overlay history and demo benchmark data.
+- The TWR performance summary shows `Need data` instead of falling back to estimated all-time return when persisted snapshots are sparse.
+- Added focused timeframe coverage that empty persisted history withholds all-time performance instead of producing a fake value.
+
 Still open:
 
-- Label or avoid simulated analytics history wherever overview/timeframe UI outside Analysis could be mistaken for persisted history.
 - Decide/document historical snapshot recomputation semantics for backdated transaction edits.
 - Continue checking tooltips against implemented formulas.
 - Remove fake allocation-table unrealized gains that are derived from row index rather than portfolio math.

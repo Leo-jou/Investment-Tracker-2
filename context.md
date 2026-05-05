@@ -88,6 +88,8 @@ Price freshness is now visible where persisted prices are shown. Assets and Hold
 
 SELL validation now checks historical trade timelines before writes. Create/edit flows validate the candidate sell as of its transaction date and then simulate the full sorted asset timeline so a backdated sell cannot make a later sell historically impossible. CSV import commits inherit the same guard through transaction creation. Backdated entries still update today's snapshot only; historical snapshot recomputation remains an explicit open reliability item.
 
+Overview performance surfaces now avoid simulated analytics history. The Overview chart and timeframe summary cards use only persisted portfolio snapshots; if there are not enough snapshots, TWR shows `Need data` instead of falling back to an estimated return. Simulated analytics history remains isolated to the Analysis tab, where it is labeled as a demo overlay.
+
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
 - Documentation: 3 files
@@ -96,6 +98,7 @@ Generated refresh summary:
 - Tooling: 1 file
 
 Recent commits:
+- 9e95789 2026-05-05 Accept sell timeline validation [skip ci]
 - 04d9b5c 2026-05-05 Correct sell timeline handoff hash
 - 7e047c3 2026-05-05 Record sell timeline handoff
 - d53cd1e 2026-05-05 Validate full sell timeline
@@ -103,7 +106,6 @@ Recent commits:
 - ef516c9 2026-05-05 Correct sell validation handoff [skip ci]
 - a2ae7a5 2026-05-05 Review sell validation slice [skip ci]
 - 7434c96 2026-05-05 Skip Vercel for Dobby feedback commits [skip ci]
-- 0668237 2026-05-05 Validate sells by transaction date
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -158,4 +160,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T15:36:23.622Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.
+2026-05-05T15:47:15.312Z - Refreshed generated context from 8 recent commits, 8 changed files, and 0 TODO/FIXME items.

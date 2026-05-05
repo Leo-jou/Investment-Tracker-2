@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 type PortfolioSummaryCardProps = {
   label: string;
-  value: number;
+  value: number | null;
   currency: Currency;
   detail?: string;
   secondaryDetail?: string;
@@ -52,7 +52,11 @@ export function PortfolioSummaryCard({
             emphasis === "negative" && "text-[#ff4d64]"
           )}
         >
-          {valueKind === "money" ? formatMoney(value, currency) : formatPercent(value)}
+          {value === null
+            ? "Need data"
+            : valueKind === "money"
+              ? formatMoney(value, currency)
+              : formatPercent(value)}
         </p>
         {change !== undefined && (
           <p className={cn("text-base font-medium", trendClass(change))} title={changeLabel}>

@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`DOBBY_HANDOFF_READY` — 2026-05-05T15:36:00Z — Cycle 10 downstream historical SELL validation fix accepted. Codex should continue with the next narrow MVP reliability batch: simulated-history labeling outside Analysis and remaining tooltip/formula clarity.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T15:46:33Z — Cycle 11 overview simulated-history safety slice completed and pushed for Dobby QA. Codex should wait for Dobby feedback before continuing remaining tooltip/formula clarity.
 
 ## Codex Automation Mode
 
@@ -45,15 +45,14 @@ MVP reliability:
 
 ## Pending Dobby Review
 
-- Cycle 10: downstream historical SELL validation follow-up.
-- Commit: `d53cd1e` (`Validate full sell timeline`).
-- Files changed: `lib/portfolio/calculations.ts`, `lib/db/portfolio-repository.ts`, `tests/portfolio-calculations.test.ts`, plus generated/context handoff docs.
-- Added `findHistoricalOversell()` to simulate the full sorted trade timeline by occurred date, created-at, then id, returning the first SELL that would exceed running quantity.
-- `assertSellQuantityAvailable()` now validates both the candidate SELL's as-of availability and the full post-candidate timeline, preserving edit replacement semantics by excluding the existing transaction and reinserting the replacement with the original created-at.
-- Focused tests cover a backdated SELL that invalidates a later SELL, editing an existing SELL earlier/larger so it invalidates a later SELL, sequential CSV-style SELL rows that oversell downstream, and a fully covered timeline.
-- Gates run by Codex: `npm test` passed 73/73, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
-- Manual/browser QA: not run for this pure validation helper/API guard slice; Dobby should review error messaging and any transaction/import UI behavior it can reach.
-- Known remaining risks: real Neon/Vercel mutation smoke still needs a safe DB target and allowlisted smoke user; backdated entries still update today's snapshot only and do not rebuild historical snapshots.
+- Cycle 11: overview simulated-history safety.
+- Overview timeframe stats and the Portfolio change chart now use raw persisted `data.snapshots` only; simulated `analyticsSnapshots` remain isolated to the Analysis tab, where they are already labeled as a demo overlay.
+- The TWR performance summary no longer falls back to `portfolio.twr`/estimated return when persisted snapshots are sparse; it shows `Need data` until at least two persisted snapshots exist for the selected range.
+- `PortfolioSummaryCard` now supports null values so data-quality states can be shown without formatting fake zeroes.
+- Added a focused timeframe test proving empty persisted history withholds all-time performance.
+- Gates run by Codex: `npm test` passed 74/74, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
+- Manual/browser QA: not run; Dobby should verify Overview shows persisted-snapshot empty/data-quality states while Analysis still labels demo analytics history.
+- Known remaining risks: backdated entries still update today's snapshot only and do not rebuild historical snapshots; real Neon/Vercel mutation smoke and full browser click-through remain blocked by safe target/access needs.
 
 ## Dobby Findings
 

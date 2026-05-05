@@ -27,7 +27,7 @@ export function GlobalMetricsBar({ portfolio, currency, timeframeStats }: Global
       ? (portfolio.realizedGainEur ?? 0)
       : (portfolio.realizedGainUsd ?? convertFromEur(portfolio.realizedGainEur ?? 0));
   const periodValueChange = timeframeStats.valueChange;
-  const periodTwr = timeframeStats.twr ?? (timeframeStats.timeframe === "ALL" ? portfolio.twr : null);
+  const periodTwr = timeframeStats.twr;
 
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -71,7 +71,7 @@ export function GlobalMetricsBar({ portfolio, currency, timeframeStats }: Global
       />
       <PortfolioSummaryCard
         label="TWR performance"
-        value={periodTwr ?? portfolio.twr}
+        value={periodTwr}
         currency={currency}
         valueKind="percent"
         detail={
@@ -85,7 +85,7 @@ export function GlobalMetricsBar({ portfolio, currency, timeframeStats }: Global
           "External cash flows are removed from the return calculation.",
           "Sparse timeframes show a data-quality message instead of a fake value."
         ]}
-        emphasis={(periodTwr ?? portfolio.twr) >= 0 ? "positive" : "negative"}
+        emphasis={periodTwr === null ? "neutral" : periodTwr >= 0 ? "positive" : "negative"}
       />
     </div>
   );
