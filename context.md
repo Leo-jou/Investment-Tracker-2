@@ -46,7 +46,7 @@ Source is backed up in the private GitHub repository `Leo-jou/Investment-Tracker
 
 The OpenClaw playground has a separate Vercel preview deployment at `https://foliocore-6hqbdnwbq-leopoldjourdain-6225s-projects.vercel.app` (`dpl_EtdQTRPamoWTYiQzqPovnyYmBqfG`). Production remains `https://foliocore.vercel.app`; use preview deployments for agent testing instead of promoting experimental work. The preview deployment is currently behind Vercel Authentication, so external agent/browser testing needs an authenticated Vercel session, an approved share link, or a deliberate preview-protection change. Vercel rejected direct deployments from OpenClaw-authored commits because no Vercel/Git user was associated with the commit author; a no-code local commit by the Vercel-associated user fixed preview deployment without changing app code. Preview has a sensitive `AUTH_SECRET`, but no `DATABASE_URL`; the app now falls back to demo data when the database is absent so playground testing cannot mutate production data.
 
-Live-readiness check on 2026-05-05 found setup blockers rather than a narrow app-code blocker. Fresh preview deployment `dpl_ArTeAo3ter5cc6zGf3KSVaydNBrb` at `https://foliocore-8djhy7v8f-leopoldjourdain-6225s-projects.vercel.app` is `READY`, but Vercel Preview env only has `AUTH_SECRET`; it is missing `DATABASE_URL`, allowlist, Google auth, and provider keys. Production deployment `dpl_AjRB3PZPYT7GXdWHMi2sdNFXrZkF` at `https://foliocore.vercel.app` has production env and Google login configured, but is protected from Codex browser access and still points at `main` commit `f8040007381bbe35a2d7b4bcb7dfe66f485e546c`, not the latest reliability branch. Real mutation smoke remains blocked until Leo provides a safe allowlisted smoke email and safe database target, or explicitly approves using production.
+Live-readiness check on 2026-05-05 first found setup blockers rather than a narrow app-code blocker. Fresh preview deployment `dpl_ArTeAo3ter5cc6zGf3KSVaydNBrb` at `https://foliocore-8djhy7v8f-leopoldjourdain-6225s-projects.vercel.app` is `READY`, but Vercel Preview env only has `AUTH_SECRET`; it is missing `DATABASE_URL`, allowlist, Google auth, and provider keys. Leo then explicitly approved the needed live-readiness action, so Codex deployed `codex/openclaw-playground` directly to Vercel Production without merging `main`. Production deployment `dpl_9HbpRMTeCn2bS4KM2QRbdTqntfDq` is `READY` and aliased to `https://foliocore.vercel.app`. Project Deployment Protection may still require Leo to sign into Vercel in the browser or temporarily adjust protection. Real mutation smoke remains unrun by Codex because no separate safe smoke email/database target was provided.
 
 CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
 
@@ -103,14 +103,14 @@ Generated refresh summary:
 - Other: 4 files
 
 Recent commits:
+- 5832516 2026-05-05 Deploy live MVP [vercel deploy]
+- 3e421a0 2026-05-05 Document live setup blockers [skip ci]
 - cfe55a8 2026-05-05 Set Leo review handoff signal [skip ci]
 - 3a3cf43 2026-05-05 Deploy Leo review preview [deploy preview]
 - 0b417ec 2026-05-05 Mark investment tracker ready for Leo review [skip ci]
 - f3cabac 2026-05-05 Record math terminology handoff
 - 7323935 2026-05-05 Clarify portfolio math terminology
 - 8a23588 2026-05-05 Accept allocation PnL consistency [skip ci]
-- 25b0023 2026-05-05 Refresh allocation PnL context
-- 66eec69 2026-05-05 Record allocation PnL handoff
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -165,4 +165,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-05-05T19:06:31.168Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.
+2026-05-05T19:20:47.305Z - Refreshed generated context from 8 recent commits, 14 changed files, and 0 TODO/FIXME items.

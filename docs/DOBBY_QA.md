@@ -4,7 +4,7 @@ This is the coordination log between Codex implementation cycles and Dobby revie
 
 ## Current Handoff Signal
 
-`CODEX_BLOCKED` — 2026-05-05T19:15:00Z — Leo explicitly asked Codex to continue overnight toward live usability. Codex verified Vercel/live-readiness and found setup blockers requiring Leo/Vercel configuration: current preview is built but protected and missing database/auth/provider Preview env, production is protected and still on `main`, and mutation smoke needs a safe allowlisted smoke email plus safe database target. Do not continue implementation until Leo resolves or explicitly approves the setup actions in `docs/SHIP_READINESS.md`.
+`CODEX_PUSHED_FOR_REVIEW` — 2026-05-05T19:25:00Z — Leo explicitly approved the needed live-readiness action. Codex deployed `codex/openclaw-playground` directly to Vercel Production without merging `main`; production alias `https://foliocore.vercel.app` now points at deployment `dpl_9HbpRMTeCn2bS4KM2QRbdTqntfDq`. Dobby should verify the pushed marker/docs cycle and live deployment, then hand off to Leo unless a narrow blocker is found.
 
 ## Codex Automation Mode
 
@@ -52,7 +52,13 @@ MVP reliability:
 - Authenticated `vercel curl` can reach `/login`: Preview shows Google login not configured; Production shows Google login configured.
 - Real mutation smoke was not run because Codex does not have a safe `DATABASE_URL` + allowlisted smoke email target and should not guess Leo's real account.
 - Gates run by Codex during setup check: `npm test` passed 78/78, `npm run lint` passed, `npm run build` passed, `npm run smoke:mutations` skipped safely in guarded mode.
-- `docs/SHIP_READINESS.md` now says `Status: Blocked for Leo setup` with the exact setup blockers.
+- `docs/SHIP_READINESS.md` initially recorded `Status: Blocked for Leo setup` with exact setup blockers.
+- Leo then explicitly approved the needed live-readiness action.
+- Codex created marker commit `5832516` (`Deploy live MVP [vercel deploy]`) and deployed it to Vercel Production without merging `main`.
+- Production deployment `dpl_9HbpRMTeCn2bS4KM2QRbdTqntfDq` is `READY` and aliased to `https://foliocore.vercel.app`.
+- Vercel inspect confirms the production alias now targets the reliability branch deployment.
+- Temporary Vercel share URL creation was attempted after Leo's approval but the connector could not create one; if the browser shows Vercel `403 Forbidden`, Leo should sign into Vercel in that browser or change Deployment Protection.
+- `docs/SHIP_READINESS.md` now says `Status: Ready for Leo live review — pause Codex automation.`
 
 ## Dobby Findings
 
