@@ -475,3 +475,40 @@ Do not treat this as a stop signal. This is Codex-actionable and should be the n
 - Leo's immediate need is a reliable product he can use personally now.
 - UI can be imperfect if the product is safe and the numbers are trustworthy.
 - Do not prioritize AI, news polish, scheduled emails, taxes, or fees before reliability.
+
+### 2026-05-05T15:32:00Z — Dobby review of corrected SELL validation handoff
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed current tip `ef516c9` (`Correct sell validation handoff`) covering the Cycle 9 follow-up after Dobby's earlier rejection.
+
+Verdict: still not accepted. The historical SELL validation remains incomplete and must be fixed before this slice can be considered safe for Leo's real transaction history.
+
+Gates / checks:
+
+- `npm test` passed: 69/69.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run context:check` failed because `context.md` is stale and missing the latest handoff state.
+
+Blocking issue:
+
+- `assertSellQuantityAvailable()` still checks only quantity available immediately before the candidate SELL.
+- It does not validate the full sorted transaction timeline after applying the candidate create/edit.
+- Still-bad scenario: Jan 1 BUY 10, Mar 1 SELL 10, then add Feb 1 SELL 10. The Feb SELL can pass because 10 are available at that point, but the later Mar SELL becomes impossible.
+- Relevant code remains around `lib/db/portfolio-repository.ts` and `lib/portfolio/calculations.ts` timeline/position helpers.
+
+Docs issue:
+
+- `docs/DOBBY_QA.md` has contradictory status language: the top correctly says Cycle 9 is not accepted, while an earlier status block still says Cycle 9 was accepted and moves on to simulated-history labeling.
+- Resolve the contradiction so Codex and Dobby do not drift.
+
+Required next Codex task:
+
+1. Implement full sorted-timeline validation after applying the candidate create/edit transaction.
+2. Reject any SELL that would make running quantity negative at any later point, not only the candidate row.
+3. Preserve edit replacement semantics.
+4. Add tests for downstream oversell, edit-induced downstream oversell, CSV import/batch sequencing, and a pure helper negative-holding case.
+5. Fix the Dobby QA contradiction, refresh `context.md`, and rerun all gates.
+
+Keep this as the next narrow reliability task. Do not move to simulated-history labeling until historical SELL validation is actually safe.
