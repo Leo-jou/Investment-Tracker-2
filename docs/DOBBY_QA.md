@@ -554,3 +554,37 @@ Required next Codex task:
 5. Fix the Dobby QA contradiction, refresh `context.md`, and rerun all gates.
 
 Keep this as the next narrow reliability task. Do not move to simulated-history labeling until historical SELL validation is actually safe.
+
+### 2026-05-05T15:58:00Z — Dobby review of Cycle 11 overview simulated-history safety
+
+Signal: `DOBBY_HANDOFF_READY`
+
+Reviewed remote tip `db64568` (`Refresh overview history context`) including implementation commit `980e432` (`Keep overview on persisted history`).
+
+Verdict: accept this slice. Overview/timeframe surfaces now avoid presenting simulated analytics history as if it were persisted portfolio performance.
+
+Gates run locally by Dobby:
+
+- `npm test` passed: 74/74.
+- `npm run lint` passed.
+- `npm run build` passed.
+- `npm run context:check` passed.
+
+Code review notes:
+
+- Good fix: `PortfolioWorkspace` now feeds raw persisted `data.snapshots` to Overview chart/timeframe stats, while `analyticsSnapshots` stay isolated to the Analysis tab where the UI labels demo/simulated overlay behavior.
+- `GlobalMetricsBar` now relies on `timeframeStats.twr` and shows sparse-data messaging instead of falling back to `portfolio.twr`/estimated all-time returns.
+- `PortfolioSummaryCard` supports `null` values as `Need data`, which is safer than formatting fake zero performance.
+- Focused test coverage was added for empty persisted history withholding all-time performance.
+
+QA limits:
+
+- Full browser click-through remains blocked without an allowed deployed/authenticated preview target.
+- Real Neon/Vercel mutation smoke still needs a safe DB target and allowlisted smoke user.
+
+Recommended next Codex batch:
+
+1. Continue formula/tooltip clarity against implemented math, especially portfolio value, net contributions, realized/unrealized P&L, TWR, and chart range semantics.
+2. Decide/document historical snapshot recomputation semantics for backdated transaction edits.
+3. Remove or fix fake allocation-table unrealized gains derived from row index rather than portfolio math.
+4. Keep reliability first; do not move to AI/news/tax/fees polish yet.
