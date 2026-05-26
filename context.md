@@ -21,6 +21,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - For product review, analytics may use a clearly labeled demo overlay with simulated daily snapshots and benchmark returns when real history is too sparse. This overlay is display-only; backup/export data must continue to use real persisted snapshots.
 - Dashboard summaries and charts should use a shared timeframe model. Sparse ranges must show a data-quality state such as "Need data" instead of fabricated zeros or hardcoded period returns.
 - `BACKLOG.md` is the product backlog source of truth for roadmap planning, priorities, acceptance criteria, dependencies, and where user input is required. Backlog progress should be visible in-place with `[ ]`, `[~]`, `[x]`, and `[blocked]` labels, not only summarized at the bottom.
+- Production friend testing is temporarily in open-beta email mode: keep FolioCore login/session auth, but allow any valid email address through the app while `APP_ALLOWED_EMAILS=*`.
 
 ## Technical Decisions
 
@@ -30,19 +31,20 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 - Drizzle ORM with Neon Postgres for the database layer.
 - Mock-first services for asset search, prices, FX, snapshots, and portfolio metrics until DB-backed CRUD and providers are stable.
 - Google OAuth uses Auth.js/NextAuth when `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are configured; email allowlist login remains the fallback path.
+- `APP_ALLOWED_EMAILS` supports comma-separated emails for guarded beta and `*` for temporary open-beta access. Empty allowlist still allows email login but fail-closed callers such as Google OAuth and cron recipient checks remain closed.
 - `AGENTS.md` is the durable instruction file; this file is the concise project state summary.
 
 ## Current Implementation Status
 
 The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio components, API routes for assets, transactions, manual positions, item editing/deletion, price refresh, auth login, Drizzle schema/migration files, mock/demo data, metrics utilities, and provider-ready pricing seams.
 
-Production is deployed on Vercel at `https://foliocore.vercel.app`. Current production deployment `dpl_B1xagnJws6Tgh5myheKjjjCqKeVw` includes the export/reporting and demo analytics backfill batch.
+Production is deployed on Vercel at `https://foliocore.vercel.app`. Current production deployment `dpl_3jpoPaBpwNZm32rEFL4PRaAbcRXd` was deployed on 2026-05-26 from `main` and includes `APP_ALLOWED_EMAILS=*` support for open-beta email access.
 
 Source is backed up in the private GitHub repository `Leo-jou/Investment-Tracker-2`. `main` is the stable source-of-truth branch, `codex/safe-backup-2026-04-30` is a frozen recovery branch for the current beta-ready state, and `codex/openclaw-playground` is the branch reserved for OpenClaw/OpenCL agent experiments.
 
 The OpenClaw playground has a separate Vercel preview deployment at `https://foliocore-77y72sgcb-leopoldjourdain-6225s-projects.vercel.app` (`dpl_4TYXXNkfo6AUGPLYyrot94o25dB5`). Production remains `https://foliocore.vercel.app`; use preview deployments for agent testing instead of promoting experimental work. The preview deployment is currently behind Vercel Authentication, so external agent/browser testing needs an authenticated Vercel session, an approved share link, or a deliberate preview-protection change.
 
-CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Do not record or commit secret values.
+CoinGecko, Twelve Data, and Google OAuth credentials are configured as sensitive Vercel Production environment variables. `AUTH_URL` is configured for production Google OAuth. Production `APP_ALLOWED_EMAILS` is temporarily set to `*` so any valid email can sign in through the app; re-close it to a comma-separated allowlist after friend testing. Do not record or commit secret values.
 
 The local Vercel CLI is authenticated as `leopoldjourdain-6225`, so future production deploys can use `npx vercel build --prod` followed by `npx vercel deploy --prebuilt --prod --yes`. The Vercel MCP connector still did not list teams during the 2026-04-28 session, so CLI deploy is the reliable path for now.
 
@@ -62,7 +64,7 @@ Settings preferences are browser-persisted for now: default currency, manual-ref
 
 Portfolio math has focused tests for TWR cash-flow neutrality, cash/contribution separation, same-day trade ordering, edit-time sell quantity recalculation, provider price normalization, oversell-safe position state, external cash-flow scoping, realized P&L average-cost handling, unique platform tracking, timeframe stats, portfolio checks, portfolio export generation, demo analytics history, risk metrics, and digest generation. `npm run smoke:prod` runs a read-only production smoke test for login, protected-route redirects, API login, authenticated transactions JSON, and dashboard rendering. `SMOKE_REFRESH=1 npm run smoke:prod` also verifies the snapshot-writing price refresh endpoint. `SMOKE_QUOTE=1 npm run smoke:prod` verifies live quote lookup. `SMOKE_EXPORT=1 SMOKE_NEWS=1 SMOKE_DIGEST=1 npm run smoke:prod` verifies the read-only export/news/digest endpoints. On 2026-04-28, production smoke passed for deployment `dpl_B1xagnJws6Tgh5myheKjjjCqKeVw`: export/news/digest worked, quote matrix returned BTC, ETH, NVDA, SPY, and XAU/USD live quotes, `/dashboard` returned 200, `/api/news` returned 9 matched headlines, and targeted export smoke verified filtered JSON/CSV plus unfiltered backup JSON behavior.
 
-Readiness is documented in `docs/READINESS.md`. Current verdict: ready for a guarded beta with 1-3 trusted friends, not for broad public launch.
+Readiness is documented in `docs/READINESS.md`. Current verdict: usable for trusted friend testing, but not for broad public launch. Production is temporarily open to any valid email address for convenience during this test window.
 
 `BACKLOG.md` captures the roadmap with inline status labels. Export modal and branded report highlight improvements are marked shipped. Risk/readiness and benchmark history remain partial because the current ratios use a demo analytics overlay and demo composite benchmark rather than persisted real benchmark snapshots.
 
@@ -70,24 +72,23 @@ Still missing or likely incomplete: DB-backed settings persistence, production c
 
 <!-- context:auto:start:implementation-status -->
 Generated refresh summary:
-- Other: 23 files
-- UI components: 14 files
-- API routes: 5 files
-- Documentation: 4 files
-- App pages: 3 files
+- Other: 15 files
+- UI components: 8 files
+- API routes: 2 files
+- App pages: 2 files
 - Database: 1 file
+- Documentation: 1 file
 - Metrics: 1 file
-- Tooling: 1 file
 
 Recent commits:
+- f804000 2026-04-30 Merge pull request #2 from Leo-jou/revert-1-codex/openclaw-playground
+- 607d715 2026-04-30 Revert "Codex/openclaw playground"
+- d3b11fd 2026-04-30 Merge pull request #1 from Leo-jou/codex/openclaw-playground
+- 7a28c7f 2026-04-30 Add news source registry settings view
+- 20b59a8 2026-04-30 Add generic CSV transaction import
+- caa3c82 2026-04-30 Add risk readiness progress panel
 - d7745ff 2026-04-30 Ignore macOS metadata files
 - 654b2b9 2026-04-28 Ship export and demo analytics batch
-- f5ad571 2026-04-28 Clarify backlog progress tracking
-- fea08d6 2026-04-28 Ship first portfolio trust polish batch
-- 1545f6f 2026-04-28 Add product backlog
-- 6092036 2026-04-28 Improve portfolio news reports and readiness
-- 142b1dc 2026-04-27 Add trusted news and risk analytics
-- c23ce80 2026-04-27 Add portfolio exports and digest news
 <!-- context:auto:end:implementation-status -->
 
 ## Known Bugs / Issues
@@ -129,7 +130,8 @@ Generated TODO/FIXME scan:
 6. Add paired transfer support once multiple portfolios are available.
 7. Add benchmark snapshot storage and a composite benchmark provider so beta can move from demo analytics to real calculated output.
 8. For OpenClaw experiments, start from `codex/openclaw-playground` and keep `main` plus `codex/safe-backup-2026-04-30` protected as recovery references.
-9. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
+9. Re-close production `APP_ALLOWED_EMAILS` to a strict comma-separated allowlist after friend testing.
+10. Implement the next `BACKLOG.md` batch, likely import/dividend/fee workflows, DB-backed settings/email automation, news source registry, or real benchmark history.
 
 <!-- context:auto:start:next-steps -->
 Generated suggestions:
@@ -140,4 +142,4 @@ Generated suggestions:
 
 ## Last Updated
 
-2026-04-30T11:07:41.016Z - Refreshed generated context from 8 recent commits, 52 changed files, and 0 TODO/FIXME items.
+2026-05-26T19:26:20.661Z - Refreshed generated context and recorded temporary open-beta email access for production friend testing.

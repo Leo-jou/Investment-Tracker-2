@@ -12,6 +12,7 @@ export function isEmailAllowed(email: string, options: { failClosed?: boolean } 
     .map((value) => normalizeEmail(value))
     .filter(Boolean);
 
+  if (allowed.includes("*")) return true;
   if (allowed.length === 0) return !options.failClosed;
   return allowed.includes(normalizeEmail(email));
 }
