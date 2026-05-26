@@ -38,7 +38,7 @@ Build a self-hostable personal investment tracker MVP focused on fast manual inp
 
 The app includes a Next.js shell, portfolio dashboard pages, reusable portfolio components, API routes for assets, transactions, manual positions, item editing/deletion, price refresh, auth login, Drizzle schema/migration files, mock/demo data, metrics utilities, and provider-ready pricing seams.
 
-Production is deployed on Vercel at `https://foliocore.vercel.app`. Current production deployment `dpl_3jpoPaBpwNZm32rEFL4PRaAbcRXd` was deployed on 2026-05-26 from `main` and includes `APP_ALLOWED_EMAILS=*` support for open-beta email access.
+Production is deployed on Vercel at `https://foliocore.vercel.app`. The production deployment was verified on 2026-05-26 from `main` and includes `APP_ALLOWED_EMAILS=*` support for open-beta email access.
 
 Source is backed up in the private GitHub repository `Leo-jou/Investment-Tracker-2`. `main` is the stable source-of-truth branch, `codex/safe-backup-2026-04-30` is a frozen recovery branch for the current beta-ready state, and `codex/openclaw-playground` is the branch reserved for OpenClaw/OpenCL agent experiments.
 
